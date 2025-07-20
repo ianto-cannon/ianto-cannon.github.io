@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>Ianto Cannon – Curriculum Vitae</title>
+  <title>Ianto Cannon</title>
+  <link rel="icon" href="path2.svg" type="image/svg+xml">
   <style>
     body {
       font-family: Arial, sans-serif;
@@ -28,53 +29,235 @@
 <body>
   <h1>Ianto Cannon</h1>
 <img src="portrait.jpg" alt="Portrait of Ianto Cannon" width="200">
-  <h2>Research Interests</h2>
-  <p>Multiphase turbulence, droplet dynamics, surface tension driven flows, vortex structures, and discrete geometric mechanics.</p>
+  <p>I am a postdoctoral scholar at the University of Bremen in Germany. I use computer simulations to understand turbulent flows with droplets, particles, and polymers. Recently I have also been studying contact line motion in electrolysis.</p>
 
-  <h2>Education</h2>
+
+<h2>Click to add a bouncing ball</h2>
+<canvas id="canvas" width="600" height="400"></canvas>
+
+<script>
+const canvas = document.getElementById("canvas");
+const ctx = canvas.getContext("2d");
+
+const gravity = 0.3;
+const bounce = 1.0;
+const radius = 15;
+const balls = [];
+
+const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+const wallColor = prefersDark ? '#ccc' : '#000';
+
+function randomColor() {
+  const r = Math.floor(Math.random() * 200 + 30);
+  const g = Math.floor(Math.random() * 200 + 30);
+  const b = Math.floor(Math.random() * 200 + 30);
+  return `rgb(${r}, ${g}, ${b})`;
+}
+
+function createBall(x, y) {
+  return {
+    x,
+    y,
+    vx: (Math.random() - 0.5) * 6,
+    vy: (Math.random() - 0.5) * 6,
+    color: randomColor()
+  };
+}
+
+canvas.addEventListener("click", function(e) {
+  const rect = canvas.getBoundingClientRect();
+  const x = e.clientX - rect.left;
+  const y = e.clientY - rect.top;
+  balls.push(createBall(x, y));
+});
+
+function resolveCollision(ballA, ballB) {
+  const dx = ballB.x - ballA.x;
+  const dy = ballB.y - ballA.y;
+  const dist = Math.hypot(dx, dy);
+
+  if (dist === 0 || dist > 2 * radius) return;
+
+  // Unit normal and tangent vectors
+  const nx = dx / dist;
+  const ny = dy / dist;
+
+  const tx = -ny;
+  const ty = nx;
+
+  // Dot product tangential
+  const dpTanA = ballA.vx * tx + ballA.vy * ty;
+  const dpTanB = ballB.vx * tx + ballB.vy * ty;
+
+  // Dot product normal
+  const dpNormA = ballA.vx * nx + ballA.vy * ny;
+  const dpNormB = ballB.vx * nx + ballB.vy * ny;
+
+  // Elastic collision (equal mass)
+  const mA = dpNormB;
+  const mB = dpNormA;
+
+  ballA.vx = tx * dpTanA + nx * mA;
+  ballA.vy = ty * dpTanA + ny * mA;
+  ballB.vx = tx * dpTanB + nx * mB;
+  ballB.vy = ty * dpTanB + ny * mB;
+
+  // Push them apart to avoid overlap
+  const overlap = 2 * radius - dist;
+  ballA.x -= nx * overlap / 2;
+  ballA.y -= ny * overlap / 2;
+  ballB.x += nx * overlap / 2;
+  ballB.y += ny * overlap / 2;
+}
+
+function drawWalls() {
+  ctx.strokeStyle = wallColor;
+  ctx.lineWidth = 2;
+  ctx.strokeRect(0, 0, canvas.width, canvas.height);
+}
+
+function draw() {
+  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  drawWalls();
+
+  for (let i = 0; i < balls.length; i++) {
+    const ball = balls[i];
+
+    // Draw ball
+    ctx.beginPath();
+    ctx.arc(ball.x, ball.y, radius, 0, Math.PI * 2);
+    ctx.fillStyle = ball.color;
+    ctx.fill();
+    ctx.closePath();
+
+    // Apply gravity and movement
+    ball.x += ball.vx;
+    ball.vy += .5*gravity;
+    ball.y += .5*ball.vy;
+    ball.vy += .5*gravity;
+    ball.y += .5*ball.vy;
+
+    // Wall collisions
+    if (ball.y + radius > canvas.height) {
+      ball.y = canvas.height - radius;
+      ball.vy *= -bounce;
+    }
+    if (ball.y - radius < 0) {
+      ball.y = radius;
+      ball.vy *= -bounce;
+    }
+    if (ball.x - radius < 0) {
+      ball.x = radius;
+      ball.vx *= -bounce;
+    }
+    if (ball.x + radius > canvas.width) {
+      ball.x = canvas.width - radius;
+      ball.vx *= -bounce;
+    }
+
+    // Check collisions with other balls
+    for (let j = i + 1; j < balls.length; j++) {
+      resolveCollision(balls[i], balls[j]);
+    }
+  }
+
+  requestAnimationFrame(draw);
+}
+
+draw();
+</script>
+
+<h2>Education</h2>
   <ul>
-    <li><strong>PhD, Physics</strong> – Okinawa Institute of Science and Technology, Japan, 2023</li>
-    <li><strong>MPhys, Physics</strong> – University of Oxford, UK, 2018</li>
+    <li><strong>2023 - PhD</strong> at Okinawa Institute of Science and Technology, Japan.
+    Supervised by  <a href="https://www.oist.jp/research/research-units/cffu/members/marco-edoardo-rosti">Marco E. Rosti</a>.<br>
+    Thesis - <a href="https://oist.repo.nii.ac.jp/records/2000284"><em>Simulations of Multiphase Turbulent Flows</em></a>.</li>
+    <li><strong>2017 - Master's</strong> in Physics at Cambridge University, UK. Supervised by <a href="https://www.bas.ac.uk/profile/nmer/">Nigel Meredith</a>.<br>
+    Thesis - <a href="chorus.pdf"><em>Chorus waves in the Van Allen belts during violent geomagnetic storms</em></a>
+    </li>
+    <li><strong>2016 - Bachelor's</strong> in Physics at Cambridge University. 
   </ul>
 
   <h2>Experience</h2>
   <ul>
-    <li><strong>Postdoctoral Fellow</strong> – Zentrum für angewandte Raumfahrttechnologie und Mikrogravitation (ZARM), Bremen, Germany</li>
-    <li><strong>Visiting Researcher</strong> – Chalmers University of Technology, Sweden (2023)</li>
-    <li><strong>Visiting Researcher</strong> – Laboratoire de Physique de l'École Normale Supérieure (LPENS), Paris (2019)</li>
+    <li><strong>Sep 2024 to now - Research associate</em></strong> at Zentrum für angewandte Raumfahrttechnologie und Mikrogravitation (ZARM), University of Bremen, Germany. Mentored by <a href="https://www.zarm.uni-bremen.de/en/about-us/prof-dr-marc-avila">Marc Avila</a>.</li>
+    <li><strong>Dec 2023 to Jun 2024 - Junior research fellow</strong> at Okinawa Institute of Science and Technology, Japan.</li>
+    <li><strong>Dec 2017 to Aug 2018 - Computational physicist</strong> at <a href="https://photond.com/">Photon Design</a>, Oxford, UK.</li>
+    <li><strong>Jul to Aug 2016 - Space weather intern</strong> at <a href="https://www.bas.ac.uk/">British Antarctic Survey</a>, Cambridge, UK.</li>
+    <li><strong>Jul to Aug 2015 - Amgen scholarship</strong> at Kyoto University, Japan. Supervised by <a href="http://theochem.kuchem.kyoto-u.ac.jp/tanimura/default.htm">Yoshitaka Tanimura</a>.</li>
   </ul>
+
+  <h2>Awards</h2>
+  <ul>
+    <li>Jul 2025 - 10 million core hours at the </em>Erlangen national high performace computing center</em> for the project <a href="https://hpc.fau.de/about-us/nhr-compute-time-projects/#DCBT">droplet coalescence and breakup in turbulence</a>.</li>
+    <li>May 2025 - <a href="https://www.humboldt-foundation.de/en/">Alexander von Humboldt Foundation</a> two year research Fellowship</li>
+    <li>Jul 2017 - <a href="https://www.chu.cam.ac.uk/">Churchill College</a> scholarship for achieving first class honours in the Cambridge University tripos exams.</em>
+  </ul>
+ 
 
   <h2>Publications</h2>
   <ul>
-    <li>I. Cannon and M. Rosti, "Morphology of turbulent droplet clouds", <em>Journal of Fluid Mechanics</em> (2023)</li>
-    <li>I. Cannon, "Direct numerical simulations of bubble interfaces in turbulence", PhD Thesis, OIST (2023)</li>
+    <li>
+      Cannon, I., Olivieri, S., and Rosti, M. E. (2024). 
+      <i>Spheres and Fibers in Turbulent Flows at Various Reynolds Numbers.</i> 
+      <em>Physical Review Fluids</em> 9, 064301. 
+      <a href="https://doi.org/10.1103/PhysRevFluids.9.064301">DOI</a> 
+      <a href="https://arxiv.org/abs/2310.07986">arXiv</a>
+    </li>
+    <li>
+      Cannon, I., Soligo, G., and Rosti, M. E. (2024). 
+      <i>Morphology of Clean and Surfactant-Laden Droplets in Homogeneous Isotropic Turbulence.</i> 
+      <em>Journal of Fluid Mechanics</em> 987, A31.
+      <a href="https://doi.org/10.1017/jfm.2024.380">DOI</a> 
+      <a href="https://arxiv.org/abs/2307.15448">arXiv</a>
+    </li>
+    <li>
+      Chiarini, A., Cannon, I., and Rosti, M. E. (2024). 
+      <i>Anisotropic Mean Flow Enhancement and Anomalous Transport of Finite-Size Spherical Particles in Turbulent Flows.</i> 
+      <em>Physical Review Letters</em> 132, 054005.
+      <a href="https://doi.org/10.48550/arXiv.2310.08777">DOI</a> 
+      <a href="https://arxiv.org/abs/2310.08777">arXiv</a>
+    </li>
+    <li>
+      Abdelgawad<sup>*</sup>, M. S., Cannon<sup>*</sup>, I., and Rosti, M. E. (2023). 
+      <i>Scaling and Intermittency in Turbulent Flows of Elastoviscoplastic Fluids.</i> 
+      <em>Nature Physics</em> 19, 1059–1063.
+      <a href="https://doi.org/10.1038/s41567-023-02018-2">DOI</a>
+      <a href="https://arxiv.org/abs/2212.07581">arXiv</a>
+    </li>
+    <li>
+      Olivieri, S., Cannon, I., and Rosti, M. E. (2022). 
+      <i>The Effect of Particle Anisotropy on the Modulation of Turbulent Flows.</i> 
+      <em>Journal of Fluid Mechanics Rapids</em> 950, R2.
+      <a href="https://doi.org/10.1017/jfm.2022.832">DOI</a> 
+      <a href="https://arxiv.org/abs/2209.14497">arXiv</a>
+    </li>
+    <li>
+      Cannon, I., Izbassarov, D., Tammisola, O., Brandt, L., and Rosti, M. E. (2021). 
+      <i>The Effect of Droplet Coalescence on Drag in Turbulent Channel Flows.</i> 
+      <em>Physics of Fluids</em> 33, 085112.
+      <a href="https://doi.org/10.1063/5.0058632">DOI</a> 
+      <a href="https://arxiv.org/abs/2106.01647">arXiv</a>
+    </li>
   </ul>
 
-  <h2>Talks & Posters</h2>
-  <ul>
-    <li>"Morphology of turbulent droplet clouds", APS-DFD 2023, Washington DC</li>
-    <li>"Interface geometry in multiphase turbulence", APS-DFD 2022, Indianapolis</li>
-    <li>"Capillary structures in multiphase turbulence", Euromech 2023, Nice</li>
-  </ul>
+  <p><sup>*</sup>These authors contributed equally.</p>
 
-  <h2>Skills</h2>
-  <ul>
-    <li>Languages: Python, C++, LaTeX, HTML</li>
-    <li>Tools: Git, Linux, ParaView, OpenFOAM</li>
-    <li>Methods: Direct numerical simulation, spectral methods, turbulence modeling</li>
-  </ul>
+  <p>
+    Reviewer for <a href="https://www.cambridge.org/core/journals/journal-of-fluid-mechanics">Journal of Fluid Mechanics</a>, <a href="https://pubs.aip.org/aip/pof">Physics of Fluids</a>, and <a href="https://www.sciencedirect.com/journal/european-journal-of-mechanics-b-fluids">European Journal of Mechanics - B/Fluids</em>.
+  </p>
 
-  <h2>Languages</h2>
-  <ul>
-    <li>English (native), Japanese (advanced), German (intermediate)</li>
-  </ul>
+  <p>
+    <a href="https://scholar.google.com/citations?user=DRcN_mAAAAAJ&hl=en" target="_blank">
+      Google Scholar Profile
+    </a><br>
+    <a href="https://orcid.org/0000-0002-1676-9338" target="_blank">
+      ORCID: 0000-0002-1676-9338
+    </a>
+  </p>
 
-  <h2>References</h2>
-  <p>Available upon request.</p>
-  <p>Email: ianto [dot] cannon [at] zarm [dot] uni-bremen [dot] de</p>
-  <p>📧 <a href="mailto:ianto.cannon@zarm.uni-bremen.de">Send me an e-letter</a></p>
-<p><strong>[e-mail]~></strong> <a href="mailto:ianto.cannon@zarm.uni-bremen.de">ianto.cannon@zarm.uni-bremen.de</a></p>
-<p>&#9993; <a href="mailto:ianto.cannon@zarm.uni-bremen.de">ianto.cannon@zarm.uni-bremen.de</a></p>
+  <p>&#9993; ianto [dot] cannon [at] zarm [dot] uni [dash] bremen [dot] de</p>
+  <p>© Ianto Cannon 2025</p>
 
 </body>
 </html>
