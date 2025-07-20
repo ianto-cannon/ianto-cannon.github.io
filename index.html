@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <title>Ianto Cannon</title>
-  <link rel="icon" href="path2.svg" type="image/svg+xml">
+  <link rel="icon" href="vortDark.svg" media="(prefers-color-scheme: light)" type="image/svg+xml">
+  <link rel="icon" href="vortLight.svg" media="(prefers-color-scheme: dark)" type="image/svg+xml">
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: Verdana;
       margin: 40px;
       background-color: white;
       color: black;
@@ -43,9 +44,6 @@ const gravity = 0.3;
 const bounce = 1.0;
 const radius = 15;
 const balls = [];
-
-const prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-const wallColor = prefersDark ? '#ccc' : '#000';
 
 function randomColor() {
   const r = Math.floor(Math.random() * 200 + 30);
@@ -111,7 +109,7 @@ function resolveCollision(ballA, ballB) {
 }
 
 function drawWalls() {
-  ctx.strokeStyle = wallColor;
+  ctx.strokeStyle = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ccc' : '#000';
   ctx.lineWidth = 2;
   ctx.strokeRect(0, 0, canvas.width, canvas.height);
 }
@@ -200,54 +198,48 @@ draw();
     <li>
       Cannon, I., Olivieri, S., and Rosti, M. E. (2024). 
       <i>Spheres and Fibers in Turbulent Flows at Various Reynolds Numbers.</i> 
-      <em>Physical Review Fluids</em> 9, 064301. 
+      <strong>Physical Review Fluids</strong> 9, 064301. 
       <a href="https://doi.org/10.1103/PhysRevFluids.9.064301">DOI</a> 
       <a href="https://arxiv.org/abs/2310.07986">arXiv</a>
     </li>
     <li>
       Cannon, I., Soligo, G., and Rosti, M. E. (2024). 
       <i>Morphology of Clean and Surfactant-Laden Droplets in Homogeneous Isotropic Turbulence.</i> 
-      <em>Journal of Fluid Mechanics</em> 987, A31.
+      <strong>Journal of Fluid Mechanics</strong> 987, A31.
       <a href="https://doi.org/10.1017/jfm.2024.380">DOI</a> 
       <a href="https://arxiv.org/abs/2307.15448">arXiv</a>
     </li>
     <li>
       Chiarini, A., Cannon, I., and Rosti, M. E. (2024). 
       <i>Anisotropic Mean Flow Enhancement and Anomalous Transport of Finite-Size Spherical Particles in Turbulent Flows.</i> 
-      <em>Physical Review Letters</em> 132, 054005.
+      <strong>Physical Review Letters</strong> 132, 054005.
       <a href="https://doi.org/10.48550/arXiv.2310.08777">DOI</a> 
       <a href="https://arxiv.org/abs/2310.08777">arXiv</a>
     </li>
     <li>
       Abdelgawad<sup>*</sup>, M. S., Cannon<sup>*</sup>, I., and Rosti, M. E. (2023). 
       <i>Scaling and Intermittency in Turbulent Flows of Elastoviscoplastic Fluids.</i> 
-      <em>Nature Physics</em> 19, 1059–1063.
+      <strong>Nature Physics</strong> 19, 1059–1063.
       <a href="https://doi.org/10.1038/s41567-023-02018-2">DOI</a>
       <a href="https://arxiv.org/abs/2212.07581">arXiv</a>
     </li>
     <li>
       Olivieri, S., Cannon, I., and Rosti, M. E. (2022). 
       <i>The Effect of Particle Anisotropy on the Modulation of Turbulent Flows.</i> 
-      <em>Journal of Fluid Mechanics Rapids</em> 950, R2.
+      <strong>Journal of Fluid Mechanics Rapids</strong> 950, R2.
       <a href="https://doi.org/10.1017/jfm.2022.832">DOI</a> 
       <a href="https://arxiv.org/abs/2209.14497">arXiv</a>
     </li>
     <li>
       Cannon, I., Izbassarov, D., Tammisola, O., Brandt, L., and Rosti, M. E. (2021). 
       <i>The Effect of Droplet Coalescence on Drag in Turbulent Channel Flows.</i> 
-      <em>Physics of Fluids</em> 33, 085112.
+      <strong>Physics of Fluids</strong> 33, 085112.
       <a href="https://doi.org/10.1063/5.0058632">DOI</a> 
       <a href="https://arxiv.org/abs/2106.01647">arXiv</a>
     </li>
   </ul>
-
-  <p><sup>*</sup>These authors contributed equally.</p>
-
-  <p>
-    Reviewer for <a href="https://www.cambridge.org/core/journals/journal-of-fluid-mechanics">Journal of Fluid Mechanics</a>, <a href="https://pubs.aip.org/aip/pof">Physics of Fluids</a>, and <a href="https://www.sciencedirect.com/journal/european-journal-of-mechanics-b-fluids">European Journal of Mechanics - B/Fluids</em>.
-  </p>
-
-  <p>
+  <p><sup>*</sup>These authors contributed equally.<br>
+    Reviewer for <a href="https://www.cambridge.org/core/journals/journal-of-fluid-mechanics">Journal of Fluid Mechanics</a>, <a href="https://pubs.aip.org/aip/pof">Physics of Fluids</a>, and <a href="https://www.sciencedirect.com/journal/european-journal-of-mechanics-b-fluids">European Journal of Mechanics - B/Fluids</em>.<br>
     <a href="https://scholar.google.com/citations?user=DRcN_mAAAAAJ&hl=en" target="_blank">
       Google Scholar Profile
     </a><br>
