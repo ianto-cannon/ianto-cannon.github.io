@@ -42,7 +42,8 @@ const canvas = document.getElementById("canvas");
 const ctx = canvas.getContext("2d");
 
 const gravity = 0.3;
-const bounce = 1.0;
+const bounce = .99;
+const restitution = 1.0;
 const radius = 15;
 const balls = [];
 
@@ -77,10 +78,17 @@ function resolveCollision(ballA, ballB) {
 
   if (dist === 0 || dist > 2 * radius) return;
 
-  // Unit normal and tangent vectors
+  // Unit normal vectors
   const nx = dx / dist;
   const ny = dy / dist;
 
+  // Dot product normal
+  const dpNormA = ballA.vx * nx + ballA.vy * ny;
+  const dpNormB = ballB.vx * nx + ballB.vy * ny;
+  
+  if (dpNormB >= dpNormA) return;
+
+  // Unit tangent vectors
   const tx = -ny;
   const ty = nx;
 
@@ -88,13 +96,9 @@ function resolveCollision(ballA, ballB) {
   const dpTanA = ballA.vx * tx + ballA.vy * ty;
   const dpTanB = ballB.vx * tx + ballB.vy * ty;
 
-  // Dot product normal
-  const dpNormA = ballA.vx * nx + ballA.vy * ny;
-  const dpNormB = ballB.vx * nx + ballB.vy * ny;
-
   // Elastic collision (equal mass)
-  const mA = bounce * dpNormB;
-  const mB = bounce * dpNormA;
+  const mA = restitution * dpNormB;
+  const mB = restitution * dpNormA;
 
   ballA.vx = tx * dpTanA + nx * mA;
   ballA.vy = ty * dpTanA + ny * mA;
@@ -137,19 +141,19 @@ function draw() {
     ball.y += .5*ball.vy;
 
     // Wall collisions
-    if (ball.y + radius > canvas.height) {
+    if (ball.y + radius > canvas.height && ball.vy > 0) {
       ball.y = canvas.height - radius;
       ball.vy *= -bounce;
     }
-    if (ball.y - radius < 0) {
+    if (ball.y - radius < 0 && ball.vy < 0) {
       ball.y = radius;
       ball.vy *= -bounce;
     }
-    if (ball.x - radius < 0) {
+    if (ball.x - radius < 0 && ball.vx < 0) {
       ball.x = radius;
       ball.vx *= -bounce;
     }
-    if (ball.x + radius > canvas.width) {
+    if (ball.x + radius > canvas.width && ball.vx > 0) {
       ball.x = canvas.width - radius;
       ball.vx *= -bounce;
     }
