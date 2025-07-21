@@ -2,8 +2,14 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="description" content="Ianto Cannon – Postdoctoral researcher in fluid mechanics, multiphase turbulence, and numerical simulations.">
+  <meta property="og:title" content="Ianto Cannon">
+  <meta property="og:description" content="Postdoctoral researcher in fluid mechanics.">
+  <meta property="og:image" content="portrait.jpg">
+  <meta property="og:type" content="website">
   <title>Ianto Cannon</title>
-  <link rel="icon" href="vortMid.svg" type="image/svg+xml">
+  <link rel="icon" href="vortMid.svg" type="image/svg+xml" />
   <style>
     body {
       font-family: Verdana;
@@ -12,10 +18,10 @@
     }
     @media (prefers-color-scheme: dark) {
       body {
-        background-color: #121212;
-        color: #f0f0f0;
+        background-color: black;
+        color: white;
       }
-      a { color: #80cbc4; }
+      a { color: #90e8df; }
     }
     h1, h2, h3 {
       margin-bottom: 0.2em;
@@ -29,12 +35,40 @@
 </head>
 <body>
   <h1>Ianto Cannon</h1>
-<img src="portrait.jpg" alt="Portrait of Ianto Cannon" width="200" loading="lazy">
+
+<style>
+  .portrait-box {
+    width: 240px;
+    height: 300px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+    border: 1px solid;  
+  }
+
+  @media (prefers-color-scheme: dark) {
+  .portrait-box {
+    border-color: white; 
+  }}
+  
+  .portrait-box img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+  }
+</style>
+
+<div class="portrait-box">
+  <img src="portrait.jpg" alt="Portrait of Ianto Cannon" loading="lazy">
+</div>
+
   <p>I am a postdoctoral scholar at the University of Bremen in Germany. I use computer simulations to understand turbulent flows with droplets, particles, and polymers. Recently I have also been studying contact line motion in electrolysis.</p>
 
 
 <h2>Click to add a bouncing ball</h2>
-<canvas id="canvas" width="600" height="400"></canvas>
+<canvas id="canvas" width="600" height="400" tabindex="0" aria-label="Bouncing ball canvas. Click to add a ball."></canvas>
 
 <script>
 const canvas = document.getElementById("canvas");
@@ -68,6 +102,12 @@ canvas.addEventListener("click", function(e) {
   const x = e.clientX - rect.left;
   const y = e.clientY - rect.top;
   balls.push(createBall(x, y));
+});
+
+document.addEventListener("keydown", function(e) {
+  if (e.key === "Enter") {
+    balls.push(createBall(canvas.width / 2, canvas.height / 2));
+  }
 });
 
 function resolveCollision(ballA, ballB) {
@@ -171,30 +211,30 @@ draw();
 
 <h2>Education</h2>
   <ul>
-    <li>2023 - <strong>PhD</strong> at Okinawa Institute of Science and Technology, Japan.
+    <li>2023 - PhD at Okinawa Institute of Science and Technology, Japan.
     Supervised by  <a href="https://www.oist.jp/research/research-units/cffu/members/marco-edoardo-rosti">Marco E. Rosti</a>.<br>
-    Thesis - <a href="https://oist.repo.nii.ac.jp/records/2000284"><em>Simulations of Multiphase Turbulent Flows</em></a>.</li>
-    <li>2017 - <strong>Master's</strong> in Physics at Cambridge University, UK. Supervised by <a href="https://www.bas.ac.uk/profile/nmer/">Nigel Meredith</a>.<br>
-    Thesis - <a href="chorus.pdf"><em>Chorus waves in the Van Allen belts during violent geomagnetic storms</em></a>
+    Thesis - <a href="https://oist.repo.nii.ac.jp/records/2000284">Simulations of Multiphase Turbulent Flows</a>.</li>
+    <li>2017 - Master's in Physics at Cambridge University, UK. Supervised by <a href="https://www.bas.ac.uk/profile/nmer/">Nigel Meredith</a>.<br>
+    Thesis - <a href="chorus.pdf">Chorus waves in the Van Allen belts during violent geomagnetic storms</a>
     </li>
-    <li>2016 - <strong>Bachelor's</strong> in Physics at Cambridge University. 
+    <li>2016 - Bachelor's in Physics at Cambridge University. 
   </ul>
 
   <h2>Experience</h2>
   <ul>
-    <li>2024 Sep to present - <strong>Research associate</em></strong> at Zentrum für angewandte Raumfahrttechnologie und Mikrogravitation (ZARM), University of Bremen, Germany. Mentored by <a href="https://www.zarm.uni-bremen.de/en/about-us/prof-dr-marc-avila">Marc Avila</a>.</li>
+    <li>2024 Sep to present - Research associate at Zentrum für angewandte Raumfahrttechnologie und Mikrogravitation (ZARM), University of Bremen, Germany. Mentored by <a href="https://www.zarm.uni-bremen.de/en/about-us/prof-dr-marc-avila">Marc Avila</a>.</li>
     <li>2025 Jun - <a href="https://torroja.dmt.upm.es/summer25/Summer-2025.pdf">Sixth Madrid turbulence workshop</a> at Universidad Politecnica de Madrid, Spain.</li>
 
-    <li>2023 Dec to 2024 Jun - <strong>Junior research fellow</strong> at Okinawa Institute of Science and Technology, Japan.</li>
-    <li>2017 Dec to 2018 Aug - <strong>Computational physicist</strong> at <a href="https://photond.com/">Photon Design</a>, Oxford, UK.</li>
-    <li>2016 Jul to Aug - <strong>Space weather intern</strong> at <a href="https://www.bas.ac.uk/">British Antarctic Survey</a>, Cambridge, UK.</li>
+    <li>2023 Dec to 2024 Jun - Junior research fellow at Okinawa Institute of Science and Technology, Japan.</li>
+    <li>2017 Dec to 2018 Aug - Computational physicist at <a href="https://photond.com/">Photon Design</a>, Oxford, UK.</li>
+    <li>2016 Jul to Aug - Space weather intern at <a href="https://www.bas.ac.uk/">British Antarctic Survey</a>, Cambridge, UK.</li>
   </ul>
 
   <h2>Awards</h2>
   <ul>
-    <li>2025 Jul - <a href="https://hpc.fau.de/about-us/nhr-compute-time-projects/#DCBT">10 million core hours</a> at the Erlangen national high performace computing center.</li>
+    <li>2025 Jul - <a href="https://hpc.fau.de/about-us/nhr-compute-time-projects/#DCBT">10 million core hours</a> at the Erlangen national high performance computing center.</li>
     <li>2025 May - <a href="https://www.humboldt-foundation.de/en/connect/explore-the-humboldt-network/singleview/1245771/dr-ianto-cannon">Two year postdoctoral research fellowship</a> with the Alexander von Humboldt Foundation.</li>
-    <li>2017 Jul - <a href="https://www.chu.cam.ac.uk/">Churchill College</a> scholarship for achieving first class honours in the Cambridge University tripos exams.</em>
+    <li>2017 Jul - <a href="https://www.chu.cam.ac.uk/">Churchill College</a> scholarship for achieving first class honours in the Cambridge University tripos exams.
     <li>2015 Jul to Aug - <a href="https://www.opir.kyoto-u.ac.jp/study/en/curriculum/amgenscholars/">Amgen scholarship</a> at Kyoto University, Japan. Supervised by <a href="http://theochem.kuchem.kyoto-u.ac.jp/tanimura/default.htm">Yoshitaka Tanimura</a>.</li>
   </ul>
  
