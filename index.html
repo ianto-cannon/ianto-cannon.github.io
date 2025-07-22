@@ -2,14 +2,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <meta name="description" content="Ianto Cannon – Postdoctoral researcher in fluid mechanics, multiphase turbulence, and numerical simulations.">
-  <meta property="og:title" content="Ianto Cannon">
+  <meta name="description" content="Ianto Cannon's home page – postdoctoral researcher in fluid mechanics, multiphase turbulence, and numerical simulations.">
+  <meta property="og:title" content="Ianto Cannon's home page">
   <meta property="og:description" content="Postdoctoral researcher in fluid mechanics.">
   <meta property="og:image" content="portrait.jpg">
   <meta property="og:type" content="website">
   <meta name="google-site-verification" content="_iIVsemevqGBVi3MjkNqAnh7humYGkYr_GKAR8OyGEw" />
   <title>Ianto Cannon</title>
   <link rel="icon" href="vortMid.svg" type="image/svg+xml" />
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
   <style>
     body {
       font-family: Verdana;
@@ -22,6 +23,7 @@
         color: white;
       }
       a { color: #90e8df; }
+      a:visited{ color: #aed5fc; }
     }
     h1, h2, h3 {
       margin-bottom: 0.2em;
@@ -67,7 +69,8 @@
   <p>I am a postdoctoral scholar at the University of Bremen in Germany. I use computer simulations to understand turbulent flows with droplets, particles, and polymers. Recently I have also been studying contact line motion in electrolysis.</p>
 
 
-<h2>Click to add a bouncy ball</h2>
+<h2 id="ball-heading">Click to add a bouncy ball</h2>
+
 <canvas id="canvas" width="600" height="400" tabindex="0" aria-label="Bouncing ball canvas. Click to add a ball."></canvas>
 
 <script>
@@ -80,11 +83,73 @@ const restitution = 1.0;
 const radius = 15;
 const balls = [];
 
-function randomColor() {
+const heading = document.getElementById("ball-heading");
+const now = new Date();
+const month = now.getMonth(); // 0 = Jan, 11 = Dec
+const date = now.getDate();
+
+function anyColor() {
   const r = Math.floor(Math.random() * 200 + 30);
   const g = Math.floor(Math.random() * 200 + 30);
   const b = Math.floor(Math.random() * 200 + 30);
   return `rgb(${r}, ${g}, ${b})`;
+}
+
+function halloweenColor() {
+  return "#ff7518"
+}
+
+function christmasColor() {
+  const colors = ["#ff0000", "#008000"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function newYearColor() {
+  const colors = ["#ffdd00", "#add8e6", "#800080"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function valentinesColor() {
+  const colors = ["#ff1493", "#db7093"];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function prideColor() {
+  const colors = ['#e40303', '#ff8c00', '#ffed00', '#008026', '#24408e', '#732982'];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+function earthColor() {
+  const colors = ['#008026', '#24408e'];
+  return colors[Math.floor(Math.random() * colors.length)];
+}
+
+if (month === 9 && date === 31) {
+  heading.textContent += " 🎃";
+  canvas.title = heading.title = "Happy halloween!";
+  randomColor = halloweenColor;
+} else if (month === 11 && date >= 24 && date <= 26) {
+  heading.textContent += " 🎄"; 
+  canvas.title = heading.title = "Merry Christmas!";
+  randomColor = christmasColor;
+} else if (month === 0 && date <= 3) {
+  heading.textContent += " 🎆"; 
+  canvas.title = heading.title = "Happy new year!";
+  randomColor = newYearColor;
+} else if (month === 1 && date === 14) {
+  heading.textContent += " 💘"; 
+  canvas.title = heading.title = "Happy Valentine's day!";
+  randomColor = valentinesColor;
+} else if (month === 5 && date === 28) {
+  heading.textContent += " 🌈"; 
+  canvas.title = heading.title = "Happy pride!";
+  randomColor = prideColor;
+} else if (month === 3 && date === 22) {
+  heading.textContent += " 🌎"; 
+  canvas.title = heading.title = "Happy Earth day!";
+  randomColor = earthColor;
+} else {
+  randomColor = anyColor;
 }
 
 function createBall(x, y) {
@@ -289,7 +354,7 @@ draw();
     Reviewer for <a href="https://www.cambridge.org/core/journals/journal-of-fluid-mechanics">Journal of Fluid Mechanics</a>, <a href="https://pubs.aip.org/aip/pof">Physics of Fluids</a>, and <a href="https://www.sciencedirect.com/journal/european-journal-of-mechanics-b-fluids">European Journal of Mechanics - B/Fluids</a>.<br>
 
   <p>&#9993; ianto [dot] cannon [at] zarm [dot] uni [dash] bremen [dot] de</p>
-  <p>© Ianto Cannon 2025 Jul 21</p>
+  <p>© Ianto Cannon 2025 Jul 22</p>
 
 </body>
 </html>
