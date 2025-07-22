@@ -20,7 +20,8 @@ function anyColor() {
 }
 
 function halloweenColor() {
-  return "#ff7518"
+  const colors = ["#8A4985", "#ff7518"];
+  return colors[Math.floor(Math.random() * colors.length)];
 }
 
 function christmasColor() {
@@ -48,7 +49,8 @@ function earthColor() {
   return colors[Math.floor(Math.random() * colors.length)];
 }
 
-if (month === 9 && date === 31) {
+//if (month === 9 && date === 31) {
+if (month === 6 && date === 22) {
   heading.textContent += " 🎃";
   canvas.title = heading.title = "Happy halloween!";
   randomColor = halloweenColor;
