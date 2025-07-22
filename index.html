@@ -32,35 +32,27 @@
       margin-top: 0.2em;
       margin-bottom: 0;
     }
-
+    
+    .portrait-box {
+      width: 240px;
+      height: 300px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      overflow: hidden;
+      border: 1px solid;  
+    }
+    
+    .portrait-box img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
+    }
   </style>
 </head>
 <body>
   <h1>Ianto Cannon</h1>
-
-<style>
-  .portrait-box {
-    width: 240px;
-    height: 300px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    overflow: hidden;
-    border: 1px solid;  
-  }
-
-  @media (prefers-color-scheme: dark) {
-  .portrait-box {
-    border-color: white; 
-  }}
-  
-  .portrait-box img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    display: block;
-  }
-</style>
 
 <div class="portrait-box">
   <img src="portrait.jpg" alt="Portrait of Ianto Cannon" loading="lazy">
@@ -71,7 +63,12 @@
 
 <h2 id="ball-heading">Click to add a bouncy ball</h2>
 
-<canvas id="canvas" width="600" height="400" tabindex="0" aria-label="Bouncing ball canvas. Click to add a ball."></canvas>
+<canvas id="canvas" width="600" height="400" tabindex="0" 
+  aria-label="Bouncing ball canvas. Click to add a ball."
+      
+  style="border: 1px solid;">
+  Your browser does not support the canvas element, or JavaScript is disabled.
+</canvas>
 
 <script>
 const canvas = document.getElementById("canvas");
@@ -225,7 +222,7 @@ function drawWalls() {
 
 function draw() {
   ctx.clearRect(0, 0, canvas.width, canvas.height);
-  drawWalls();
+  //drawWalls();
 
   for (let i = 0; i < balls.length; i++) {
     const ball = balls[i];
