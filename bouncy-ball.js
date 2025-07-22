@@ -53,8 +53,7 @@ if (month === 9 && date === 31) {
   heading.textContent += " 🎃";
   canvas.title = heading.title = "Happy halloween!";
   randomColor = halloweenColor;
-//} else if (month === 11 && date >= 24 && date <= 26) {
-} else if (month === 6 && date === 22) {
+} else if (month === 11 && date >= 24 && date <= 26) {
   heading.textContent += " 🎄"; 
   canvas.title = heading.title = "Merry Christmas!";
   randomColor = christmasColor;
