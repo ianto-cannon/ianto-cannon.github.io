@@ -5,57 +5,19 @@
   <meta name="description" content="Ianto Cannon's home page – postdoctoral researcher in fluid mechanics, multiphase turbulence, and numerical simulations.">
   <meta property="og:title" content="Ianto Cannon's home page">
   <meta property="og:description" content="Postdoctoral researcher in fluid mechanics.">
-  <meta property="og:image" content="portrait.jpg">
+  <meta property="og:image" content="cannon-portrait.jpg">
   <meta property="og:type" content="website">
   <meta name="google-site-verification" content="_iIVsemevqGBVi3MjkNqAnh7humYGkYr_GKAR8OyGEw" />
   <title>Ianto Cannon</title>
-  <link rel="icon" href="vortMid.svg" type="image/svg+xml" />
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="apple-touch-icon" href="/apple-touch-icon.png">
-  <style>
-    body {
-      font-family: Verdana;
-      background-color: white;
-      color: black;
-    }
-    @media (prefers-color-scheme: dark) {
-      body {
-        background-color: black;
-        color: white;
-      }
-      a { color: #90e8df; }
-      a:visited{ color: #aed5fc; }
-    }
-    h1, h2, h3 {
-      margin-bottom: 0.2em;
-    }
-    ul {
-      margin-top: 0.2em;
-      margin-bottom: 0;
-    }
-    
-    .portrait-box {
-      width: 240px;
-      height: 300px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      overflow: hidden;
-      border: 1px solid;  
-    }
-    
-    .portrait-box img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-  </style>
 </head>
 <body>
   <h1>Ianto Cannon</h1>
 
-<div class="portrait-box">
-  <img src="portrait.jpg" alt="Portrait of Ianto Cannon" loading="lazy">
+<div class="box portrait-box">
+  <img src="cannon-portrait.jpg" alt="Portrait of Ianto Cannon" loading="lazy">
 </div>
 
   <p>I am a postdoctoral scholar at the University of Bremen in Germany. I use computer simulations to understand turbulent flows with droplets, particles, and polymers. Recently I have also been studying contact line motion in electrolysis.</p>
@@ -63,213 +25,10 @@
 
 <h2 id="ball-heading">Click to add a bouncy ball</h2>
 
-<canvas id="canvas" width="600" height="400" tabindex="0" 
-  aria-label="Bouncing ball canvas. Click to add a ball."
-      
-  style="border: 1px solid;">
+<canvas id="canvas" class="box canvas-box" width="600" height="400" tabindex="0"
+  aria-label="Bouncing ball canvas. Click to add a ball.">
   Your browser does not support the canvas element, or JavaScript is disabled.
 </canvas>
-
-<script>
-const canvas = document.getElementById("canvas");
-const ctx = canvas.getContext("2d");
-
-const gravity = 0.3;
-const bounce = .99;
-const restitution = 1.0;
-const radius = 15;
-const balls = [];
-
-const heading = document.getElementById("ball-heading");
-const now = new Date();
-const month = now.getMonth(); // 0 = Jan, 11 = Dec
-const date = now.getDate();
-
-function anyColor() {
-  const r = Math.floor(Math.random() * 200 + 30);
-  const g = Math.floor(Math.random() * 200 + 30);
-  const b = Math.floor(Math.random() * 200 + 30);
-  return `rgb(${r}, ${g}, ${b})`;
-}
-
-function halloweenColor() {
-  return "#ff7518"
-}
-
-function christmasColor() {
-  const colors = ["#ff0000", "#008000"];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function newYearColor() {
-  const colors = ["#ffdd00", "#add8e6", "#800080"];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function valentinesColor() {
-  const colors = ["#ff1493", "#db7093"];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function prideColor() {
-  const colors = ['#e40303', '#ff8c00', '#ffed00', '#008026', '#24408e', '#732982'];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-function earthColor() {
-  const colors = ['#008026', '#24408e'];
-  return colors[Math.floor(Math.random() * colors.length)];
-}
-
-if (month === 9 && date === 31) {
-  heading.textContent += " 🎃";
-  canvas.title = heading.title = "Happy halloween!";
-  randomColor = halloweenColor;
-} else if (month === 11 && date >= 24 && date <= 26) {
-  heading.textContent += " 🎄"; 
-  canvas.title = heading.title = "Merry Christmas!";
-  randomColor = christmasColor;
-} else if (month === 0 && date <= 3) {
-  heading.textContent += " 🎆"; 
-  canvas.title = heading.title = "Happy new year!";
-  randomColor = newYearColor;
-} else if (month === 1 && date === 14) {
-  heading.textContent += " 💘"; 
-  canvas.title = heading.title = "Happy Valentine's day!";
-  randomColor = valentinesColor;
-} else if (month === 5 && date === 28) {
-  heading.textContent += " 🌈"; 
-  canvas.title = heading.title = "Happy pride!";
-  randomColor = prideColor;
-} else if (month === 3 && date === 22) {
-  heading.textContent += " 🌎"; 
-  canvas.title = heading.title = "Happy Earth day!";
-  randomColor = earthColor;
-} else {
-  randomColor = anyColor;
-}
-
-function createBall(x, y) {
-  return {
-    x,
-    y,
-    vx: (Math.random() - 0.5) * 6,
-    vy: (Math.random() - 0.5) * 6,
-    color: randomColor()
-  };
-}
-
-canvas.addEventListener("click", function(e) {
-  const rect = canvas.getBoundingClientRect();
-  const x = e.clientX - rect.left;
-  const y = e.clientY - rect.top;
-  balls.push(createBall(x, y));
-});
-
-document.addEventListener("keydown", function(e) {
-  if (e.key === "Enter") {
-    balls.push(createBall(canvas.width / 2, canvas.height / 2));
-  }
-});
-
-function resolveCollision(ballA, ballB) {
-  const dx = ballB.x - ballA.x;
-  const dy = ballB.y - ballA.y;
-  const dist = Math.hypot(dx, dy);
-
-  if (dist === 0 || dist > 2 * radius) return;
-
-  // Unit normal vectors
-  const nx = dx / dist;
-  const ny = dy / dist;
-
-  // Dot product normal
-  const dpNormA = ballA.vx * nx + ballA.vy * ny;
-  const dpNormB = ballB.vx * nx + ballB.vy * ny;
-  
-  if (dpNormB >= dpNormA) return;
-
-  // Unit tangent vectors
-  const tx = -ny;
-  const ty = nx;
-
-  // Dot product tangential
-  const dpTanA = ballA.vx * tx + ballA.vy * ty;
-  const dpTanB = ballB.vx * tx + ballB.vy * ty;
-
-  // Elastic collision (equal mass)
-  const mA = restitution * dpNormB;
-  const mB = restitution * dpNormA;
-
-  ballA.vx = tx * dpTanA + nx * mA;
-  ballA.vy = ty * dpTanA + ny * mA;
-  ballB.vx = tx * dpTanB + nx * mB;
-  ballB.vy = ty * dpTanB + ny * mB;
-
-  // Push them apart to avoid overlap
-  const overlap = 2 * radius - dist;
-  ballA.x -= nx * overlap / 2;
-  ballA.y -= ny * overlap / 2;
-  ballB.x += nx * overlap / 2;
-  ballB.y += ny * overlap / 2;
-}
-
-function drawWalls() {
-  ctx.strokeStyle = window.matchMedia('(prefers-color-scheme: dark)').matches ? '#ccc' : '#000';
-  ctx.lineWidth = 2;
-  ctx.strokeRect(0, 0, canvas.width, canvas.height);
-}
-
-function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
-  //drawWalls();
-
-  for (let i = 0; i < balls.length; i++) {
-    const ball = balls[i];
-
-    // Draw ball
-    ctx.beginPath();
-    ctx.arc(ball.x, ball.y, radius, 0, Math.PI * 2);
-    ctx.fillStyle = ball.color;
-    ctx.fill();
-    ctx.closePath();
-
-    // Apply gravity and movement in two steps to minimize energy loss
-    ball.x += ball.vx;
-    ball.vy += .5*gravity;
-    ball.y += .5*ball.vy;
-    ball.vy += .5*gravity;
-    ball.y += .5*ball.vy;
-
-    // Wall collisions
-    if (ball.y + radius > canvas.height && ball.vy > 0) {
-      ball.y = canvas.height - radius;
-      ball.vy *= -bounce;
-    }
-    if (ball.y - radius < 0 && ball.vy < 0) {
-      ball.y = radius;
-      ball.vy *= -bounce;
-    }
-    if (ball.x - radius < 0 && ball.vx < 0) {
-      ball.x = radius;
-      ball.vx *= -bounce;
-    }
-    if (ball.x + radius > canvas.width && ball.vx > 0) {
-      ball.x = canvas.width - radius;
-      ball.vx *= -bounce;
-    }
-
-    // Check collisions with other balls
-    for (let j = i + 1; j < balls.length; j++) {
-      resolveCollision(balls[i], balls[j]);
-    }
-  }
-
-  requestAnimationFrame(draw);
-}
-
-draw();
-</script>
 
 <h2>Education</h2>
   <ul>
@@ -277,7 +36,7 @@ draw();
     Supervised by  <a href="https://www.oist.jp/research/research-units/cffu/members/marco-edoardo-rosti">Marco E. Rosti</a>.<br>
     Thesis - <a href="https://oist.repo.nii.ac.jp/records/2000284">Simulations of Multiphase Turbulent Flows</a>.</li>
     <li>2017 - Master's in Physics at Cambridge University, UK. Supervised by <a href="https://www.bas.ac.uk/profile/nmer/">Nigel Meredith</a>.<br>
-    Thesis - <a href="chorus.pdf">Chorus waves in the Van Allen belts during violent geomagnetic storms</a>
+    Thesis - <a href="cannon-masters-thesis.pdf">Chorus waves in the Van Allen belts during violent geomagnetic storms</a>
     </li>
     <li>2016 - Bachelor's in Physics at Cambridge University. 
   </ul>
@@ -352,6 +111,6 @@ draw();
 
   <p>&#9993; ianto [dot] cannon [at] zarm [dot] uni [dash] bremen [dot] de</p>
   <p>© Ianto Cannon 2025 Jul 22</p>
-
+  <script src="bouncy-ball.js"></script>
 </body>
 </html>

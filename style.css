@@ -1,0 +1,42 @@
+body {
+  font-family: Verdana;
+}
+@media (prefers-color-scheme: dark) {
+  body {
+    background-color: black;
+    color: white;
+  }
+  a { color: #90e8df; }
+  a:visited{ color: #aed5fc; }
+}
+h1, h2, h3 {
+  margin-bottom: 0.2em;
+}
+ul {
+  margin-top: 0.2em;
+  margin-bottom: 0;
+}
+
+/* Shared box styling */
+.box {
+  border: 1px solid;
+  margin-bottom: 1em;
+  display: block;
+}
+
+/* Specific styles for portrait box */
+.portrait-box {
+  width: 240px;
+  height: 300px;
+}
+
+.portrait-box img {
+  width: 100%;
+  height: 100%;
+}
+
+/* Specific styles for canvas box */
+.canvas-box {
+  width: 600px;
+  height: 400px;
+}
