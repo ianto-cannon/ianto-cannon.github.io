@@ -188,3 +188,35 @@ function draw() {
   requestAnimationFrame(draw);
 }
 draw();
+
+function generateBlobPath({
+  radius = 40,
+  centerX = 50,
+  centerY = 50,
+  harmonics = 6,
+  points = 50,
+  variation = 15,
+}) {
+  const path = [];
+  const r = new Array(points).fill(radius);
+  for (let h = 2; h <= harmonics; h++) {
+    const amp = Math.random() * variation / h;
+    const phase = Math.random() * 2 * Math.PI;
+    for (let i = 0; i <= points; i++) {
+      const theta = (i / points) * 2 * Math.PI;
+      r[i] += amp * Math.sin(h * theta + phase);
+    }
+  }
+  for (let i = 0; i <= points; i++) {
+    const theta = (i / points) * 2 * Math.PI;
+    const x = centerX + r[i] * Math.cos(theta);
+    const y = centerY + r[i] * Math.sin(theta);
+    path.push(`${i === 0 ? "M" : "L"} ${x.toFixed(2)},${y.toFixed(2)}`);
+  }
+  return path.join(" ") + " Z";
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  const blob = document.querySelector("#blob path");
+  blob.setAttribute("d", generateBlobPath({}));
+});
