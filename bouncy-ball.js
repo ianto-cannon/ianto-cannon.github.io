@@ -193,9 +193,9 @@ function generateBlobPath({
   radius = 40,
   centerX = 50,
   centerY = 50,
-  harmonics = 6,
-  points = 50,
-  variation = 15,
+  harmonics = 3,
+  points = 40,
+  variation = 20,
 }) {
   const path = [];
   const r = new Array(points).fill(radius);
