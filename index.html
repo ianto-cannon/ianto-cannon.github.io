@@ -112,65 +112,14 @@
   <sup>*</sup>These authors contributed equally.<br>
     Reviewer for <a href="https://www.cambridge.org/core/journals/journal-of-fluid-mechanics">Journal of Fluid Mechanics</a>, <a href="https://pubs.aip.org/aip/pof">Physics of Fluids</a>, and <a href="https://www.sciencedirect.com/journal/european-journal-of-mechanics-b-fluids">European Journal of Mechanics - B/Fluids</a>.<br>
 
-  <p>&#9993; ianto [dot] cannon [at] zarm [dot] uni [dash] bremen [dot] de</p>
+  <h2>Miscellaneous</h2>
+      A page with some <a href="clock.html">clock graphics</a>.
   <p>
-    <svg id="blob" width="1em" height="1em" viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <path fill="#4885c8" d="" />
-    </svg>
-    Ianto Cannon 2025 Jul 23
+    &#9993; ianto [dot] cannon [at] zarm [dot] uni [dash] bremen [dot] de<br>
+    &copy; Ianto Cannon 2025 Jul 23
   </p>
-  <script src="bouncy-ball.js"></script>
-
-<svg viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg" style="display: block; width: 100%; height: auto;">
-  <path fill="#a2d4f5" d="M0,160 C360,260 580,60 1080,60 1440,160 L1440,320 L0,320 Z"></path>
-  <path fill="#74b9e2" d="M0,200 C360,300 1080,100 1440,200 L1440,320 L0,320 Z"></path>
-  <path fill="#4a90e2" d="M0,240 C360,340 1080,140 1440,240 L1440,320 L0,320 Z"></path>
-</svg>
-
-<svg id="wave-svg" viewBox="0 0 1440 320" xmlns="http://www.w3.org/2000/svg" style="display: block; width: 100%; height: auto;"></svg>
-
-<script>
-function generateWavePath(offset, amp, freq) {
-  let path = `M0,${160 + offset}`;
-  const width = 1440;
-  for (let x = 0; x <= width; x += 80) {
-    const y = 160 + offset + amp * Math.sin((x + freq) * 0.005);
-    path += ` L${x},${y}`;
-  }
-  path += ` L1440,320 L0,320 Z`;
-  return path;
-}
-
-
-
-function updateWaves() {
-  const svg = document.getElementById("wave-svg");
-  svg.innerHTML = "";
-
-  const now = new Date();
-  //const hour = now.getHours();
-  //const day = now.getDate();
-  const hour = now.getSeconds();
-  const day = now.getMilliseconds()/100;
-
-  const waveParams = [
-    { offset: 0, amp: 30 + (hour ), freq: day * 10, color: "#a2d4f5" },
-    { offset: 20, amp: 40 + (hour * 0.5), freq: day * 15, color: "#74b9e2" },
-    { offset: 40, amp: 50 + (hour * 0.7), freq: day * 20, color: "#4a90e2" },
-  ];
-
-  for (const { offset, amp, freq, color } of waveParams) {
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("fill", color);
-    path.setAttribute("d", generateWavePath(offset, amp, freq));
-    svg.appendChild(path);
-  }
-}
-
-updateWaves();
-//setInterval(updateWaves, 1); // update every minute
-</script>
-
-
+  
+  <svg id="wave-svg" viewBox="0 0 100 100" preserveAspectRatio="none"></svg>
+  <script src="script.js" defer></script>
 </body>
 </html>
