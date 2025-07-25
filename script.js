@@ -134,14 +134,15 @@ function draw() {
 }
 
 function generateBlobPath() {
-  const radius = 40;
+  const radius = 20;
   const points = 40;
-  const variation = 20;
+  const variation = 10;
   const path = [];
+  const time = [hours/24, minutes/60, seconds/60]
   const r = new Array(points).fill(radius);
-  for (let h = 2; h <= 3; h++) {
-    const amp = Math.random() * variation / h;
-    const phase = Math.random() * 2 * Math.PI;
+  for (let h = 2; h <= 4; h++) {
+    const amp = variation / h;
+    const phase = time[h-2] * 2 * Math.PI;
     for (let i = 0; i <= points; i++) {
       const theta = (i / points) * 2 * Math.PI;
       r[i] += amp * Math.sin(h * theta + phase);
@@ -154,14 +155,43 @@ function generateBlobPath() {
     path.push(`${i === 0 ? "M" : "L"} ${x.toFixed(2)},${y.toFixed(2)}`);
   }
   blob.setAttribute("d", path.join(" ") + " Z");
+  blob.setAttribute("fill", col);
+}
+
+function rgbToHue(rgb) {
+  let r, g, b
+  if (rgb.startsWith("#")) {
+    rgb = rgb.replace(/^#/, '');
+    // Parse RGB components
+    r = parseInt(rgb.slice(0, 2), 16) / 255;
+    g = parseInt(rgb.slice(2, 4), 16) / 255;
+    b = parseInt(rgb.slice(4, 6), 16) / 255;
+  } else {
+    [r, g, b] = rgb.match(/\d+/g).map(Number).map(v => v / 255);
+  }
+  const max = Math.max(r, g, b);
+  const min = Math.min(r, g, b);
+  const delta = max - min;
+  let hue = 0;
+  if (delta === 0) {
+    hue = 0;
+  } else if (max === r) {
+    hue = ((g - b) / delta) % 6;
+  } else if (max === g) {
+    hue = (b - r) / delta + 2;
+  } else {
+    hue = (r - g) / delta + 4;
+  }
+  hue = Math.round(hue * 60);
+  if (hue < 0) hue += 360;
+  return hue;
 }
 
 function createTriangle(value, maxValue, width, height, svg) {
-  //console.log('value',value)
   //path.setAttribute("d", `M${width*(1-(value-5)/maxValue)},100 L${width*(1-value/maxValue)},${100-height} L${width*(1-(value+5)/maxValue)},100 Z`);
   for (let i = -1; i <= 1; i++) {
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("fill", `hsl(340, 30%, ${110-height}%)`);
+    path.setAttribute("fill", `hsl(${hue}, 30%, ${110-height}%)`);
     path.setAttribute("d", `M${width*(value/maxValue-.5+i)},100 L${width*(value/maxValue+i)},${100-height} L${width*(value/maxValue+.5+i)},100 Z`);
     svg.appendChild(path);
   }
@@ -252,6 +282,8 @@ headings.forEach(h => {
   h.textContent += emoji;
   h.title = title;
 });
+const col = randomColor()
+const hue = rgbToHue(col)
 
 if (canvas) {
   canvas.title = title
