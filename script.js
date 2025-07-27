@@ -146,6 +146,40 @@ function generatePolygonPath(path, level) {
   path.setAttribute("fill", col);
 }
 
+function maskPolygon(svg,path,level){
+  // Create defs and mask
+  const defs = document.createElementNS(svgNS, "defs");
+  const mask = document.createElementNS(svgNS, "mask");
+  const maskId = `mask-lines-${level}`;
+  mask.setAttribute("id", maskId);
+  // Full white background (visible)
+  const rect = document.createElementNS(svgNS, "rect");
+  rect.setAttribute("x", "0");
+  rect.setAttribute("y", "0");
+  rect.setAttribute("width", "100");
+  rect.setAttribute("height", "100");
+  rect.setAttribute("fill", "white");
+  mask.appendChild(rect);
+  // Add black lines (transparent in mask)
+  for (let i = 1; i <= sides[level]; i++) {
+    const theta = (i + time[level])/ sides[level] * 2 * Math.PI;
+    const x = 50 + 50 * Math.sin(theta);
+    const y = 50 - 50 * Math.cos(theta);
+    const line = document.createElementNS(svgNS, "line");
+    line.setAttribute("x1", 50);
+    line.setAttribute("y1", 50);
+    line.setAttribute("x2", x);
+    line.setAttribute("y2", y);
+    line.setAttribute("stroke", "black");
+    line.setAttribute("stroke-width", 1);
+    mask.appendChild(line);
+  }
+  defs.appendChild(mask);
+  svg.insertBefore(defs, svg.firstChild);
+  // Apply mask to path
+  path.setAttribute("mask", `url(#${maskId})`);
+}
+
 function generateBlobPath(blo,wavMin,wavMax) {
   getTime(); // Run once on page load
   const radius = 20;
@@ -410,8 +444,12 @@ document.querySelectorAll("path[data-min][data-max]").forEach(path => {
   generateBlobPath(path, min, max);
 });
 
-document.querySelectorAll("path[data-level]").forEach(path => {
+const svgNS = "http://www.w3.org/2000/svg";
+document.querySelectorAll("svg").forEach((svg, idx) => {
+  const path = svg.querySelector("path");
+//document.querySelectorAll("path[data-level]").forEach(path => {
   const level = parseInt(path.dataset.level, 10);
+  maskPolygon(svg,path,level);
   generatePolygonPath(path, level);
   setInterval(() => generatePolygonPath(path, level), 1000);
 });

@@ -52,3 +52,9 @@ ul {
   width: 100%;
   height: 200px;
 }
+
+.raised {
+  position: relative;
+  top: -19px;
+  font-size: 1.5em
+}
