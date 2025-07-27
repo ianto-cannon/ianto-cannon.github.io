@@ -1,6 +1,12 @@
 body {
   font-family: Verdana;
 }
+.halloween{
+  font-family: 'Creepster', cursive;
+}
+.valentines {
+  font-family: cursive;
+}
 @media (prefers-color-scheme: dark) {
   body {
     background-color: black;

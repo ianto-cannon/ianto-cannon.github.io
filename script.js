@@ -133,29 +133,46 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
-function generateBlobPath() {
+function generatePolygonPath(path, level) {
+  getTime(); 
+  const pathStr = [`M50,50 `];
+  for (let i = 1; i <= sides[level]; i++) {
+    const theta = (i + time[level])/ sides[level] * 2 * Math.PI;
+    const x = 50 + 50 * Math.sin(theta);
+    const y = 50 - 50 * Math.cos(theta);
+    pathStr.push(`L${x.toFixed(2)},${y.toFixed(2)}`);
+  }
+  path.setAttribute("d", pathStr.join(" ") + " Z");
+  path.setAttribute("fill", col);
+}
+
+function generateBlobPath(blo,wavMin,wavMax) {
+  getTime(); // Run once on page load
   const radius = 20;
-  const points = 40;
+  const points = 50;
   const variation = 10;
   const path = [];
-  const time = [hours/24, minutes/60, seconds/60]
   const r = new Array(points).fill(radius);
-  for (let h = 2; h <= 4; h++) {
-    const amp = variation / h;
-    const phase = time[h-2] * 2 * Math.PI;
+  for (let h = wavMin; h <= wavMax; h++) {
+    const amp = variation / (h+1);
+    const phase = timeFracs[h-1] * 2 * Math.PI;
     for (let i = 0; i <= points; i++) {
       const theta = (i / points) * 2 * Math.PI;
-      r[i] += amp * Math.sin(h * theta + phase);
+      r[i] += amp * Math.cos((h+1) * theta - phase);
     }
   }
   for (let i = 0; i < points; i++) {
     const theta = (i / points) * 2 * Math.PI;
-    const x = 50 + r[i] * Math.cos(theta);
-    const y = 50 + r[i] * Math.sin(theta);
+    const x = 50 + r[i] * Math.sin(theta);
+    const y = 50 - r[i] * Math.cos(theta);
     path.push(`${i === 0 ? "M" : "L"} ${x.toFixed(2)},${y.toFixed(2)}`);
   }
-  blob.setAttribute("d", path.join(" ") + " Z");
-  blob.setAttribute("fill", col);
+  blo.setAttribute("d", path.join(" ") + " Z");
+  blo.setAttribute("fill", col);
+  //console.log('wavMin',wavMin)
+  if (wavMax>3) {
+    requestAnimationFrame(() => generateBlobPath(blo, wavMin, wavMax));
+  }
 }
 
 function rgbToHue(rgb) {
@@ -187,53 +204,123 @@ function rgbToHue(rgb) {
   return hue;
 }
 
-function createTriangle(value, maxValue, width, height, svg) {
-  //path.setAttribute("d", `M${width*(1-(value-5)/maxValue)},100 L${width*(1-value/maxValue)},${100-height} L${width*(1-(value+5)/maxValue)},100 Z`);
+function createWave(t, width, height, lightness, wavesSVG) {
+  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
+  const xrev = 1 - t 
+  const pathStr = [];
+  for (let i = -5; i <= 5; i++) {
+    const x = width * (xrev + .25*i);
+    let y = 80;
+    if (i === -5) {
+      pathStr.push(`M`);
+      pathStr.push(`${x.toFixed(2)},100 `);
+      pathStr.push(`L`);
+    } if (i%2 === 0) {
+      pathStr.push(`Q`);
+      y = 80 + height;
+    } if (i%4 === 0) {
+      y = 80 - height;
+    }
+    pathStr.push(`${x.toFixed(2)},${y.toFixed(2)} `);
+    if (i === 5) {
+      pathStr.push(`L`);
+      pathStr.push(`${x.toFixed(2)},100 `);
+      pathStr.push(`Z`);
+    }
+  }
+  path.setAttribute("d", pathStr.join(" "));
+  wavesSVG.appendChild(path);
+}
+
+function createTriangle(value, width, height, lightness, peaksSVG) {
   for (let i = -1; i <= 1; i++) {
+    const left = width*(.5-value+i)
+    const mid = width*(1-value+i)
+    const right = width*(1.5-value+i)
     const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-    path.setAttribute("fill", `hsl(${hue}, 30%, ${110-height}%)`);
-    path.setAttribute("d", `M${width*(value/maxValue-.5+i)},100 L${width*(value/maxValue+i)},${100-height} L${width*(value/maxValue+.5+i)},100 Z`);
-    svg.appendChild(path);
+    path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
+    path.setAttribute("d", `M${left.toFixed(1)},100 L${mid.toFixed(1)},${100-height} L${right.toFixed(1)},100 Z`);
+      peaksSVG.appendChild(path);
   }
 }
 
-function updateWaves() {
-  const svg = document.getElementById("wave-svg");
-  const width = 100//svg.clientWidth;
-  getTime();
-  svg.innerHTML = "";
-  createTriangle(year, 3000, width, 100, svg);
-  createTriangle(month, 12, width, 90, svg);
-  createTriangle(date, 31, width, 80, svg);
-  createTriangle(hours, 24, width, 70, svg);
-  createTriangle(minutes, 60, width, 60, svg);
-  createTriangle(seconds, 60, width, 50, svg);
+function createToothedTriangle(value, points, width, height, lightness, peaksSVG) {
+  for (let i = -1; i <= 1; i++) {
+    const left = width*(.5-value+i)
+    const mid = width*(1-value+i)
+    const right = width*(1.5-value+i)
+    for (let j = 1; j <= points; j++) {
+      const l = left + width*j/points
+      const m = l + width/points/2
+      const r = l + width/points
+      const h = 2*height * Math.min(j/points, 1-j/points)
+      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
+      path.setAttribute("d", `M${l.toFixed(1)},100 L${m.toFixed(1)},${100-h} L${r.toFixed(1)},100 Z`);
+      peaksSVG.appendChild(path);
+    }
+  }
 }
 
-function createPolygon(value, maxValue, width, height, svg) {
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
-  path.setAttribute("fill", `hsl(340, 30%, ${110-height}%)`);
-  //console.log('value',value)
-  path.setAttribute("d", `M${width*(1-(value-5)/maxValue)},100 L${width*(1-value/maxValue)},${100-height} L${width*(1-(value+5)/maxValue)},100 Z`);
-  svg.appendChild(path);
+function updatePeaks(peaksSVG, wavesSVG) {
+  while (peaksSVG.firstChild) {
+    peaksSVG.removeChild(peaksSVG.firstChild);
+  }
+  while (wavesSVG.firstChild) {
+    wavesSVG.removeChild(wavesSVG.firstChild);
+  }
+  const width = 100;//peaksSVG.clientWidth;
+  getTime();
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  for (let i = 0; i <= 4; i++) {
+    const lightness = prefersDark ? (20 + i*10) : (100 - 20 - i*10);
+    //createToothedTriangle(time[i]%1, timePoints[i], width, 70-i*10, lightness, peaksSVG);
+    createTriangle(timeFracs[i]%1, width, 70-i*10, lightness, peaksSVG);
+    createWave(    timeFracs[i]%1, width, 70-i*10, lightness, wavesSVG);
+  }
+  //console.log('peaksSVG',peaksSVG)
+  requestAnimationFrame(() => updatePeaks(peaksSVG, wavesSVG));
 }
 
-function updateUtcTime() {
+function updateTimeStr() {
   getTime();
-  const utcString = `${year} ${monthStr} ${date} ${weekday} ${String(hours).padStart(2,'0')}:${String(minutes).padStart(2,'0')}:${String(seconds).padStart(2,'0')}`;
-  document.getElementById("utc-time").textContent = `Current coordinated universal time (UTC): ${utcString}`;
+  console.log('second',second)
+  document.getElementById("utc-time").textContent = `${year} ${monthStr} ${date} ${weekday} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
 }
 
 function getTime() {
   now = new Date();
   year = now.getUTCFullYear();
   monthStr = now.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }); // Jul
-  month = now.getUTCMonth(); // Jul
-  date = now.getUTCDate()
+  month = now.getUTCMonth(); //Jan=0, Feb=1...
+  date = now.getUTCDate();
+
+  //get the week number this month
+  const firstOfMonth = new Date(Date.UTC(year, month, 1));
+  const firstDay = (firstOfMonth.getUTCDay() + 6) % 7; // Monday = 0
+  const week = Math.floor((firstDay + date - 1) / 7) + 1;
+  
   weekday = now.toLocaleString('en-US', { weekday: 'short', timeZone: 'UTC' }); // Thu
-  hours = now.getUTCHours()
-  minutes = now.getUTCMinutes()
-  seconds = now.getUTCSeconds()
+  wkday = now.getUTCDay(); //Sun=0, Mon=1...
+  hour = now.getUTCHours();
+  minute = now.getUTCMinutes();
+  second = now.getUTCSeconds();
+  millisecond = now.getUTCMilliseconds();
+  time= [Math.floor(year/10), year%10, month, week, wkday, hour, Math.floor(minute/10), minute%10, Math.floor(second/10), second%10];
+  const secFrac = millisecond/1000;
+  const minFrac = (second + secFrac)/60;
+  const hrFrac  = (minute + minFrac)/60;
+  const dayFrac = (hour + hrFrac)/24;
+
+  //get the day number this year
+  const start = Date.UTC(year, 0, 0); // Jan 0 UTC
+  const oneDay = 1000 * 60 * 60 * 24;
+  const days = Math.floor((now - start) / oneDay);
+
+  const yrFrac = (days + dayFrac)/365.25;
+  const milFrac = (year + yrFrac)/1000;
+  timeFracs = [milFrac, yrFrac, dayFrac, hrFrac, minFrac, secFrac];
 }
 
 const gravity = 0.3;
@@ -241,11 +328,14 @@ const bounce = .99;
 const restitution = 1.0;
 const radius = 15;
 const balls = [];
+const timePoints = [1e3, 365, 24, 60, 60, 1000]
+const sides = [10, 10, 12, 6, 7, 24, 6, 10, 6, 10]
 const headings = document.querySelectorAll("h2");  
 const canvas = document.getElementById("canvas");
-const blob = document.querySelector("#blob path");
 let ctx;
-let year, month, date, weekday, hours, minutes, seconds, milliseconds
+let year, month, date, weekday, hour, minute, second, millisecond
+let timeFracs = [];
+let time = [];
 getTime();
 let emoji = "";
 let title = ""
@@ -254,6 +344,9 @@ if (month === 9 && date === 31) {
   emoji = " 🎃";
   title = "Happy halloween!";
   randomColor = halloweenColor;
+  document.querySelectorAll('h1, h2, h3').forEach(el => {
+    el.classList.add('halloween');
+  });
 } else if (month === 11 && date >= 24 && date <= 26) {
   emoji = " 🎄"; 
   title = "Merry Christmas!";
@@ -266,6 +359,9 @@ if (month === 9 && date === 31) {
   emoji = " 💘"; 
   title = "Happy Valentine's day!";
   randomColor = valentinesColor;
+  document.querySelectorAll('h1, h2, h3').forEach(el => {
+    el.classList.add('valentines');
+  });
 } else if (month === 5 && date === 28) {
   emoji = " 🌈"; 
   title = "Happy pride!";
@@ -302,17 +398,33 @@ if (canvas) {
   });
 }
 
-if (document.getElementById("wave-svg")) {
-  getTime();
-  updateWaves();
-  setInterval(updateWaves, 1000);
-}
-if (blob) {
-  generateBlobPath();
-  setInterval(generateBlobPath, 1000);
+const peaksSVG = document.getElementById("peaksSVG");
+const wavesSVG = document.getElementById("wavesSVG");
+if (peaksSVG && wavesSVG) {
+  updatePeaks(peaksSVG,wavesSVG);
 }
 
+document.querySelectorAll("path[data-min][data-max]").forEach(path => {
+  const min = parseInt(path.dataset.min, 10);
+  const max = parseInt(path.dataset.max, 10);
+  generateBlobPath(path, min, max);
+});
+
+document.querySelectorAll("path[data-level]").forEach(path => {
+  const level = parseInt(path.dataset.level, 10);
+  generatePolygonPath(path, level);
+  setInterval(() => generatePolygonPath(path, level), 1000);
+});
+
+setInterval(() => {
+  getTime();
+  document.querySelectorAll("span[data-level]").forEach(span => {
+    const level = parseInt(span.dataset.level, 10);
+    span.textContent = " ("+time[level]+")";
+  });
+}, 1000);
+
 if (document.getElementById("utc-time")) {
-  updateUtcTime(); // Run once on page load
-  setInterval(updateUtcTime, 1000); // Update every second
+  updateTimeStr(); // Run on page load
+  setInterval(updateTimeStr, 1000); // Update every second
 }
