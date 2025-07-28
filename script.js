@@ -349,7 +349,7 @@ function getTime() {
   //get the week number this month
   const firstOfMonth = new Date(Date.UTC(year, month, 1));
   const firstDay = (firstOfMonth.getUTCDay() + 6) % 7; // Monday = 0
-  const week = Math.floor((firstDay + date - 1) / 7) + 1;
+  const week = Math.floor((firstDay + date - 1) / 7);
   
   weekday = now.toLocaleString('en-US', { weekday: 'short', timeZone: 'UTC' }); // Thu
   wkday = now.getUTCDay()+6%7; //Sun=0, Mon=1...
