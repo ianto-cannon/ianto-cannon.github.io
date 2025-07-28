@@ -88,7 +88,7 @@ function resolveCollision(ballA, ballB) {
 }
 
 function draw() {
-  ctx.clearRect(0, 0, canvas.width, canvas.height);
+  ctx.clearRect(0, 0, canvas.clientWidth, canvas.clientHeight);
 
   for (let i = 0; i < balls.length; i++) {
     const ball = balls[i];
@@ -108,8 +108,8 @@ function draw() {
     ball.y += .5*ball.vy;
 
     // Wall collisions
-    if (ball.y + radius > canvas.height && ball.vy > 0) {
-      ball.y = canvas.height - radius;
+    if (ball.y + radius > canvas.clientHeight && ball.vy > 0) {
+      ball.y = canvas.clientHeight - radius;
       ball.vy *= -bounce;
     }
     if (ball.y - radius < 0 && ball.vy < 0) {
@@ -120,8 +120,8 @@ function draw() {
       ball.x = radius;
       ball.vx *= -bounce;
     }
-    if (ball.x + radius > canvas.width && ball.vx > 0) {
-      ball.x = canvas.width - radius;
+    if (ball.x + radius > canvas.clientWidth && ball.vx > 0) {
+      ball.x = canvas.clientWidth - radius;
       ball.vx *= -bounce;
     }
 
@@ -180,9 +180,9 @@ function maskPolygon(svg,path,level){
 }
 
 function generateBlobPath(blo,wavMin,wavMax) {
-  getTime(); // Run once on page load
+  getTime(); 
   const radius = 28;
-  const points = 50;
+  const points = 80;
   const variation = 14;
   const path = [];
   const r = new Array(points).fill(radius);
@@ -202,6 +202,9 @@ function generateBlobPath(blo,wavMin,wavMax) {
   }
   blo.setAttribute("d", path.join(" ") + " Z");
   blo.setAttribute("fill", col);
+  //blo.setAttribute("stroke", col);
+  //blo.setAttribute("stroke-linejoin", "round");
+  //blo.setAttribute("stroke-width", "1");
   requestAnimationFrame(() => generateBlobPath(blo, wavMin, wavMax));
 }
 
@@ -235,7 +238,7 @@ function rgbToHue(rgb) {
 }
 
 function createWave(t, width, height, lightness, wavesSVG) {
-  const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+  const path = document.createElementNS(svgNS, "path");
   path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
   const xrev = 1 - t 
   const pathStr = [];
@@ -268,7 +271,7 @@ function createTriangle(value, width, height, lightness, peaksSVG) {
     const left = width*(.5-value+i)
     const mid = width*(1-value+i)
     const right = width*(1.5-value+i)
-    const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+    const path = document.createElementNS(svgNS, "path");
     path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
     path.setAttribute("d", `M${left.toFixed(1)},100 L${mid.toFixed(1)},${100-height} L${right.toFixed(1)},100 Z`);
       peaksSVG.appendChild(path);
@@ -285,7 +288,7 @@ function createToothedTriangle(value, points, width, height, lightness, peaksSVG
       const m = l + width/points/2
       const r = l + width/points
       const h = 2*height * Math.min(j/points, 1-j/points)
-      const path = document.createElementNS("http://www.w3.org/2000/svg", "path");
+      const path = document.createElementNS(svgNS, "path");
       path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
       path.setAttribute("d", `M${l.toFixed(1)},100 L${m.toFixed(1)},${100-h} L${r.toFixed(1)},100 Z`);
       peaksSVG.appendChild(path);
@@ -323,7 +326,6 @@ function updateWaves(wavesSVG) {
 
 function updateTimeStr() {
   getTime();
-  console.log('second',second)
   document.getElementById("utc-time").textContent = `${year} ${monthStr} ${date} ${weekday} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
 }
 
@@ -368,6 +370,7 @@ const radius = 15;
 const balls = [];
 const timePoints = [1e3, 365, 24, 60, 60, 1000]
 const sides = [10, 10, 12, 6, 7, 24, 6, 10, 6, 10]
+const svgNS = "http://www.w3.org/2000/svg";
 const headings = document.querySelectorAll("h2");  
 const canvas = document.getElementById("canvas");
 let ctx;
@@ -426,29 +429,39 @@ const hue = rgbToHue(col)
 if (canvas) {
   canvas.title = title
   ctx = canvas.getContext("2d");
+  // Get the DPR and size of the canvas
+  const dpr = window.devicePixelRatio;
+  const rect = canvas.getBoundingClientRect();
+  // Set the "actual" size of the canvas
+  canvas.width = rect.width * dpr;
+  canvas.height = rect.height * dpr;
+  // Scale the context to ensure correct drawing operations
+  ctx.scale(dpr, dpr);
+  // Set the "drawn" size of the canvas
+  canvas.style.width = `${rect.width}px`;
+  canvas.style.height = `${rect.height}px`;
   draw();
   canvas.addEventListener("click", function(e) {
-    const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     balls.push(createBall(x, y));
   });
   document.addEventListener("keydown", function(e) {
     if (e.key === "Enter") {
-      balls.push(createBall(canvas.width / 2, canvas.height / 2));
+      balls.push(createBall(canvas.clientWidth / 2, canvas.clientHeight / 2));
     }
   });
 }
 
-const peaksSVG = document.getElementById("peaksSVG");
-if (peaksSVG) {
-  updatePeaks(peaksSVG);
-}
+document.querySelectorAll("svg.peaks").forEach(svg => {
+  updatePeaks(svg);
+  svg.setAttribute("preserveAspectRatio", "none");
+});
 
-const wavesSVG = document.getElementById("wavesSVG");
-if (wavesSVG) {
-  updateWaves(wavesSVG);
-}
+document.querySelectorAll("svg.waves").forEach(svg => {
+  updateWaves(svg);
+  svg.setAttribute("preserveAspectRatio", "none");
+});
 
 document.querySelectorAll("path[data-min][data-max]").forEach(path => {
   const min = parseInt(path.dataset.min, 10);
@@ -456,7 +469,6 @@ document.querySelectorAll("path[data-min][data-max]").forEach(path => {
   generateBlobPath(path, min, max);
 });
 
-const svgNS = "http://www.w3.org/2000/svg";
 document.querySelectorAll("svg").forEach((svg) => {
   svg.setAttribute("viewBox", "0 0 100 100");
 });
