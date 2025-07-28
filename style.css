@@ -67,3 +67,8 @@ ul {
   display: block; 
   overflow: hidden;
 }
+
+.binaryClock {
+  width: 100%;
+  height: auto;
+}

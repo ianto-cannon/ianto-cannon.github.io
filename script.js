@@ -363,6 +363,21 @@ function getTime() {
   timeFracs = [milFrac, yrFrac, dayFrac, hrFrac, minFrac, secFrac];
 }
 
+function drawBinaryClock(svg) {
+  const unixTime = Math.floor(Date.now() / 1000);
+  const binary = unixTime.toString(2).padStart(32, '0');
+  svg.innerHTML = ''; // clear existing
+  for (let i = 0; i < 32; i++) {
+    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    rect.setAttribute("x", i);
+    rect.setAttribute("y", 0);
+    rect.setAttribute("width", 1);
+    rect.setAttribute("height", 1);
+    rect.setAttribute("fill", binary[i] === '1' ? col : "none");
+    svg.appendChild(rect);
+  }
+}
+
 const gravity = 0.3;
 const bounce = .99;
 const restitution = 1.0;
@@ -455,22 +470,22 @@ if (canvas) {
 
 document.querySelectorAll("svg.peaks").forEach(svg => {
   updatePeaks(svg);
+  svg.setAttribute("viewBox", "0 0 100 100");
   svg.setAttribute("preserveAspectRatio", "none");
 });
 
 document.querySelectorAll("svg.waves").forEach(svg => {
   updateWaves(svg);
+  svg.setAttribute("viewBox", "0 0 100 100");
   svg.setAttribute("preserveAspectRatio", "none");
 });
 
 document.querySelectorAll("path[data-min][data-max]").forEach(path => {
+  const svg = path.closest("svg");
+  if (svg) svg.setAttribute("viewBox", "0 0 100 100");
   const min = parseInt(path.dataset.min, 10);
   const max = parseInt(path.dataset.max, 10);
   generateBlobPath(path, min, max);
-});
-
-document.querySelectorAll("svg").forEach((svg) => {
-  svg.setAttribute("viewBox", "0 0 100 100");
 });
 
 document.querySelectorAll("svg.poly").forEach(svg => {
@@ -478,6 +493,7 @@ document.querySelectorAll("svg.poly").forEach(svg => {
   const level = parseInt(path.dataset.level, 10);
   maskPolygon(svg,path,level);
   generatePolygonPath(path, level);
+  svg.setAttribute("viewBox", "0 0 100 100");
   setInterval(() => generatePolygonPath(path, level), 1000);
 });
 
@@ -493,3 +509,9 @@ if (document.getElementById("utc-time")) {
   updateTimeStr(); // Run on page load
   setInterval(updateTimeStr, 1000); // Update every second
 }
+
+document.querySelectorAll("svg.binaryClock").forEach(svg => {
+  drawBinaryClock(svg);
+  svg.setAttribute("viewBox", "0 0 32 1");
+  setInterval(() => drawBinaryClock(svg), 1000);
+});
