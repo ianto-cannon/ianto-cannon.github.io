@@ -1,10 +1,3 @@
-//function anyColor() {
-//  const r = Math.floor(Math.random() * 190 + 40);
-//  const g = Math.floor(Math.random() * 190 + 40);
-//  const b = Math.floor(Math.random() * 190 + 40);
-//  return `rgb(${r}, ${g}, ${b})`;
-//}
-
 function anyColor() {
   const h = Math.floor(Math.random() * 360);        
   const s = Math.floor(Math.random() * 40 + 30);    
@@ -148,12 +141,8 @@ function colorScheme(hue) {
 
 function generatePolygonPath(svg, path, level) {
   getTime();
-  //console.log(time); 
   const pathStr = [`M50,50 `];
-  //for (let i = 1; i <= time[level]sides[level]; i++) {
-  //const end = (time[level] == 0) ? sides[level] : time[level]
   for (let i = 0; i <= time[level]; i++) {
-    //const theta = (i + time[level])/ sides[level] * 2 * Math.PI;
     const theta = i/ sides[level] * 2 * Math.PI;
     const x = 50 + 50 * Math.sin(theta);
     const y = 50 - 50 * Math.cos(theta);
@@ -344,43 +333,6 @@ function updateTimeStr() {
   document.getElementById("timeZone").textContent = `${timeZoneName}`;
 }
 
-function getUTCTime() {
-  now = new Date();
-  year = now.getUTCFullYear();
-  monthStr = now.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }); // Jul
-  month = now.getUTCMonth(); //Jan=0, Feb=1...
-  date = now.getUTCDate();
-
-  //get the week number this month
-  const firstOfMonth = new Date(Date.UTC(year, month, 1));
-  const firstDay = (firstOfMonth.getUTCDay() + 6) % 7; // Monday = 0
-  const week = Math.floor((firstDay + date - 1) / 7);
-  
-  weekday = now.toLocaleString('en-US', { weekday: 'short', timeZone: 'UTC' }); // Thu
-  wkday = (now.getUTCDay()+6)%7; //Sun=6, Mon=0...
-  hour = now.getUTCHours();
-  minute = now.getUTCMinutes();
-  second = now.getUTCSeconds();
-  millisecond = now.getUTCMilliseconds();
-  time= [Math.floor(year/10)%10, year%10, month, week, wkday, hour, Math.floor(minute/10), minute%10, Math.floor(second/10), second%10];
-  const secFrac = millisecond/1000;
-  const minFrac = (second + secFrac)/60;
-  const hrFrac  = (minute + minFrac)/60;
-  const dayFrac = (hour + hrFrac)/24;
-
-  //get the day number this year
-  const start = Date.UTC(year, 0, 0); // Jan 0 UTC
-  const oneDay = 1000 * 60 * 60 * 24;
-  const days = Math.floor((now - start) / oneDay);
-
-  const yrFrac = (days + dayFrac)/365.25;
-  const milFrac = (year + yrFrac)/1000;
-  timeFracs = [milFrac, yrFrac, dayFrac, hrFrac, minFrac, secFrac];
-  
-  const unixTime = Math.floor(now.getTime() / 1000);
-  binary = unixTime.toString(2).padStart(32, '0');
-}
-
 function getTime() {
   now = new Date();
   timeZoneName = Intl.DateTimeFormat(undefined, { timeZoneName: 'short' }).format(now).split(' ').pop();
@@ -410,15 +362,10 @@ function getTime() {
   const start = new Date(year, 0, 0); // Jan 1 
   const oneDay = 1000 * 60 * 60 * 24;
   const days = Math.floor((now - start) / oneDay);
-  //console.log('time',time)
-  //console.log('start',start)
-  //console.log('days',days)
-  //console.log('dayFrac',dayFrac)
 
   const yrFrac = (days + dayFrac)/365.25;
   const milFrac = (year + yrFrac)/1000;
   timeFracs = [milFrac, yrFrac, dayFrac, hrFrac, minFrac, secFrac];
-  //console.log('timeFracs',timeFracs)
   
   const unixTime = Math.floor(now.getTime() / 1000);
   binary = unixTime.toString(2).padStart(32, '0');
@@ -501,7 +448,6 @@ headings.forEach(h => {
 });
 
 let col = randomColor()
-//const hue = rgbToHue(col)
 const hue = parseInt(col.match(/hsl\((\d+),/)[1], 10);
 const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
 const lightness = prefersDark ? 70 : 30;
