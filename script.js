@@ -182,9 +182,9 @@ function maskPolygon(svg,path,level){
 
 function generateBlobPath(blo,wavMin,wavMax) {
   getTime(); // Run once on page load
-  const radius = 20;
+  const radius = 28;
   const points = 50;
-  const variation = 10;
+  const variation = 14;
   const path = [];
   const r = new Array(points).fill(radius);
   for (let h = wavMin; h <= wavMax; h++) {
@@ -203,10 +203,7 @@ function generateBlobPath(blo,wavMin,wavMax) {
   }
   blo.setAttribute("d", path.join(" ") + " Z");
   blo.setAttribute("fill", col);
-  //console.log('wavMin',wavMin)
-  if (wavMax>3) {
-    requestAnimationFrame(() => generateBlobPath(blo, wavMin, wavMax));
-  }
+  requestAnimationFrame(() => generateBlobPath(blo, wavMin, wavMax));
 }
 
 function rgbToHue(rgb) {
@@ -245,16 +242,16 @@ function createWave(t, width, height, lightness, wavesSVG) {
   const pathStr = [];
   for (let i = -5; i <= 5; i++) {
     const x = width * (xrev + .25*i);
-    let y = 80;
+    let y = 60;
     if (i === -5) {
       pathStr.push(`M`);
       pathStr.push(`${x.toFixed(2)},100 `);
       pathStr.push(`L`);
     } if (i%2 === 0) {
       pathStr.push(`Q`);
-      y = 80 + height;
+      y = 60 + height;
     } if (i%4 === 0) {
-      y = 80 - height;
+      y = 60 - height;
     }
     pathStr.push(`${x.toFixed(2)},${y.toFixed(2)} `);
     if (i === 5) {
@@ -297,24 +294,32 @@ function createToothedTriangle(value, points, width, height, lightness, peaksSVG
   }
 }
 
-function updatePeaks(peaksSVG, wavesSVG) {
+function updatePeaks(peaksSVG) {
   while (peaksSVG.firstChild) {
     peaksSVG.removeChild(peaksSVG.firstChild);
   }
-  while (wavesSVG.firstChild) {
-    wavesSVG.removeChild(wavesSVG.firstChild);
-  }
-  const width = 100;//peaksSVG.clientWidth;
+  const width = 100;
   getTime();
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   for (let i = 0; i <= 4; i++) {
     const lightness = prefersDark ? (20 + i*10) : (100 - 20 - i*10);
-    //createToothedTriangle(time[i]%1, timePoints[i], width, 70-i*10, lightness, peaksSVG);
-    createTriangle(timeFracs[i]%1, width, 70-i*10, lightness, peaksSVG);
-    createWave(    timeFracs[i]%1, width, 70-i*10, lightness, wavesSVG);
+    createTriangle(timeFracs[i]%1, width, 100-i*15, lightness, peaksSVG);
   }
-  //console.log('peaksSVG',peaksSVG)
-  requestAnimationFrame(() => updatePeaks(peaksSVG, wavesSVG));
+  requestAnimationFrame(() => updatePeaks(peaksSVG));
+}
+
+function updateWaves(wavesSVG) {
+  while (wavesSVG.firstChild) {
+    wavesSVG.removeChild(wavesSVG.firstChild);
+  }
+  const width = 100;
+  getTime();
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  for (let i = 0; i <= 4; i++) {
+    const lightness = prefersDark ? (20 + i*10) : (100 - 20 - i*10);
+    createWave(    timeFracs[i]%1, width, 110-i*15, lightness, wavesSVG);
+  }
+  requestAnimationFrame(() => updateWaves(wavesSVG));
 }
 
 function updateTimeStr() {
@@ -336,7 +341,7 @@ function getTime() {
   const week = Math.floor((firstDay + date - 1) / 7) + 1;
   
   weekday = now.toLocaleString('en-US', { weekday: 'short', timeZone: 'UTC' }); // Thu
-  wkday = now.getUTCDay(); //Sun=0, Mon=1...
+  wkday = now.getUTCDay()+6%7; //Sun=0, Mon=1...
   hour = now.getUTCHours();
   minute = now.getUTCMinutes();
   second = now.getUTCSeconds();
@@ -433,9 +438,13 @@ if (canvas) {
 }
 
 const peaksSVG = document.getElementById("peaksSVG");
+if (peaksSVG) {
+  updatePeaks(peaksSVG);
+}
+
 const wavesSVG = document.getElementById("wavesSVG");
-if (peaksSVG && wavesSVG) {
-  updatePeaks(peaksSVG,wavesSVG);
+if (wavesSVG) {
+  updateWaves(wavesSVG);
 }
 
 document.querySelectorAll("path[data-min][data-max]").forEach(path => {
@@ -451,6 +460,7 @@ document.querySelectorAll("svg").forEach((svg, idx) => {
   const level = parseInt(path.dataset.level, 10);
   maskPolygon(svg,path,level);
   generatePolygonPath(path, level);
+  svg.setAttribute("viewBox", "0 0 100 100");
   setInterval(() => generatePolygonPath(path, level), 1000);
 });
 

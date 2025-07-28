@@ -12,46 +12,39 @@
   <h1><a href="index.html">Ianto Cannon</a>'s clock graphics</h1>
   All clocks show the current coordinated universal time (UTC): <span id="utc-time">Loading…</span>
   <h2>Binary</h2>
+    Coming soon.
     <!--svg id="binary-clock" width="3200" height="100" viewBox="0 0 3200 100" xmlns="http://www.w3.org/2000/svg"-->
   <h2>Polygons</h2>
-  The following polygons show the year in the current decade (5), month in the year (7), week in the month (4), hour in the day (14), minute in the hour (5)(9)<br>
-  The following polygons show the time in the form yy:M:w:d:h:mm:ss, where M is the month, w is the week number in the current month, 
-    year in the current decade<span data-level="0"></span><span data-level="1"></span>, 
-    month<span data-level="2"></span>, 
-    week in the month<span data-level="3"></span>, 
-    day of the week<span data-level="4"></span>, 
-    hour<span data-level="5"></span>, 
-    minute<span data-level="6"></span><span data-level="7"></span>, 
-    and second<span data-level="8"></span><span data-level="9"></span>.<br>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="0"/></svg>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="1"/></svg><span class="raised">:</span>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="2"/></svg><span class="raised">:</span>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="3"/></svg><span class="raised">:</span>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="4"/></svg><span class="raised">:</span>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="5"/></svg>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="6"/></svg>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="7"/></svg><span class="raised">:</span>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="8"/></svg>
-    <svg width="50" viewBox="0 0 100 100"><path data-level="9"/></svg>
+    The following polygons show the time in the form yy:M:w:d:h:mm:ss, where M is the month, and w is the week number in the current month.<br>
+    <svg class="poly"><path data-level="0"/></svg>
+    <svg class="poly"><path data-level="1"/></svg><span class="raised">:</span>
+    <svg class="poly"><path data-level="2"/></svg><span class="raised">:</span>
+    <svg class="poly"><path data-level="3"/></svg><span class="raised">:</span>
+    <svg class="poly"><path data-level="4"/></svg><span class="raised">:</span>
+    <svg class="poly"><path data-level="5"/></svg>
+    <svg class="poly"><path data-level="6"/></svg>
+    <svg class="poly"><path data-level="7"/></svg><span class="raised">:</span>
+    <svg class="poly"><path data-level="8"/></svg>
+    <svg class="poly"><path data-level="9"/></svg>
   <h2>Peaks</h2>
   The highest peak moves from right to left once per millenium, the next highest once per year, once per day, once per hour, and once per minute.
-  <svg id="peaksSVG" viewBox="0 0 100 100" preserveAspectRatio="none" style="width: 100%; height: 200px; display: block; overflow: hidden;">
+  <svg id="peaksSVG" viewBox="0 0 100 100" preserveAspectRatio="none" style="width: 100%; height: 150px; display: block; overflow: hidden;">
   </svg>
 
   <h2>Waves</h2>
   Same as the peaks but with B&eacute;zier curves.
-  <svg id="wavesSVG" viewBox="0 0 100 100" preserveAspectRatio="none" style="width: 100%; height: 200px; display: block; overflow: hidden;">
+  <svg id="wavesSVG" viewBox="0 0 100 100" preserveAspectRatio="none" style="width: 100%; height: 150px; display: block; overflow: hidden;">
   </svg>
   <h2>Blobs</h2>
     The leftmost blob has a travelling wave that passes the top once per millennium. The subsequent blobs have waves that pass once per year, day, minute, and second, respectively.<br>
-    <svg width="200" height="200" viewBox="0 0 100 100"><path id="blobMil" data-min="1" data-max="1" /></svg>
-    <svg width="200" height="200" viewBox="0 0 100 100"><path id="blobYr"  data-min="2" data-max="2" /></svg>
-    <svg width="200" height="200" viewBox="0 0 100 100"><path id="blobDay" data-min="3" data-max="3" /></svg>
-    <svg width="200" height="200" viewBox="0 0 100 100"><path id="blobHr"  data-min="4" data-max="4" /></svg>
-    <svg width="200" height="200" viewBox="0 0 100 100"><path id="blobMin" data-min="5" data-max="5" /></svg>
-    <svg width="200" height="200" viewBox="0 0 100 100"><path id="blobSec" data-min="6" data-max="6" /></svg><br>
+    <svg class="blob"><path data-min="1" data-max="1" /></svg>
+    <svg class="blob"><path data-min="2" data-max="2" /></svg>
+    <svg class="blob"><path data-min="3" data-max="3" /></svg>
+    <svg class="blob"><path data-min="4" data-max="4" /></svg>
+    <svg class="blob"><path data-min="5" data-max="5" /></svg>
+    <svg class="blob"><path data-min="6" data-max="6" /></svg><br>
     The following blob has all six of the above waves on it.<br>
-    <svg width="200" height="200" viewBox="0 0 100 100"><path id="blobNow" data-min="1" data-max="6" /></svg>
+    <svg class="blob"><path data-min="1" data-max="6" /></svg>
   <p>
     &copy; Ianto Cannon 2025 Jul 27
   </p>

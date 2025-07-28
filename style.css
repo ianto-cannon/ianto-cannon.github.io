@@ -55,6 +55,14 @@ ul {
 
 .raised {
   position: relative;
-  top: -19px;
-  font-size: 1.5em
+  top: -32px;
+  font-size: 2em
+}
+
+.poly {
+  width: 80px;
+}
+
+.blob {
+  width: 150px;
 }
