@@ -384,6 +384,29 @@ function drawBinaryClock(svg) {
   }
 }
 
+
+function updateSolar() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const startOfYear = new Date(year, 0, 0);
+  const diff = now - startOfYear;
+  const oneDay = 1000 * 60 * 60 * 24;
+  const dayOfYear = diff / oneDay;
+
+  const secondsInDay = 24 * 60 * 60;
+  const secsToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
+
+  const earthOrbitAngle = (dayOfYear / 365.25) * 2 * Math.PI;
+  const earthX = 100 + 60 * Math.cos(earthOrbitAngle);
+  const earthY = 100 + 60 * Math.sin(earthOrbitAngle);
+  earthLayer.setAttribute("transform", `translate(${earthX}, ${earthY}) rotate(${(secsToday / secondsInDay) * 360})`);
+
+  const moonOrbitAngle = (dayOfYear % 29.5) / 29.5 * 2 * Math.PI;
+  const moonX = 10 * Math.cos(moonOrbitAngle);
+  const moonY = 10 * Math.sin(moonOrbitAngle);
+  moonLayer.setAttribute("transform", `translate(${moonX}, ${moonY})`);
+}
+
 const gravity = 0.3;
 const bounce = .99;
 const restitution = 1.0;
@@ -400,6 +423,8 @@ let year, month, date, weekday, hour, minute, second, millisecond
 let timeFracs = [];
 let time = [];
 let binary;
+const earthLayer = document.getElementById("earth-layer");
+const moonLayer = document.getElementById("moon-layer");
 getTime();
 let emoji = "";
 let title = ""
@@ -526,4 +551,28 @@ document.querySelectorAll("svg.binaryClock").forEach(svg => {
   drawBinaryClock(svg);
   svg.setAttribute("viewBox", "0 0 32 1");
   setInterval(() => drawBinaryClock(svg), 1000);
+});
+
+
+
+document.querySelectorAll("svg.solar").forEach(svg => {
+
+  const zodiacLayer = document.getElementById("zodiac-layer");
+  const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
+
+  // Place zodiac symbols on outer circle
+  zodiac.forEach((sign, i) => {
+    const angle = (i / 12) * 2 * Math.PI;
+    const x = 100 + 90 * Math.cos(angle);
+    const y = 100 + 90 * Math.sin(angle);
+    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    text.setAttribute("x", x);
+    text.setAttribute("y", y);
+    text.setAttribute("class", "symbol");
+    text.textContent = sign;
+    zodiacLayer.appendChild(text);
+  });
+
+  updateSolar();
+  setInterval(updateSolar, 10000); // update every 10s
 });

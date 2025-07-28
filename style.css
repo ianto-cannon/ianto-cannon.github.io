@@ -7,6 +7,10 @@ body {
 .valentines {
   font-family: cursive;
 }
+:root {
+  --svg-fill: black;
+  --svg-stroke: black;
+}
 @media (prefers-color-scheme: dark) {
   body {
     background-color: black;
@@ -14,6 +18,10 @@ body {
   }
   a { color: #90e8df; }
   a:visited{ color: #aed5fc; }
+  :root {
+  --svg-fill: white;
+  --svg-stroke: white;
+}
 }
 h1, h2, h3 {
   margin-bottom: 0.2em;
@@ -71,4 +79,19 @@ ul {
 .binaryClock {
   width: 100%;
   height: auto;
+}
+
+.solar {
+}
+.sun, .earth, .moon, .orbit, .zodiac, .symbol {
+  fill: none;
+  stroke: currentColor;
+}
+.sun { fill: currentColor; }
+.earth { fill: currentColor; }
+.moon { fill: currentColor; }
+.symbol {
+  /*font-size: 6px;*/
+  text-anchor: middle;
+  dominant-baseline: middle;
 }
