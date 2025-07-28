@@ -146,11 +146,10 @@ function colorScheme(hue) {
   return `hsl(${hue}, 30%, ${lightness}%)`;
 }
 
-function generatePolygon(svg, level) {
+function generatePolygonPath(svg, path, level) {
   getTime();
   console.log(time); 
-  const polyStr = [`M50,50 `];
-  const outlStr = [`M50,50 `];
+  const pathStr = [`M50,50 `];
   //for (let i = 1; i <= time[level]sides[level]; i++) {
   //const end = (time[level] == 0) ? sides[level] : time[level]
   for (let i = 0; i <= time[level]; i++) {
@@ -158,10 +157,8 @@ function generatePolygon(svg, level) {
     const theta = i/ sides[level] * 2 * Math.PI;
     const x = 50 + 50 * Math.sin(theta);
     const y = 50 - 50 * Math.cos(theta);
-    polyStr.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
-    polyStr.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
+    pathStr.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
   }
-  const path = document.createElementNS(svgNS, "path");
   path.setAttribute("d", pathStr.join(" ") + " Z");
   path.setAttribute("fill", colorScheme(hue));
 }
@@ -513,11 +510,12 @@ document.querySelectorAll("path[data-min][data-max]").forEach(path => {
 });
 
 document.querySelectorAll("svg.poly").forEach(svg => {
-  const level = parseInt(svg.dataset.level, 10);
-  //maskPolygon(svg,path,level);
-  generatePolygon(svg, level);
+  const path = svg.querySelector("path");
+  const level = parseInt(path.dataset.level, 10);
+  maskPolygon(svg,path,level);
+  generatePolygonPath(svg, path, level);
   svg.setAttribute("viewBox", "0 0 100 100");
-  setInterval(() => generatePolygon(svg, level), 1000);
+  setInterval(() => generatePolygonPath(svg, path, level), 1000);
 });
 
 setInterval(() => {
