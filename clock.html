@@ -6,43 +6,52 @@
   <title>Clock Graphics</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
-  <link href="https://fonts.googleapis.com/css2?family=Creepster&display=swap" rel="stylesheet">
 </head>
 <body>
   <h1><a href="index.html">Ianto Cannon</a>'s clock graphics</h1>
-  All clocks show the current coordinated universal time (UTC): <span id="utc-time">Loading…</span>
+  <p>
+    These clocks are generated as scalable vector graphics using JavaScript. Feel free to use and modify the source code.
+    All clocks display the current Coordinated Universal Time (UTC): <span id="utc-time">Loading…</span>
+  </p>
   <h2>Binary</h2>
-    Coming soon.
+  <p>Coming soon.</p>
     <!--svg id="binary-clock" width="3200" height="100" viewBox="0 0 3200 100" xmlns="http://www.w3.org/2000/svg"-->
   <h2>Polygons</h2>
-    The following polygons show the time in the form yy:M:w:d:h:mm:ss, where M is the month, and w is the week number in the current month.<br>
-    <svg class="poly"><path data-level="0"/></svg>
-    <svg class="poly"><path data-level="1"/></svg><span class="raised">:</span>
-    <svg class="poly"><path data-level="2"/></svg><span class="raised">:</span>
-    <svg class="poly"><path data-level="3"/></svg><span class="raised">:</span>
-    <svg class="poly"><path data-level="4"/></svg><span class="raised">:</span>
-    <svg class="poly"><path data-level="5"/></svg><span class="raised">:</span>
-    <svg class="poly"><path data-level="6"/></svg>
-    <svg class="poly"><path data-level="7"/></svg><span class="raised">:</span>
-    <svg class="poly"><path data-level="8"/></svg>
-    <svg class="poly"><path data-level="9"/></svg>
+  <p>
+    These polygons show the time in the form yy:M:w:d:h:mm:ss, where M is the month, w is the week in the current month, and d is the day of the week.
+  </p>
+  <svg class="poly"><path data-level="0"/></svg>
+  <svg class="poly"><path data-level="1"/></svg><span class="raised">:</span>
+  <svg class="poly"><path data-level="2"/></svg><span class="raised">:</span>
+  <svg class="poly"><path data-level="3"/></svg><span class="raised">:</span>
+  <svg class="poly"><path data-level="4"/></svg><span class="raised">:</span>
+  <svg class="poly"><path data-level="5"/></svg><span class="raised">:</span>
+  <svg class="poly"><path data-level="6"/></svg>
+  <svg class="poly"><path data-level="7"/></svg><span class="raised">:</span>
+  <svg class="poly"><path data-level="8"/></svg>
+  <svg class="poly"><path data-level="9"/></svg>
   <h2>Blobs</h2>
-    The leftmost blob has a travelling wave that passes the top once per millennium. The subsequent blobs have waves that pass once per year, day, minute, and second, respectively.<br>
-    <svg class="blob"><path data-min="1" data-max="1" /></svg>
-    <svg class="blob"><path data-min="2" data-max="2" /></svg>
-    <svg class="blob"><path data-min="3" data-max="3" /></svg>
-    <svg class="blob"><path data-min="4" data-max="4" /></svg>
-    <svg class="blob"><path data-min="5" data-max="5" /></svg>
-    <svg class="blob"><path data-min="6" data-max="6" /></svg><br>
-    The following blob has all six of the above waves on it.<br>
-    <svg class="blob"><path data-min="1" data-max="6" /></svg>
+  <p>
+    The leftmost blob has a travelling wave that passes the top once per millennium.  
+    The following blobs show waves that pass once per year, day, hour, minute, and second, respectively.
+  </p>
+  <svg class="blob"><path data-min="1" data-max="1" /></svg>
+  <svg class="blob"><path data-min="2" data-max="2" /></svg>
+  <svg class="blob"><path data-min="3" data-max="3" /></svg>
+  <svg class="blob"><path data-min="4" data-max="4" /></svg>
+  <svg class="blob"><path data-min="5" data-max="5" /></svg>
+  <svg class="blob"><path data-min="6" data-max="6" /></svg><br>
+  <p>The final blob has all six of the above waves on it.</p>
+  <svg class="blob"><path data-min="1" data-max="6" /></svg>
   <h2>Peaks</h2>
   The highest peak moves from right to left once per millenium, the next highest once per year, once per day, once per hour, and once per minute.
   <svg id="peaksSVG" viewBox="0 0 100 100" preserveAspectRatio="none" style="width: 100%; height: 150px; display: block; overflow: hidden;">
   </svg>
 
   <h2>Waves</h2>
-  Same as the peaks but with B&eacute;zier curves.
+  <p>
+    Similar to the peaks, but using B&eacute;zier curves instead of sharp edges.
+  </p>
   <svg id="wavesSVG" viewBox="0 0 100 100" preserveAspectRatio="none" style="width: 100%; height: 150px; display: block; overflow: hidden;">
   </svg>
   <p>

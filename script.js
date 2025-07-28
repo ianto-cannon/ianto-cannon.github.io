@@ -140,7 +140,7 @@ function generatePolygonPath(path, level) {
     const theta = (i + time[level])/ sides[level] * 2 * Math.PI;
     const x = 50 + 50 * Math.sin(theta);
     const y = 50 - 50 * Math.cos(theta);
-    pathStr.push(`L${x.toFixed(2)},${y.toFixed(2)}`);
+    pathStr.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
   }
   path.setAttribute("d", pathStr.join(" ") + " Z");
   path.setAttribute("fill", col);
@@ -168,10 +168,9 @@ function maskPolygon(svg,path,level){
     const line = document.createElementNS(svgNS, "line");
     line.setAttribute("x1", 50);
     line.setAttribute("y1", 50);
-    line.setAttribute("x2", x);
-    line.setAttribute("y2", y);
+    line.setAttribute("x2", x.toFixed(1));
+    line.setAttribute("y2", y.toFixed(1));
     line.setAttribute("stroke", "black");
-    line.setAttribute("stroke-width", 1);
     mask.appendChild(line);
   }
   defs.appendChild(mask);
@@ -199,7 +198,7 @@ function generateBlobPath(blo,wavMin,wavMax) {
     const theta = (i / points) * 2 * Math.PI;
     const x = 50 + r[i] * Math.sin(theta);
     const y = 50 - r[i] * Math.cos(theta);
-    path.push(`${i === 0 ? "M" : "L"} ${x.toFixed(2)},${y.toFixed(2)}`);
+    path.push(`${i === 0 ? "M" : "L"} ${x.toFixed(1)},${y.toFixed(1)}`);
   }
   blo.setAttribute("d", path.join(" ") + " Z");
   blo.setAttribute("fill", col);
@@ -245,7 +244,7 @@ function createWave(t, width, height, lightness, wavesSVG) {
     let y = 60;
     if (i === -5) {
       pathStr.push(`M`);
-      pathStr.push(`${x.toFixed(2)},100 `);
+      pathStr.push(`${x.toFixed(1)},100 `);
       pathStr.push(`L`);
     } if (i%2 === 0) {
       pathStr.push(`Q`);
@@ -253,10 +252,10 @@ function createWave(t, width, height, lightness, wavesSVG) {
     } if (i%4 === 0) {
       y = 60 - height;
     }
-    pathStr.push(`${x.toFixed(2)},${y.toFixed(2)} `);
+    pathStr.push(`${x.toFixed(1)},${y.toFixed(1)} `);
     if (i === 5) {
       pathStr.push(`L`);
-      pathStr.push(`${x.toFixed(2)},100 `);
+      pathStr.push(`${x.toFixed(1)},100 `);
       pathStr.push(`Z`);
     }
   }
@@ -383,6 +382,10 @@ if (month === 9 && date === 31) {
   emoji = " 🎃";
   title = "Happy halloween!";
   randomColor = halloweenColor;
+  const link = document.createElement("link");
+  link.rel = "stylesheet";
+  link.href = "https://fonts.googleapis.com/css2?family=Creepster&display=swap";
+  document.head.appendChild(link);
   document.querySelectorAll('h1, h2, h3').forEach(el => {
     el.classList.add('halloween');
   });
@@ -454,13 +457,15 @@ document.querySelectorAll("path[data-min][data-max]").forEach(path => {
 });
 
 const svgNS = "http://www.w3.org/2000/svg";
-document.querySelectorAll("svg").forEach((svg, idx) => {
+document.querySelectorAll("svg").forEach((svg) => {
+  svg.setAttribute("viewBox", "0 0 100 100");
+});
+
+document.querySelectorAll("svg.poly").forEach(svg => {
   const path = svg.querySelector("path");
-//document.querySelectorAll("path[data-level]").forEach(path => {
   const level = parseInt(path.dataset.level, 10);
   maskPolygon(svg,path,level);
   generatePolygonPath(path, level);
-  svg.setAttribute("viewBox", "0 0 100 100");
   setInterval(() => generatePolygonPath(path, level), 1000);
 });
 
