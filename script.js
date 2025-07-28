@@ -148,7 +148,7 @@ function colorScheme(hue) {
 
 function generatePolygonPath(svg, path, level) {
   getTime();
-  console.log(time); 
+  //console.log(time); 
   const pathStr = [`M50,50 `];
   //for (let i = 1; i <= time[level]sides[level]; i++) {
   //const end = (time[level] == 0) ? sides[level] : time[level]
@@ -340,10 +340,11 @@ function updateWaves(wavesSVG) {
 
 function updateTimeStr() {
   getTime();
-  document.getElementById("utc-time").textContent = `${year} ${monthStr} ${date} ${weekday} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
+  document.getElementById("timeStr").textContent = `${year} ${monthStr} ${date} ${weekday} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
+  document.getElementById("timeZone").textContent = `${timeZoneName}`;
 }
 
-function getTime() {
+function getUTCTime() {
   now = new Date();
   year = now.getUTCFullYear();
   monthStr = now.toLocaleString('en-US', { month: 'short', timeZone: 'UTC' }); // Jul
@@ -380,6 +381,49 @@ function getTime() {
   binary = unixTime.toString(2).padStart(32, '0');
 }
 
+function getTime() {
+  now = new Date();
+  timeZoneName = Intl.DateTimeFormat(undefined, { timeZoneName: 'short' }).format(now).split(' ').pop();
+  year = now.getFullYear();
+  monthStr = now.toLocaleString('en-US', { month: 'short'}); // Jul
+  month = now.getMonth(); //Jan=0, Feb=1...
+  date = now.getDate();
+
+  //get the week number this month
+  const firstOfMonth = new Date(year, month, 1);
+  const firstDay = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
+  const week = Math.floor((firstDay + date - 1) / 7);
+  
+  weekday = now.toLocaleString('en-US', { weekday: 'short'}); // Thu
+  wkday = (now.getDay()+6)%7; //Sun=6, Mon=0...
+  hour = now.getHours();
+  minute = now.getMinutes();
+  second = now.getSeconds();
+  millisecond = now.getMilliseconds();
+  time= [Math.floor(year/10)%10, year%10, month, week, wkday, hour, Math.floor(minute/10), minute%10, Math.floor(second/10), second%10];
+  const secFrac = millisecond/1000;
+  const minFrac = (second + secFrac)/60;
+  const hrFrac  = (minute + minFrac)/60;
+  const dayFrac = (hour + hrFrac)/24;
+
+  //get the day number this year
+  const start = new Date(year, 0, 0); // Jan 1 
+  const oneDay = 1000 * 60 * 60 * 24;
+  const days = Math.floor((now - start) / oneDay);
+  //console.log('time',time)
+  //console.log('start',start)
+  //console.log('days',days)
+  //console.log('dayFrac',dayFrac)
+
+  const yrFrac = (days + dayFrac)/365.25;
+  const milFrac = (year + yrFrac)/1000;
+  timeFracs = [milFrac, yrFrac, dayFrac, hrFrac, minFrac, secFrac];
+  //console.log('timeFracs',timeFracs)
+  
+  const unixTime = Math.floor(now.getTime() / 1000);
+  binary = unixTime.toString(2).padStart(32, '0');
+}
+
 function drawBinaryClock(svg) {
   svg.innerHTML = ''; // clear existing
   for (let i = 0; i < 32; i++) {
@@ -404,6 +448,7 @@ const svgNS = "http://www.w3.org/2000/svg";
 const headings = document.querySelectorAll("h2");  
 const canvas = document.getElementById("canvas");
 let ctx;
+let timeZoneName;
 let year, month, date, weekday, hour, minute, second, millisecond
 let timeFracs = [];
 let time = [];
@@ -526,7 +571,7 @@ setInterval(() => {
   });
 }, 1000);
 
-if (document.getElementById("utc-time")) {
+if (document.getElementById("timeStr")) {
   updateTimeStr(); // Run on page load
   setInterval(updateTimeStr, 1000); // Update every second
 }
