@@ -1,8 +1,15 @@
+//function anyColor() {
+//  const r = Math.floor(Math.random() * 190 + 40);
+//  const g = Math.floor(Math.random() * 190 + 40);
+//  const b = Math.floor(Math.random() * 190 + 40);
+//  return `rgb(${r}, ${g}, ${b})`;
+//}
+
 function anyColor() {
-  const r = Math.floor(Math.random() * 200 + 30);
-  const g = Math.floor(Math.random() * 200 + 30);
-  const b = Math.floor(Math.random() * 200 + 30);
-  return `rgb(${r}, ${g}, ${b})`;
+  const h = Math.floor(Math.random() * 360);        
+  const s = Math.floor(Math.random() * 40 + 30);    
+  const l = Math.floor(Math.random() * 60 + 20);    
+  return `hsl(${h}, ${s}%, ${l}%)`;
 }
 
 function halloweenColor() {
@@ -133,6 +140,12 @@ function draw() {
   requestAnimationFrame(draw);
 }
 
+function colorScheme(hue) {
+  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const lightness = prefersDark ? 70 : 30;
+  return `hsl(${hue}, 30%, ${lightness}%)`;
+}
+
 function generatePolygonPath(path, level) {
   getTime(); 
   const pathStr = [`M50,50 `];
@@ -143,7 +156,7 @@ function generatePolygonPath(path, level) {
     pathStr.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
   }
   path.setAttribute("d", pathStr.join(" ") + " Z");
-  path.setAttribute("fill", col);
+  path.setAttribute("fill", colorScheme(hue));
 }
 
 function maskPolygon(svg,path,level){
@@ -201,10 +214,7 @@ function generateBlobPath(blo,wavMin,wavMax) {
     path.push(`${i === 0 ? "M" : "L"} ${x.toFixed(1)},${y.toFixed(1)}`);
   }
   blo.setAttribute("d", path.join(" ") + " Z");
-  blo.setAttribute("fill", col);
-  //blo.setAttribute("stroke", col);
-  //blo.setAttribute("stroke-linejoin", "round");
-  //blo.setAttribute("stroke-width", "1");
+  blo.setAttribute("fill", colorScheme(hue));
   requestAnimationFrame(() => generateBlobPath(blo, wavMin, wavMax));
 }
 
@@ -361,11 +371,12 @@ function getTime() {
   const yrFrac = (days + dayFrac)/365.25;
   const milFrac = (year + yrFrac)/1000;
   timeFracs = [milFrac, yrFrac, dayFrac, hrFrac, minFrac, secFrac];
+  
+  const unixTime = Math.floor(now.getTime() / 1000);
+  binary = unixTime.toString(2).padStart(32, '0');
 }
 
 function drawBinaryClock(svg) {
-  const unixTime = Math.floor(Date.now() / 1000);
-  const binary = unixTime.toString(2).padStart(32, '0');
   svg.innerHTML = ''; // clear existing
   for (let i = 0; i < 32; i++) {
     const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
@@ -373,7 +384,7 @@ function drawBinaryClock(svg) {
     rect.setAttribute("y", 0);
     rect.setAttribute("width", 1);
     rect.setAttribute("height", 1);
-    rect.setAttribute("fill", binary[i] === '1' ? col : "none");
+    rect.setAttribute("fill", binary[i] === '1' ? colorScheme(hue) : "none");
     svg.appendChild(rect);
   }
 }
@@ -392,6 +403,7 @@ let ctx;
 let year, month, date, weekday, hour, minute, second, millisecond
 let timeFracs = [];
 let time = [];
+let binary;
 getTime();
 let emoji = "";
 let title = ""
@@ -438,8 +450,13 @@ headings.forEach(h => {
   h.textContent += emoji;
   h.title = title;
 });
-const col = randomColor()
-const hue = rgbToHue(col)
+
+let col = randomColor()
+//const hue = rgbToHue(col)
+const hue = parseInt(col.match(/hsl\((\d+),/)[1], 10);
+const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+const lightness = prefersDark ? 70 : 30;
+col = `hsl(${hue}, 30%, ${lightness}%)`;
 
 if (canvas) {
   canvas.title = title
