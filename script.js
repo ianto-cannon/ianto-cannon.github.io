@@ -146,11 +146,15 @@ function colorScheme(hue) {
   return `hsl(${hue}, 30%, ${lightness}%)`;
 }
 
-function generatePolygonPath(path, level) {
-  getTime(); 
+function generatePolygonPath(svg, path, level) {
+  getTime();
+  console.log(time); 
   const pathStr = [`M50,50 `];
-  for (let i = 1; i <= sides[level]; i++) {
-    const theta = (i + time[level])/ sides[level] * 2 * Math.PI;
+  //for (let i = 1; i <= time[level]sides[level]; i++) {
+  //const end = (time[level] == 0) ? sides[level] : time[level]
+  for (let i = 0; i <= time[level]; i++) {
+    //const theta = (i + time[level])/ sides[level] * 2 * Math.PI;
+    const theta = i/ sides[level] * 2 * Math.PI;
     const x = 50 + 50 * Math.sin(theta);
     const y = 50 - 50 * Math.cos(theta);
     pathStr.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
@@ -352,12 +356,12 @@ function getTime() {
   const week = Math.floor((firstDay + date - 1) / 7);
   
   weekday = now.toLocaleString('en-US', { weekday: 'short', timeZone: 'UTC' }); // Thu
-  wkday = now.getUTCDay()+6%7; //Sun=0, Mon=1...
+  wkday = (now.getUTCDay()+6)%7; //Sun=6, Mon=0...
   hour = now.getUTCHours();
   minute = now.getUTCMinutes();
   second = now.getUTCSeconds();
   millisecond = now.getUTCMilliseconds();
-  time= [Math.floor(year/10), year%10, month, week, wkday, hour, Math.floor(minute/10), minute%10, Math.floor(second/10), second%10];
+  time= [Math.floor(year/10)%10, year%10, month, week, wkday, hour, Math.floor(minute/10), minute%10, Math.floor(second/10), second%10];
   const secFrac = millisecond/1000;
   const minFrac = (second + secFrac)/60;
   const hrFrac  = (minute + minFrac)/60;
@@ -379,7 +383,7 @@ function getTime() {
 function drawBinaryClock(svg) {
   svg.innerHTML = ''; // clear existing
   for (let i = 0; i < 32; i++) {
-    const rect = document.createElementNS("http://www.w3.org/2000/svg", "rect");
+    const rect = document.createElementNS(svgNS, "rect");
     rect.setAttribute("x", i);
     rect.setAttribute("y", 0);
     rect.setAttribute("width", 1);
@@ -395,7 +399,7 @@ const restitution = 1.0;
 const radius = 15;
 const balls = [];
 const timePoints = [1e3, 365, 24, 60, 60, 1000]
-const sides = [10, 10, 12, 6, 7, 24, 6, 10, 6, 10]
+const sides = [9, 9, 11, 6, 6, 23, 6, 9, 6, 9]
 const svgNS = "http://www.w3.org/2000/svg";
 const headings = document.querySelectorAll("h2");  
 const canvas = document.getElementById("canvas");
@@ -509,9 +513,9 @@ document.querySelectorAll("svg.poly").forEach(svg => {
   const path = svg.querySelector("path");
   const level = parseInt(path.dataset.level, 10);
   maskPolygon(svg,path,level);
-  generatePolygonPath(path, level);
+  generatePolygonPath(svg, path, level);
   svg.setAttribute("viewBox", "0 0 100 100");
-  setInterval(() => generatePolygonPath(path, level), 1000);
+  setInterval(() => generatePolygonPath(svg, path, level), 1000);
 });
 
 setInterval(() => {
