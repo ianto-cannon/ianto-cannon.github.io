@@ -393,26 +393,22 @@ function drawBinaryClock(svg) {
 }
 
 
-function updateSolar() {
-  const now = new Date();
-  const year = now.getFullYear();
-  const startOfYear = new Date(year, 0, 0);
-  const diff = now - startOfYear;
-  const oneDay = 1000 * 60 * 60 * 24;
-  const dayOfYear = diff / oneDay;
+function updateSolar(earthLayer, moonLayer, w) {
+  const knownFullMoon = new Date(Date.UTC(2025, 7, 9, 7, 54));
+  const sumSolstice = new Date(Date.UTC(year, 5, 21));
+  getTime();
+  const earthOrbitAngle = 2 * Math.PI * (now - sumSolstice) / 365.25 / 24 / 60 /60 / 1000;
+  const earthX = .5*w + .3*w * Math.sin(earthOrbitAngle);
+  const earthY = .5*w - .3*w * Math.cos(earthOrbitAngle);
+  earthLayer.setAttribute("transform", `translate(${earthX}, ${earthY})`);
 
-  const secondsInDay = 24 * 60 * 60;
-  const secsToday = now.getHours() * 3600 + now.getMinutes() * 60 + now.getSeconds();
-
-  const earthOrbitAngle = (dayOfYear / 365.25) * 2 * Math.PI;
-  const earthX = 100 + 60 * Math.cos(earthOrbitAngle);
-  const earthY = 100 + 60 * Math.sin(earthOrbitAngle);
-  earthLayer.setAttribute("transform", `translate(${earthX}, ${earthY}) rotate(${(secsToday / secondsInDay) * 360})`);
-
-  const moonOrbitAngle = (dayOfYear % 29.5) / 29.5 * 2 * Math.PI;
-  const moonX = 10 * Math.cos(moonOrbitAngle);
-  const moonY = 10 * Math.sin(moonOrbitAngle);
-  moonLayer.setAttribute("transform", `translate(${moonX}, ${moonY})`);
+  const moonOrbitAngle = earthOrbitAngle + 2 * Math.PI * (now - knownFullMoon) / 29.5306 / 24 / 60 / 60 /1000 ;
+  const moonX = earthX + .05*w * Math.sin(moonOrbitAngle);
+  const moonY = earthY - .05*w * Math.cos(moonOrbitAngle);
+  //const moonPhases = ['🌑', '🌒', '🌓', '🌔', '🌕', '🌖', '🌗', '🌘'];
+  //const moonPhases= ['○','☽︎','●','◔','◑','◕','◖','◐','◓'];
+  moonLayer.textContent = '◐'
+  moonLayer.setAttribute("transform", `translate(${moonX}, ${moonY}) rotate(${180*earthOrbitAngle/Math.PI - 90})`);
 }
 
 const gravity = 0.3;
@@ -426,13 +422,12 @@ const headings = document.querySelectorAll("h2");
 const canvas = document.getElementById("canvas");
 let ctx;
 let timeZoneName;
+let now
 let year, month, date, weekday, hour, minute, second, millisecond
 let timeFracs = [];
 let time = [];
 let sides = [];
 let binary;
-const earthLayer = document.getElementById("earth-layer");
-const moonLayer = document.getElementById("moon-layer");
 getTime();
 let emoji = "";
 let title = ""
@@ -563,25 +558,73 @@ document.querySelectorAll("svg.binaryClock").forEach(svg => {
 });
 
 
-
 document.querySelectorAll("svg.solar").forEach(svg => {
-
-  const zodiacLayer = document.getElementById("zodiac-layer");
+  const w = svg.getBoundingClientRect().width;
+  const defs = document.createElementNS(svgNS, "defs");
+  const mask = document.createElementNS(svgNS, "mask");
+  const maskId = 'orbit';
+  mask.setAttribute("id", maskId);
+  const rect = document.createElementNS(svgNS, "rect");
+  rect.setAttribute("x", "0");
+  rect.setAttribute("y", "0");
+  rect.setAttribute("width", w);
+  rect.setAttribute("height", w);
+  rect.setAttribute("fill", "black");
+  mask.appendChild(rect);
+  const circ = document.createElementNS(svgNS, "circle");
+  circ.setAttribute("cx", .5*w);
+  circ.setAttribute("cy", .5*w);
+  circ.setAttribute("r", .3*w);
+  circ.setAttribute("fill", "white");
+  mask.appendChild(circ);
+  defs.appendChild(mask);
+  svg.insertBefore(defs, svg.firstChild);
+  for (let i = -3; i <= 3; i++) {
+    const rect = document.createElementNS(svgNS, "rect");
+    rect.setAttribute("x", "0");
+    rect.setAttribute("y", .5*w + .3*w*i/3);
+    rect.setAttribute("width", w);
+    rect.setAttribute("height", .3*w/3);
+    rect.setAttribute("fill", `hsl(${hue}, 30%, ${50-10*i}%)`);
+    rect.setAttribute("mask", `url(#${maskId})`);
+    svg.appendChild(rect);
+  }
   const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
-
-  // Place zodiac symbols on outer circle
   zodiac.forEach((sign, i) => {
-    const angle = (i / 12) * 2 * Math.PI;
-    const x = 100 + 90 * Math.cos(angle);
-    const y = 100 + 90 * Math.sin(angle);
-    const text = document.createElementNS("http://www.w3.org/2000/svg", "text");
+    const angle = (i - 2 + 10/365.25 ) / 12 * 2 * Math.PI;
+    const x = .5*w + .45*w * Math.sin(angle);
+    const y = .5*w - .45*w * Math.cos(angle);
+    const text = document.createElementNS(svgNS, "text");
     text.setAttribute("x", x);
     text.setAttribute("y", y);
-    text.setAttribute("class", "symbol");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    text.setAttribute("fill","currentColor")
     text.textContent = sign;
-    zodiacLayer.appendChild(text);
+    svg.appendChild(text);
   });
-
-  updateSolar();
-  setInterval(updateSolar, 10000); // update every 10s
+  //const earthLayer = document.createElementNS(svgNS, "circle");
+  const sunLayer = document.createElementNS(svgNS, "text");
+  const earthLayer = document.createElementNS(svgNS, "text");
+  const moonLayer  = document.createElementNS(svgNS, "text");
+  //moonLayer.setAttribute("r", .01*w)
+  sunLayer.textContent = '☉︎'
+  sunLayer.setAttribute("text-anchor", "middle");
+  sunLayer.setAttribute("dominant-baseline", "middle");
+  sunLayer.setAttribute("fill","currentColor")
+  sunLayer.setAttribute("transform", `translate(${.5*w}, ${.5*w})`);
+  sunLayer.setAttribute("font-size", "2em");
+  svg.appendChild(sunLayer);
+  earthLayer.textContent = '🜨'
+  earthLayer.setAttribute("text-anchor", "middle");
+  earthLayer.setAttribute("dominant-baseline", "middle");
+  earthLayer.setAttribute("fill","currentColor")
+  earthLayer.setAttribute("font-size", "2em");
+  moonLayer.setAttribute("text-anchor", "middle");
+  moonLayer.setAttribute("dominant-baseline", "middle");
+  moonLayer.setAttribute("fill","currentColor")
+  svg.appendChild(earthLayer);
+  svg.appendChild(moonLayer);
+  updateSolar(earthLayer, moonLayer, w);
+  setInterval(() => updateSolar(earthLayer, moonLayer, w), 1000);
 });

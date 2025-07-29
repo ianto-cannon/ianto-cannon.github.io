@@ -43,19 +43,47 @@
   <svg class="blob"><path data-min="1" data-max="6" /></svg>
   <h2>Solar system</h2>
   <p>The Earth and Moon orbit the Sun, with the night time zodiac symbol in the sky. This graphic needs to be properly synchronised with the full Moon and solstice times.</p>
+♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎
+  <svg class="solar"></svg>
 
-  <svg class="solar" viewBox="0 0 200 200" width="250" height="250" xmlns="http://www.w3.org/2000/svg">
-    <g id="zodiac-layer"></g>
-    <circle class="orbit" cx="100" cy="100" r="60" />
-    <!circle class="orbit" cx="100" cy="100" r="80" />
-    <circle class="sun" cx="100" cy="100" r="8" />
-    <g id="earth-layer">
-      <circle class="earth" r="4" />
-      <g id="moon-layer">
-        <circle class="moon" r="1.5" />
-      </g>
-    </g>
-  </svg>
+  <svg width="200" height="200" viewBox="0 0 200 200">
+      <!-- 10 horizontal stripes -->
+      <rect y="0"   width="200" height="20" fill="hsl(30, 30%, 90%)" mask="url(#666)"/>
+      <rect y="20"  width="200" height="20" fill="hsl(30, 30%, 80%)" mask="url(#666)"/>
+      <rect y="40"  width="200" height="20" fill="hsl(30, 30%, 70%)" mask="url(#666)"/>
+      <rect y="60"  width="200" height="20" fill="hsl(30, 30%, 60%)" mask="url(#666)"/>
+      <rect y="80"  width="200" height="20" fill="hsl(30, 30%, 50%)" />
+      <rect y="100" width="200" height="20" fill="hsl(30, 30%, 40%)" />
+      <rect y="120" width="200" height="20" fill="hsl(30, 30%, 30%)" />
+      <rect y="140" width="200" height="20" fill="hsl(30, 30%, 20%)" />
+      <rect y="160" width="200" height="20" fill="hsl(30, 30%, 10%)" />
+      <rect y="180" width="200" height="20" fill="hsl(30, 30%, 5%)" />
+
+  <circle class="orbit" cx="100" cy="100" r="60" fill="url(#lightnessStripes)" />
+      <rect y="40"  width="200" height="20" fill="hsl(30, 30%, 70%)" />
+      <rect y="60"  width="200" height="20" fill="hsl(30, 30%, 60%)" />
+</svg>
+
+<svg width="200" height="200" viewBox="0 0 200 200">
+  <defs>
+    <mask id="circleMask">
+      <!-- Black background (hidden) -->
+      <rect width="200" height="200" fill="black" />
+      <!-- White circle (visible) -->
+      <circle cx="100" cy="100" r="100" fill="white" />
+    </mask>
+  </defs>
+
+  <!-- Group of stripes with the circular mask applied -->
+  <g mask="url(#circleMask)">
+    <rect y="80"  width="200" height="20" fill="hsl(30, 30%, 50%)" />
+    <rect y="100" width="200" height="20" fill="hsl(30, 30%, 40%)" />
+    <rect y="120" width="200" height="20" fill="hsl(30, 30%, 30%)" />
+    <rect y="140" width="200" height="20" fill="hsl(30, 30%, 20%)" />
+    <rect y="160" width="200" height="20" fill="hsl(30, 30%, 10%)" />
+    <rect y="180" width="200" height="20" fill="hsl(30, 30%, 5%)" />
+  </g>
+</svg>
 
   <h2>Peaks</h2>
   <p>The highest peak moves from right to left once per millenium, the next highest once per year, once per day, once per hour, and once per minute.</p>
