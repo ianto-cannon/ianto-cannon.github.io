@@ -153,6 +153,11 @@ function generatePolygonPath(svg, path, level) {
 }
 
 function maskPolygon(svg,path,level){
+  // Remove mask if any
+  path.removeAttribute("mask");
+  // Remove existing mask defs to clean up the SVG
+  const oldDefs = svg.querySelector("defs");
+  if (oldDefs) svg.removeChild(oldDefs);
   // Create defs and mask
   const defs = document.createElementNS(svgNS, "defs");
   const mask = document.createElementNS(svgNS, "mask");
@@ -343,9 +348,12 @@ function getTime() {
 
   //get the week number this month
   const firstOfMonth = new Date(year, month, 1);
+  const lastOfMonth = new Date(year, month + 1, 0);
   const firstDay = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
   const week = Math.floor((firstDay + date - 1) / 7);
-  
+  const totalDays = lastOfMonth.getDate();
+  weeksInMonth = Math.ceil((firstDay + totalDays) / 7);
+  sides = [9, 9, 11, weeksInMonth-1, 6, 23, 6, 9, 6, 9]
   weekday = now.toLocaleString('en-US', { weekday: 'short'}); // Thu
   wkday = (now.getDay()+6)%7; //Sun=6, Mon=0...
   hour = now.getHours();
@@ -413,7 +421,6 @@ const restitution = 1.0;
 const radius = 15;
 const balls = [];
 const timePoints = [1e3, 365, 24, 60, 60, 1000]
-const sides = [9, 9, 11, 6, 6, 23, 6, 9, 6, 9]
 const svgNS = "http://www.w3.org/2000/svg";
 const headings = document.querySelectorAll("h2");  
 const canvas = document.getElementById("canvas");
@@ -422,6 +429,7 @@ let timeZoneName;
 let year, month, date, weekday, hour, minute, second, millisecond
 let timeFracs = [];
 let time = [];
+let sides = [];
 let binary;
 const earthLayer = document.getElementById("earth-layer");
 const moonLayer = document.getElementById("moon-layer");
@@ -531,6 +539,7 @@ document.querySelectorAll("svg.poly").forEach(svg => {
   maskPolygon(svg,path,level);
   generatePolygonPath(svg, path, level);
   svg.setAttribute("viewBox", "0 0 100 100");
+  setInterval(() => maskPolygon(svg, path, level), 1000);
   setInterval(() => generatePolygonPath(svg, path, level), 1000);
 });
 
