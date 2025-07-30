@@ -12,11 +12,12 @@
   <p>These clocks are rendered as scalable vector graphics using JavaScript. Please feel free to use and modify the source code.</p>
   <p>The current time is <span id="timeStr">Loading…</span> (<span id="timeZone">Loading…</span>).</p>
   <h2>Binary</h2>
-  <p>These squares show the Unix time, which is a 32-bit signed integer representing the number of seconds since 1970.</p>
-   <svg class="binaryClock"></svg>
+  <p>These squares show the <a href="https://samuel-saegesser.ch/_apps/BinaryClock_UNIX/index.php">Unix time</a>, which counts the seconds since 1970.</p>
+  <svg class="binaryClock"></svg>
+  <p>In 2038, 32-bit clocks like this will overflow, and the <a href="https://saej.in/post/hanoi/">two billion towers of time</a> will be solved.</p>
   <h2>Polygons</h2>
   <p>
-    These polygons show the time in the format yy:M:w:d:h:mm:ss, where M is the month (empty polygon for Jan and full polygon for Dec), w is the week in the month, and d is the day of the week (empty polygon for Mon and full polygon for Sun).
+    These polygons show the time in the format yy:M:w:d:h:mm:ss, where M is the month (empty polygon for January and full polygon for December), w is the week in the month, and d is the day of the week (empty polygon for Monday and full polygon for Sunday).
   </p>
   <svg class="poly"><path data-level="0"/></svg>
   <svg class="poly"><path data-level="1"/></svg><span class="raised">:</span>
@@ -30,7 +31,7 @@
   <svg class="poly"><path data-level="9"/></svg>
   <h2>Blobs</h2>
   <p>
-    The leftmost blob has a travelling wave that passes the top once per millennium.  
+    Inspired by <a href=https://www.blobmaker.app/>blobmaker</a>, I made some blobs which change in time. The leftmost blob has a travelling wave that passes the top once per millennium.  
     The following blobs have waves that pass once per year, day, hour, minute, and second, respectively.
   </p>
   <svg class="blob"><path data-min="1" data-max="1" /></svg>
@@ -42,49 +43,14 @@
   <p>The final blob has all six of the above waves on it.</p>
   <svg class="blob"><path data-min="1" data-max="6" /></svg>
   <h2>Solar system</h2>
-  <p>The Earth and Moon orbit the Sun, with the night time zodiac symbol in the sky. This graphic needs to be properly synchronised with the full Moon and solstice times.</p>
-♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎
+  <p>
+    We are looking down onto the northern hemispheres of the Sun, Earth and Moon.
+    The Earth orbits the Sun every 365.256 days and the Moon orbits the Earth every 27.322 days.
+    The zodiac is fixed in the night sky. 
+    Shaded lines show the axial tilt around the Earth's orbit, marked in 10&deg; increments. The summer and winter solstices are at the top and bottom of the orbit with inclinations of &plusmn;23.5&deg;. 
+    This graphic is a work in progress.
+  </p>
   <svg class="solar"></svg>
-
-  <svg width="200" height="200" viewBox="0 0 200 200">
-      <!-- 10 horizontal stripes -->
-      <rect y="0"   width="200" height="20" fill="hsl(30, 30%, 90%)" mask="url(#666)"/>
-      <rect y="20"  width="200" height="20" fill="hsl(30, 30%, 80%)" mask="url(#666)"/>
-      <rect y="40"  width="200" height="20" fill="hsl(30, 30%, 70%)" mask="url(#666)"/>
-      <rect y="60"  width="200" height="20" fill="hsl(30, 30%, 60%)" mask="url(#666)"/>
-      <rect y="80"  width="200" height="20" fill="hsl(30, 30%, 50%)" />
-      <rect y="100" width="200" height="20" fill="hsl(30, 30%, 40%)" />
-      <rect y="120" width="200" height="20" fill="hsl(30, 30%, 30%)" />
-      <rect y="140" width="200" height="20" fill="hsl(30, 30%, 20%)" />
-      <rect y="160" width="200" height="20" fill="hsl(30, 30%, 10%)" />
-      <rect y="180" width="200" height="20" fill="hsl(30, 30%, 5%)" />
-
-  <circle class="orbit" cx="100" cy="100" r="60" fill="url(#lightnessStripes)" />
-      <rect y="40"  width="200" height="20" fill="hsl(30, 30%, 70%)" />
-      <rect y="60"  width="200" height="20" fill="hsl(30, 30%, 60%)" />
-</svg>
-
-<svg width="200" height="200" viewBox="0 0 200 200">
-  <defs>
-    <mask id="circleMask">
-      <!-- Black background (hidden) -->
-      <rect width="200" height="200" fill="black" />
-      <!-- White circle (visible) -->
-      <circle cx="100" cy="100" r="100" fill="white" />
-    </mask>
-  </defs>
-
-  <!-- Group of stripes with the circular mask applied -->
-  <g mask="url(#circleMask)">
-    <rect y="80"  width="200" height="20" fill="hsl(30, 30%, 50%)" />
-    <rect y="100" width="200" height="20" fill="hsl(30, 30%, 40%)" />
-    <rect y="120" width="200" height="20" fill="hsl(30, 30%, 30%)" />
-    <rect y="140" width="200" height="20" fill="hsl(30, 30%, 20%)" />
-    <rect y="160" width="200" height="20" fill="hsl(30, 30%, 10%)" />
-    <rect y="180" width="200" height="20" fill="hsl(30, 30%, 5%)" />
-  </g>
-</svg>
-
   <h2>Peaks</h2>
   <p>The highest peak moves from right to left once per millenium, the next highest once per year, once per day, once per hour, and once per minute.</p>
   <svg class="banner peaks"></svg>
@@ -95,7 +61,7 @@
   </p>
   <svg class="banner waves"></svg>
   <p>
-    &copy; Ianto Cannon 2025 Jul 29
+    &copy; Ianto Cannon 2025 Jul 30
   </p>
   <script src="script.js" defer></script>
 </body>
