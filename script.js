@@ -161,8 +161,9 @@ function maskPolygon(svg,path,level){
   // Create defs and mask
   const defs = document.createElementNS(svgNS, "defs");
   const mask = document.createElementNS(svgNS, "mask");
-  const maskId = `mask-lines-${level}`;
+  const maskId = `line${level}`;
   mask.setAttribute("id", maskId);
+  mask.setAttribute("maskUnits", "userSpaceOnUse");
   // Full white background (visible)
   const rect = document.createElementNS(svgNS, "path");
   rect.setAttribute("d", "M0 0 H100 V100 H0 Z");
@@ -403,15 +404,16 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   const head = document.createElementNS(svgNS, "circle");
   head.setAttribute("cx", 0);
   head.setAttribute("cy", raise + size);
-  head.setAttribute("r", .1 * size);
+  head.setAttribute("r", .2 * size);
   head.setAttribute("fill", "none");
   head.setAttribute("stroke", "currentColor");
+  head.setAttribute("stroke-width", 2);
   g.appendChild(head);
 
   // Body, arms, and legs as a single path
   const p = document.createElementNS(svgNS, "path");
   const yHead = raise + 0.5 * size;
-  const yWaist = raise + 0.9 * size;
+  const yWaist = raise + 0.8 * size;
   const yArmTop = raise + 0.6 * size;
   const yArmBottom = raise + 0.95 * size;
   const yFoot = raise;
@@ -423,6 +425,7 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   p.setAttribute("d", d.replace(/\s+/g, " "));
   p.setAttribute("stroke", "currentColor");
   p.setAttribute("fill", "none");
+  p.setAttribute("stroke-width", 2);
   g.appendChild(p);
   return g;
 }
@@ -450,6 +453,7 @@ class CelestialBody {
     this.outline = document.createElementNS(svgNS, "circle");
     this.outline.setAttribute("r", radius);
     this.outline.setAttribute("stroke", "currentColor");
+    this.outline.setAttribute("stroke-width", 2);
     this.group.appendChild(this.outline); 
 
     //Put colors in the Earth's orbit
@@ -497,8 +501,10 @@ class CelestialBody {
 
     if (this.lit) {
       // Calculate angle to sun (center)
-      const dx = this.x - this.w/2;
-      const dy = this.y - this.w/2;
+      //const dx = this.x - this.w/2;
+      //const dy = this.y - this.w/2;
+      const dx = this.orbits.x - this.w/2;
+      const dy = this.orbits.y - this.w/2;
       const sunAngle = Math.atan2(dy, dx);
 
       // Lit hemisphere (semi-circle arc path)
@@ -675,11 +681,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     const angle = ( earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000 ) % 360 
     stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(1)})`);
   }
-  
   const w = svg.getBoundingClientRect().width;
-  const earthToSun = .3*w
-  const moonToEarth = .1*w
-  
   const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
   const zodiacGroup = document.createElementNS(svgNS, "g");
   zodiacGroup.setAttribute("class", "zodiac");
@@ -697,7 +699,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
 
   const earth = new CelestialBody({
     name: "Earth",
-    radius: .03*w,
+    radius: .04*w,
     orbitRadius: .3*w,
     orbitalPeriod: 365.256,
     orbitStartTime: Date.UTC(2025, 5, 21, 2, 42),
@@ -707,8 +709,8 @@ document.querySelectorAll("svg.solar").forEach(svg => {
 
   const moon = new CelestialBody({
     name: "Moon",
-    radius: .02*w,
-    orbitRadius: .15*w,
+    radius: .03*w,
+    orbitRadius: .17*w,
     orbitalPeriod: 29.531,
     orbitStartTime: Date.UTC(2025, 7, 9, 7, 54),
     orbits: earth,
@@ -721,21 +723,77 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   //sun.setAttribute("r", .05*w)
   //svg.appendChild(sun);
 
-  const stickFigure = createStickFigure(svgNS, .3*moon.orbitRadius, earth.radius);
+  const stickFigure = createStickFigure(svgNS, .4*moon.orbitRadius, earth.radius);
   svg.appendChild(stickFigure)
+const datetimeInput = document.getElementById("datetime");
+const playPauseBtn = document.getElementById("playPauseBtn");
 
-  const datetimeInput = document.getElementById("datetime");
-  getTime();
-  animate(now);
-  const pad = n => n.toString().padStart(2, '0');
+let solTime = Date.now();  // current time in ms
+let playing = false;
+let lastTimestamp = null;
 
-  // Format to YYYY-MM-DDTHH:MM for datetime-local
-  const formatted = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
-  datetimeInput.value = formatted;
+function pad(n) {
+  return n.toString().padStart(2, '0');
+}
 
-  datetimeInput.addEventListener("input", () => {
-    solTime = new Date(datetimeInput.value).getTime() || Date.now();
-    animate(solTime); // run once immediately with new time
-  });
-  
+// Format date to YYYY-MM-DDTHH:MM
+function formatDateTime(ms) {
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+// Initial setup
+function init() {
+  solTime = Date.now();
+
+  datetimeInput.value = formatDateTime(solTime);
+  animate(solTime);
+}
+
+// Animation loop
+function animationStep(timestamp) {
+  if (!lastTimestamp) lastTimestamp = timestamp;
+
+  if (playing) {
+    // Calculate elapsed real time since last frame
+    lastTimestamp = timestamp;
+    solTime += 60*1000*60;
+
+    datetimeInput.value = formatDateTime(solTime);
+    animate(solTime);
+  } else {
+    // When paused, just update lastTimestamp to current to avoid big jumps later
+    lastTimestamp = timestamp;
+  }
+
+  requestAnimationFrame(animationStep);
+}
+
+// Play/pause toggle
+playPauseBtn.addEventListener("click", () => {
+  playing = !playing;
+  playPauseBtn.textContent = playing ? "Pause" : "Play";
+
+  if (playing) {
+    lastTimestamp = null; // reset to avoid jump
+  }
+});
+
+// User input changes date/time, pause animation and update solTime
+datetimeInput.addEventListener("input", () => {
+  playing = false;
+  playPauseBtn.textContent = "Play";
+  solTime = new Date(datetimeInput.value).getTime() || Date.now();
+  animate(solTime);
+});
+
+// Pause when the input is focused (user is interacting)
+datetimeInput.addEventListener("focus", () => {
+  playing = false;
+  playPauseBtn.textContent = "Play";
+});
+
+init();
+requestAnimationFrame(animationStep);
+
 });
