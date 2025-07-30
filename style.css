@@ -85,3 +85,34 @@ ul {
   fill: currentColor;
 }
 
+/* Make the form controls full width on small screens */
+@media (max-width: 600px) {
+  input[type="datetime-local"],
+  button.play-button {
+    width: 100%;
+    font-size: 1.2em;
+    padding: 0.6em;
+    box-sizing: border-box;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.4em;
+    font-size: 1em;
+  }
+
+  .timeZone {
+    display: block;
+    margin-top: 0.5em;
+    font-size: 0.9em;
+  }
+}
+
+/* Optional general button styling */
+button.play-button {
+  font-size: 1em;
+  padding: 0.4em 0.8em;
+  margin-left: 0.5em;
+  cursor: pointer;
+}
+
