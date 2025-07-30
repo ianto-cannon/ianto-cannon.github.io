@@ -335,7 +335,12 @@ function updateWaves(wavesSVG) {
 function updateTimeStr() {
   getTime();
   document.getElementById("timeStr").textContent = `${year} ${monthStr} ${date} ${weekday} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
-  document.getElementById("timeZone").textContent = `${timeZoneName}`;
+  document.querySelectorAll("span.timeZone").forEach(span => {
+  span.textContent = `${timeZoneName}`;
+});
+  document.querySelectorAll("timeZone").forEach(span => {
+    span.textContent = `${timeZoneName}`;
+  });
 }
 
 function getTime() {
@@ -464,30 +469,6 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   return g;
 }
 
-
-function updateSolar(earth, earthOutline, moon, moonDark, moonOutline, moonOrbit, stickFigure, w, earthToSun, moonToEarth) {
-  getTime();
-  const earthOrbitAngle = 2 * Math.PI * (now - sumSolstice) / 365.25 / 24 / 60 /60 / 1000;
-  const earthX = .5*w + earthToSun * Math.sin(earthOrbitAngle);
-  const earthY = .5*w - earthToSun * Math.cos(earthOrbitAngle);
-  //const earthAngle = earthOrbitAngle + Math.PI * ( 2 * timeFracs[2] -.5);
-  const earthAngle = earthOrbitAngle + Math.PI * (-.5);
-  earth.setAttribute("d", describeSector(earthX, earthY, .05*w, earthAngle-Math.PI/24, Math.PI*23/12));
-  earthOutline.setAttribute("cx", earthX);
-  earthOutline.setAttribute("cy", earthY);
-  stickFigure.setAttribute("transform", `translate(${earthX}, ${earthY}) rotate(${earthAngle})`);
-  
-  moonOrbit.setAttribute("transform", `translate(${earthX}, ${earthY})`);
-
-  const moonOrbitAngle = earthOrbitAngle + 2 * Math.PI * (now - knownFullMoon) / 29.5306 / 24 / 60 / 60 /1000 ;
-  const moonX = earthX + moonToEarth * Math.sin(moonOrbitAngle);
-  const moonY = earthY - moonToEarth * Math.cos(moonOrbitAngle);
-  moon.setAttribute("d", describeSector(moonX, moonY, .03*w, earthOrbitAngle, Math.PI));
-  moonDark.setAttribute("d", describeSector(moonX, moonY, .03*w, earthOrbitAngle+Math.PI, Math.PI));
-  moonOutline.setAttribute("cx", moonX);
-  moonOutline.setAttribute("cy", moonY);
-}
-
 class CelestialBody {
   constructor({ name, radius, orbitRadius, orbitalPeriod, orbitStartTime, orbits, svg }) {
     this.name = name;
@@ -502,13 +483,20 @@ class CelestialBody {
 
     this.group = document.createElementNS(svgNS, "g");
 
-    this.orbitCircle = document.createElementNS(svgNS, "circle");
-    this.orbitCircle.setAttribute("r", orbitRadius);
-    this.orbitCircle.setAttribute("fill", "none");
+    //this.orbitCircle = document.createElementNS(svgNS, "circle");
+    //this.orbitCircle.setAttribute("r", orbitRadius);
+    //this.orbitCircle.setAttribute("fill", "none");
     //this.orbitCircle.setAttribute("stroke", "currentColor");
     
+    // Outline
+    this.outline = document.createElementNS(svgNS, "circle");
+    this.outline.setAttribute("r", radius);
+    this.outline.setAttribute("stroke", "currentColor");
+    this.group.appendChild(this.outline); 
+
     //Put colors in the Earth's orbit
     if (!this.orbits) {
+      this.outline.setAttribute("fill", "none");
       const defs = svg.insertBefore(document.createElementNS(svgNS, "defs"), svg.firstChild);
       const maskId = "earthOrbitMask";
       defs.innerHTML = `
@@ -528,46 +516,40 @@ class CelestialBody {
         rect.setAttribute("mask", `url(#${maskId})`);
         svg.appendChild(rect);
       }
+    } else {
+      this.outline.setAttribute("fill", "black");
+      this.lit = document.createElementNS(svgNS, "path");
+      this.lit.setAttribute("fill", "white");
+      this.group.appendChild(this.lit);
     }
-    svg.appendChild(this.orbitCircle);
-
-    // Outline
-    this.outline = document.createElementNS(svgNS, "circle");
-    this.outline.setAttribute("r", radius);
-    this.outline.setAttribute("stroke", "currentColor");
-
-    this.lit = document.createElementNS(svgNS, "path");
-    this.lit.setAttribute("fill", "white");
-
-    this.group.appendChild(this.outline); 
-    this.group.appendChild(this.lit);
+    //svg.appendChild(this.orbitCircle);
     svg.appendChild(this.group);
   }
 
-  update(now) {
+  update(solTime) {
     const cx = this.orbits ? this.orbits.x : this.w/2;
     const cy = this.orbits ? this.orbits.y : this.w/2;
     const parentAngle = this.orbits ? this.orbits.angle : 0;
-    //this.angle = parentAngle + 2 * Math.PI * (now - this.orbitStartTime) / 24 / 60 / 60 / 1000 / this.orbitalPeriod;
-    this.angle = parentAngle + 2 * Math.PI * (now - this.orbitStartTime) / 50 / this.orbitalPeriod;
+    this.angle = parentAngle - 2 * Math.PI * (solTime - this.orbitStartTime) / 24 / 60 / 60 / 1000 / this.orbitalPeriod;
     this.x = cx + this.orbitRadius * Math.sin(this.angle);
     this.y = cy - this.orbitRadius * Math.cos(this.angle);
 
     // Position the group
     this.group.setAttribute("transform", `translate(${this.x}, ${this.y})`);
 
-    // Calculate angle to sun (center)
-    const dx = this.x - this.w/2;
-    const dy = this.y - this.w/2;
-    const sunAngle = Math.atan2(dy, dx);
+    if (this.lit) {
+      // Calculate angle to sun (center)
+      const dx = this.x - this.w/2;
+      const dy = this.y - this.w/2;
+      const sunAngle = Math.atan2(dy, dx);
 
-    // Lit hemisphere (semi-circle arc path)
-    const r = this.radius;
-    const path = describeLitHemisphere(r, sunAngle);
-    this.lit.setAttribute("d", path);
-    
-    this.orbitCircle.setAttribute("cx", cx || 200);
-    this.orbitCircle.setAttribute("cy", cy || 200);
+      // Lit hemisphere (semi-circle arc path)
+      const r = this.radius;
+      const path = describeLitHemisphere(r, sunAngle);
+      this.lit.setAttribute("d", path);
+    }
+    //this.orbitCircle.setAttribute("cx", cx || 200);
+    //this.orbitCircle.setAttribute("cy", cy || 200);
   }
 }
 
@@ -728,13 +710,21 @@ document.querySelectorAll("svg.binaryClock").forEach(svg => {
 
 
 document.querySelectorAll("svg.solar").forEach(svg => {
+  
+  function animate(solTime) {
+    earth.update(solTime);
+    moon.update(solTime);
+    const angle = earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000
+    stickFigure.setAttribute("transform", `translate(${earth.x}, ${earth.y}) rotate(${angle})`);
+  }
+  
   const w = svg.getBoundingClientRect().width;
   const earthToSun = .3*w
   const moonToEarth = .1*w
   
   const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
   zodiac.forEach((sign, i) => {
-    const angle = (i - 2 + 10/365.25 ) / 12 * 2 * Math.PI;
+    const angle = -10/365.25*2*Math.PI - (i-2)/12*2*Math.PI;
     const x = .5*w + .47*w * Math.sin(angle);
     const y = .5*w - .47*w * Math.cos(angle);
     const text = document.createElementNS(svgNS, "text");
@@ -753,7 +743,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     radius: .03*w,
     orbitRadius: .3*w,
     orbitalPeriod: 365.256,
-    orbitStartTime: Date.UTC(2025, 5, 21),
+    orbitStartTime: Date.UTC(2025, 5, 21, 2, 42),
     orbits: null,
     svg,
   });
@@ -761,31 +751,34 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   const moon = new CelestialBody({
     name: "Moon",
     radius: .02*w,
-    orbitRadius: .1*w,
+    orbitRadius: .15*w,
     orbitalPeriod: 29.531,
     orbitStartTime: Date.UTC(2025, 7, 9, 7, 54),
     orbits: earth,
     svg,
   });
   
-  
-  const sun = document.createElementNS(svgNS, "circle");
-  sun.setAttribute("fill","white")
-  sun.setAttribute("transform", `translate(${.5*w}, ${.5*w})`);
-  sun.setAttribute("r", .05*w)
-  svg.appendChild(sun);
+  //const sun = document.createElementNS(svgNS, "circle");
+  //sun.setAttribute("fill","white")
+  //sun.setAttribute("transform", `translate(${.5*w}, ${.5*w})`);
+  //sun.setAttribute("r", .05*w)
+  //svg.appendChild(sun);
 
   const stickFigure = createStickFigure(svgNS, .3*moon.orbitRadius, earth.radius);
   svg.appendChild(stickFigure)
+
+  const datetimeInput = document.getElementById("datetime");
+  getTime();
+  animate(now);
+  const pad = n => n.toString().padStart(2, '0');
+
+  // Format to YYYY-MM-DDTHH:MM for datetime-local
+  const formatted = `${now.getFullYear()}-${pad(now.getMonth()+1)}-${pad(now.getDate())}T${pad(now.getHours())}:${pad(now.getMinutes())}`;
+  datetimeInput.value = formatted;
+
+  datetimeInput.addEventListener("input", () => {
+    solTime = new Date(datetimeInput.value).getTime() || Date.now();
+    animate(solTime); // run once immediately with new time
+  });
   
-  function animate() {
-    const solTime = Date.now();
-    earth.update(solTime);
-    moon.update(solTime);
-    stickFigure.setAttribute("transform", `translate(${earth.x}, ${earth.y}) rotate(${earth.angle*180/Math.PI})`);
-    requestAnimationFrame(animate)
-  }
-  
-  requestAnimationFrame(animate)
-  animate();
 });

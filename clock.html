@@ -10,7 +10,7 @@
 <body>
   <h1><a href="index.html">Ianto Cannon</a>'s clock graphics</h1>
   <p>These clocks are rendered as scalable vector graphics using JavaScript. Please feel free to use and modify the source code.</p>
-  <p>The current time is <span id="timeStr">Loading…</span> (<span id="timeZone">Loading…</span>).</p>
+  <p>The current time is <span id="timeStr">Loading…</span> (<span class="timeZone">Loading…</span>).</p>
   <h2>Binary</h2>
   <p>These squares show the <a href="https://samuel-saegesser.ch/_apps/BinaryClock_UNIX/index.php">Unix time</a>, which counts the seconds since 1970.</p>
   <svg class="binaryClock"></svg>
@@ -44,11 +44,15 @@
   <svg class="blob"><path data-min="1" data-max="6" /></svg>
   <h2>Solar system</h2>
   <p>
-    We are looking down onto the northern hemispheres of the Sun, Earth and Moon.
-    The Earth orbits the Sun every 365.256 days and the Moon orbits the Earth every 27.322 days.
-    The zodiac is fixed in the night sky. 
-    Shaded lines show the axial tilt around the Earth's orbit, marked in 10&deg; increments. The summer and winter solstices are at the top and bottom of the orbit with inclinations of &plusmn;23.5&deg;. 
-    This graphic is a work in progress.
+    This diagram shows the Sun, Earth, and Moon from the perspective of the North Star. The zodiac constellations are fixed in the night sky.
+  </p>
+  <p>
+    Shaded lines mark the Earth's axial tilt at 10° intervals along its orbit.
+    The June and December solstices appear at the top and bottom of the orbit; they have tilts of &plusmn;23.5&deg;. 
+  </p>
+  <p>
+    <label for="datetime">Set date and time:</label>
+    <input type="datetime-local" id="datetime" /> <span class="timeZone">.
   </p>
   <svg class="solar"></svg>
   <h2>Peaks</h2>
