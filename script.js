@@ -725,19 +725,19 @@ document.querySelectorAll("svg.solar").forEach(svg => {
 
   const stickFigure = createStickFigure(svgNS, .4*moon.orbitRadius, earth.radius);
   svg.appendChild(stickFigure)
-const datetimeInput = document.getElementById("datetime");
-const playPauseBtn = document.getElementById("playPauseBtn");
+  const datetimeInput = document.getElementById("datetime");
+  const playPauseBtn = document.querySelector(".playPauseBtn");
 
-let solTime = Date.now();  // current time in ms
-let playing = false;
-let lastTimestamp = null;
+  let solTime = Date.now();  // current time in ms
+  let playing = false;
+  let lastTimestamp = null;
 
-function pad(n) {
-  return n.toString().padStart(2, '0');
-}
+  function pad(n) {
+    return n.toString().padStart(2, '0');
+  }
 
-// Format date to YYYY-MM-DDTHH:MM
-function formatDateTime(ms) {
+  // Format date to YYYY-MM-DDTHH:MM
+  function formatDateTime(ms) {
   const d = new Date(ms);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }

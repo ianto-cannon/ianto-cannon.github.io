@@ -88,7 +88,7 @@ ul {
 /* Make the form controls full width on small screens */
 @media (max-width: 600px) {
   input[type="datetime-local"],
-  button.play-button {
+  button.playPauseBtn {
     width: 100%;
     font-size: 1.2em;
     padding: 0.6em;
@@ -109,7 +109,7 @@ ul {
 }
 
 /* Optional general button styling */
-button.play-button {
+button.playPauseBtn {
   font-size: 1em;
   padding: 0.4em 0.8em;
   margin-left: 0.5em;
