@@ -164,26 +164,22 @@ function maskPolygon(svg,path,level){
   const maskId = `mask-lines-${level}`;
   mask.setAttribute("id", maskId);
   // Full white background (visible)
-  const rect = document.createElementNS(svgNS, "rect");
-  rect.setAttribute("x", "0");
-  rect.setAttribute("y", "0");
-  rect.setAttribute("width", "100");
-  rect.setAttribute("height", "100");
+  const rect = document.createElementNS(svgNS, "path");
+  rect.setAttribute("d", "M0 0 H100 V100 H0 Z");
   rect.setAttribute("fill", "white");
   mask.appendChild(rect);
-  // Add black lines (transparent in mask)
+  const maskLine = document.createElementNS(svgNS, "path");
+  let d = "";
   for (let i = 1; i <= sides[level]; i++) {
-    const theta = (i + time[level])/ sides[level] * 2 * Math.PI;
+    const theta = (i + time[level]) / sides[level] * 2 * Math.PI;
     const x = 50 + 50 * Math.sin(theta);
     const y = 50 - 50 * Math.cos(theta);
-    const line = document.createElementNS(svgNS, "line");
-    line.setAttribute("x1", 50);
-    line.setAttribute("y1", 50);
-    line.setAttribute("x2", x.toFixed(1));
-    line.setAttribute("y2", y.toFixed(1));
-    line.setAttribute("stroke", "black");
-    mask.appendChild(line);
+    d += `M50 50 L${x.toFixed(1)} ${y.toFixed(1)} `;
   }
+  maskLine.setAttribute("d", d.trim());
+  maskLine.setAttribute("stroke", "black");
+  maskLine.setAttribute("fill", "none");
+  mask.appendChild(maskLine);
   defs.appendChild(mask);
   svg.insertBefore(defs, svg.firstChild);
   // Apply mask to path
@@ -385,31 +381,20 @@ function getTime() {
 }
 
 function drawBinaryClock(svg) {
-  svg.innerHTML = ''; // clear existing
+  svg.innerHTML = ''; // Clear existing content
+  const path = document.createElementNS(svgNS, "path");
+  let d = "";
   for (let i = 0; i < 31; i++) {
-    const rect = document.createElementNS(svgNS, "rect");
-    rect.setAttribute("x", i);
-    rect.setAttribute("y", 0);
-    rect.setAttribute("width", 1);
-    rect.setAttribute("height", 1);
-    rect.setAttribute("fill", binary[i] === '1' ? colorScheme(hue) : "none");
-    svg.appendChild(rect);
+    if (binary[i] === '1') {
+      // Move to (i, 0), draw a 1x1 square clockwise
+      d += `M${i},0 h1 v1 h-1 Z `;
+    }
   }
+  path.setAttribute("d", d.trim());
+  path.setAttribute("fill", colorScheme(hue));
+  svg.appendChild(path);
 }
 
-function describeSector(cx, cy, r, startAngle, sliceAngle) {
-  const x1 = cx + r * Math.cos(startAngle);
-  const y1 = cy + r * Math.sin(startAngle);
-  const x2 = cx + r * Math.cos(startAngle + sliceAngle);
-  const y2 = cy + r * Math.sin(startAngle + sliceAngle);
-  const largeArc = sliceAngle > 0.5*Math.PI ? 1 : 0;
-  return `
-    M${cx},${cy}
-    L${x1},${y1}
-    A${r},${r} 0 ${largeArc},1 ${x2},${y2}
-    Z
-  `;
-}
 
 function createStickFigure(svgNS, size = 1, raise=0) {
   const g = document.createElementNS(svgNS, "g");
@@ -423,49 +408,22 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   head.setAttribute("stroke", "currentColor");
   g.appendChild(head);
 
-  // Body
-  const body = document.createElementNS(svgNS, "line");
-  body.setAttribute("x1", 0);
-  body.setAttribute("y1", raise + .5 * size);
-  body.setAttribute("x2", 0);
-  body.setAttribute("y2", raise + .9 * size);
-  body.setAttribute("stroke", "currentColor");
-  g.appendChild(body);
-
-  // Arms
-  const leftArm = document.createElementNS(svgNS, "line");
-  leftArm.setAttribute("x1", -.4 * size);
-  leftArm.setAttribute("y1", raise + .95 * size);
-  leftArm.setAttribute("x2", 0);
-  leftArm.setAttribute("y2", raise + .6 * size);
-  leftArm.setAttribute("stroke", "currentColor");
-  g.appendChild(leftArm);
-  
-  const rightArm = document.createElementNS(svgNS, "line");
-  rightArm.setAttribute("x1", .4 * size);
-  rightArm.setAttribute("y1", raise + .95 * size);
-  rightArm.setAttribute("x2", 0);
-  rightArm.setAttribute("y2", raise + .6 * size);
-  rightArm.setAttribute("stroke", "currentColor");
-  g.appendChild(rightArm);
-  
-  // Legs
-  const leftLeg = document.createElementNS(svgNS, "line");
-  leftLeg.setAttribute("x1", 0);
-  leftLeg.setAttribute("y1", raise + .5 * size);
-  leftLeg.setAttribute("x2", -.2 * size);
-  leftLeg.setAttribute("y2", raise);
-  leftLeg.setAttribute("stroke", "currentColor");
-  g.appendChild(leftLeg);
-
-  const rightLeg = document.createElementNS(svgNS, "line");
-  rightLeg.setAttribute("x1", 0);
-  rightLeg.setAttribute("y1", raise + .5 * size);
-  rightLeg.setAttribute("x2", .2 * size);
-  rightLeg.setAttribute("y2", raise);
-  rightLeg.setAttribute("stroke", "currentColor");
-  g.appendChild(rightLeg);
-
+  // Body, arms, and legs as a single path
+  const p = document.createElementNS(svgNS, "path");
+  const yHead = raise + 0.5 * size;
+  const yWaist = raise + 0.9 * size;
+  const yArmTop = raise + 0.6 * size;
+  const yArmBottom = raise + 0.95 * size;
+  const yFoot = raise;
+  const d = `
+    M 0 ${yHead} L 0 ${yWaist}
+    M -${0.4 * size} ${yArmBottom} L 0 ${yArmTop} L ${0.4 * size} ${yArmBottom}
+    M -${0.2 * size} ${yFoot} L 0 ${yHead} L ${0.2 * size} ${yFoot}
+  `.trim();
+  p.setAttribute("d", d.replace(/\s+/g, " "));
+  p.setAttribute("stroke", "currentColor");
+  p.setAttribute("fill", "none");
+  g.appendChild(p);
   return g;
 }
 
@@ -498,7 +456,7 @@ class CelestialBody {
     if (!this.orbits) {
       this.outline.setAttribute("fill", "none");
       const defs = svg.insertBefore(document.createElementNS(svgNS, "defs"), svg.firstChild);
-      const maskId = "earthOrbitMask";
+      const maskId = "orbit";
       defs.innerHTML = `
         <mask id="${maskId}">
           <rect x="0" y="0" width="${this.w}" height="${this.w}" fill="black"/>
@@ -507,14 +465,14 @@ class CelestialBody {
       `;
       for (let i = -3; i <= 3; i++) {
         const y = 0.5 * this.w + orbitRadius * i * 10 / 23.5;
-        const rect = document.createElementNS(svgNS, "rect");
-        rect.setAttribute("x", "0");
-        rect.setAttribute("y", y);
-        rect.setAttribute("width", this.w);
-        rect.setAttribute("height", orbitRadius * 10 / 23.5);
-        rect.setAttribute("fill", `hsl(${hue}, 30%, ${50 - 10 * i}%)`);
-        rect.setAttribute("mask", `url(#${maskId})`);
-        svg.appendChild(rect);
+        const h = orbitRadius * 10 / 23.5;
+        const d = `M0,${y.toFixed(1)} h${this.w} v${h.toFixed(1)} h-${this.w} Z`;
+
+        const path = document.createElementNS(svgNS, "path");
+        path.setAttribute("d", d);
+        path.setAttribute("fill", `hsl(${hue}, 30%, ${50 - 10 * i}%)`);
+        path.setAttribute("mask", `url(#${maskId})`);
+        svg.appendChild(path);
       }
     } else {
       this.outline.setAttribute("fill", "black");
@@ -535,7 +493,7 @@ class CelestialBody {
     this.y = cy - this.orbitRadius * Math.cos(this.angle);
 
     // Position the group
-    this.group.setAttribute("transform", `translate(${this.x}, ${this.y})`);
+    this.group.setAttribute("transform", `translate(${this.x.toFixed(1)}, ${this.y.toFixed(1)})`);
 
     if (this.lit) {
       // Calculate angle to sun (center)
@@ -559,7 +517,7 @@ function describeLitHemisphere(r, angle) {
   const y0 = r * Math.sin(angle + Math.PI/2);
   const x1 = r * Math.cos(angle - Math.PI/2);
   const y1 = r * Math.sin(angle - Math.PI/2);
-  return `M ${x0},${y0} A ${r},${r} 0 0,1 ${x1},${y1} L 0,0 Z`;
+  return `M ${x0.toFixed(2)},${y0.toFixed(2)} A ${r.toFixed(2)},${r.toFixed(2)} 0 0,1 ${x1.toFixed(2)},${y1.toFixed(2)} L 0,0 Z`;
 }
 
 const gravity = 0.3;
@@ -714,8 +672,8 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   function animate(solTime) {
     earth.update(solTime);
     moon.update(solTime);
-    const angle = earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000
-    stickFigure.setAttribute("transform", `translate(${earth.x}, ${earth.y}) rotate(${angle})`);
+    const angle = ( earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000 ) % 360 
+    stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(1)})`);
   }
   
   const w = svg.getBoundingClientRect().width;
@@ -723,21 +681,20 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   const moonToEarth = .1*w
   
   const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
+  const zodiacGroup = document.createElementNS(svgNS, "g");
+  zodiacGroup.setAttribute("class", "zodiac");
+  svg.appendChild(zodiacGroup);
   zodiac.forEach((sign, i) => {
-    const angle = -10/365.25*2*Math.PI - (i-2)/12*2*Math.PI;
-    const x = .5*w + .47*w * Math.sin(angle);
-    const y = .5*w - .47*w * Math.cos(angle);
+    const angle = -10 / 365.25 * 2 * Math.PI - (i - 2) / 12 * 2 * Math.PI;
+    const x = .5 * w + .47 * w * Math.sin(angle);
+    const y = .5 * w - .47 * w * Math.cos(angle);
     const text = document.createElementNS(svgNS, "text");
-    text.setAttribute("x", x);
-    text.setAttribute("y", y);
-    text.setAttribute("font-size", "2em");
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("dominant-baseline", "middle");
-    text.setAttribute("fill","currentColor")
+    text.setAttribute("x", x.toFixed(1));
+    text.setAttribute("y", y.toFixed(1));
     text.textContent = sign;
-    svg.appendChild(text);
+    zodiacGroup.appendChild(text);
   });
-  
+
   const earth = new CelestialBody({
     name: "Earth",
     radius: .03*w,

@@ -78,3 +78,10 @@ ul {
   height: 600px;
 }
 
+.zodiac text {
+  font-size: 2em;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: currentColor;
+}
+
