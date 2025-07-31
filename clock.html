@@ -10,7 +10,7 @@
 <body>
   <h1><a href="index.html">Ianto Cannon</a>'s clock graphics</h1>
   <p>These clocks are rendered as scalable vector graphics using JavaScript. Please feel free to use and modify the source code.</p>
-  <p>The current time is <span id="timeStr">Loading…</span> (<span class="timeZone">Loading…</span>).</p>
+  <p>The current time is <span id="timeStr">loading…</span> (<span class="timeZone"></span>).</p>
   <h2>Binary</h2>
   <p>These squares show the <a href="https://samuel-saegesser.ch/_apps/BinaryClock_UNIX/index.php">Unix time</a>, which counts the seconds since 1970.</p>
   <svg class="binaryClock"></svg>
@@ -52,12 +52,12 @@
   </p>
   <svg class="solar"></svg>
   <p>
-    <label for="datetime">Set date and time:</label>
-    <input type="datetime-local" id="datetime" />
-    <span class="timeZone"></span>.
+    <button class="playPauseBtn">Play</button> or <label for="datetime">set date and time:</label><input type="datetime-local" id="datetime"/><span class="timeZone"></span>.
   </p>
   <p>
-    <button class="playPauseBtn">Play</button>
+    The Earth's tilt is <span class="tilt">loading…</span>&deg;, the Moon is <span class="moonPhase">loading…</span>, and <span class="currentZodiac">loading…</span> is in the night sky.
+  </p>
+  <p>
   </p>
   <h2>Peaks</h2>
   <p>The highest peak moves from right to left once per millenium, the next highest once per year, once per day, once per hour, and once per minute.</p>
@@ -69,7 +69,8 @@
   </p>
   <svg class="banner waves"></svg>
   <p>
-    &copy; Ianto Cannon 2025 Jul 31
+    <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="cc.svg" alt="CC " style=max-height:1em;"><img src="by.svg" alt="BY-" style=max-height:1em;"><img src="sa.svg" alt="SA"  style=max-height:1em;"></a>
+    Ianto Cannon 2025 Jul 31
   </p>
   <script src="script.js" defer></script>
 </body>

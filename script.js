@@ -333,9 +333,6 @@ function updateTimeStr() {
   getTime();
   document.getElementById("timeStr").textContent = `${year} ${monthStr} ${date} ${weekday} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
   document.querySelectorAll("span.timeZone").forEach(span => {
-  span.textContent = `${timeZoneName}`;
-});
-  document.querySelectorAll("timeZone").forEach(span => {
     span.textContent = `${timeZoneName}`;
   });
 }
@@ -444,10 +441,11 @@ class CelestialBody {
 
     this.group = document.createElementNS(svgNS, "g");
 
-    //this.orbitCircle = document.createElementNS(svgNS, "circle");
-    //this.orbitCircle.setAttribute("r", orbitRadius);
-    //this.orbitCircle.setAttribute("fill", "none");
-    //this.orbitCircle.setAttribute("stroke", "currentColor");
+    this.orbitCircle = document.createElementNS(svgNS, "circle");
+    this.orbitCircle.setAttribute("r", orbitRadius);
+    this.orbitCircle.setAttribute("fill", "none");
+    this.orbitCircle.setAttribute("stroke", "currentColor");
+    this.orbitCircle.setAttribute("stroke-width", .2);
     
     // Outline
     this.outline = document.createElementNS(svgNS, "circle");
@@ -468,8 +466,8 @@ class CelestialBody {
         </mask>
       `;
       for (let i = -3; i <= 3; i++) {
-        const y = 0.5 * this.w + orbitRadius * i * 10 / 23.5;
-        const h = orbitRadius * 10 / 23.5;
+        const y = 0.5 * this.w + orbitRadius * i * 10 / 23.44;
+        const h = orbitRadius * 10 / 23.44;
         const d = `M0,${y.toFixed(1)} h${this.w} v${h.toFixed(1)} h-${this.w} Z`;
 
         const path = document.createElementNS(svgNS, "path");
@@ -484,7 +482,7 @@ class CelestialBody {
       this.lit.setAttribute("fill", "white");
       this.group.appendChild(this.lit);
     }
-    //svg.appendChild(this.orbitCircle);
+    svg.appendChild(this.orbitCircle);
     svg.appendChild(this.group);
   }
 
@@ -512,8 +510,8 @@ class CelestialBody {
       const path = describeLitHemisphere(r, sunAngle);
       this.lit.setAttribute("d", path);
     }
-    //this.orbitCircle.setAttribute("cx", cx || 200);
-    //this.orbitCircle.setAttribute("cy", cy || 200);
+    this.orbitCircle.setAttribute("cx", cx.toFixed(1));
+    this.orbitCircle.setAttribute("cy", cy.toFixed(1));
   }
 }
 
@@ -524,6 +522,15 @@ function describeLitHemisphere(r, angle) {
   const x1 = r * Math.cos(angle - Math.PI/2);
   const y1 = r * Math.sin(angle - Math.PI/2);
   return `M ${x0.toFixed(2)},${y0.toFixed(2)} A ${r.toFixed(2)},${r.toFixed(2)} 0 0,1 ${x1.toFixed(2)},${y1.toFixed(2)} L 0,0 Z`;
+}
+
+// Format date to YYYY-MM-DDTHH:MM
+function pad(n) {
+  return n.toString().padStart(2, '0');
+}
+function formatDateTime(ms) {
+  const d = new Date(ms);
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
 
 const gravity = 0.3;
@@ -547,7 +554,8 @@ getTime();
 let emoji = "";
 let title = ""
 
-if (month === 9 && date === 31) {
+//if (month === 9 && date === 31) {
+if (month === 6 && date === 31) {
   emoji = " 🎃";
   title = "Happy halloween!";
   randomColor = halloweenColor;
@@ -675,11 +683,16 @@ document.querySelectorAll("svg.binaryClock").forEach(svg => {
 
 document.querySelectorAll("svg.solar").forEach(svg => {
   
-  function animate(solTime) {
+  function updateSolar(solTime) {
     earth.update(solTime);
     moon.update(solTime);
     const angle = ( earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000 ) % 360 
     stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(1)})`);
+    datetimeInput.value = formatDateTime(solTime);
+    document.querySelectorAll("span.tilt").forEach(span => {
+      span.textContent = `${(23.4*Math.cos(earth.angle)).toFixed(2)}`;
+    });
+    //The Earth's tilt is <span class="tilt"></span>, the Moon is <span class="moonPhase"></span>, and <span class="currentZodiac"></span> is in the night sky.
   }
   const w = svg.getBoundingClientRect().width;
   const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
@@ -717,83 +730,59 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     svg,
   });
   
-  //const sun = document.createElementNS(svgNS, "circle");
-  //sun.setAttribute("fill","white")
-  //sun.setAttribute("transform", `translate(${.5*w}, ${.5*w})`);
-  //sun.setAttribute("r", .05*w)
-  //svg.appendChild(sun);
+  const sun = document.createElementNS(svgNS, "circle");
+  sun.setAttribute("fill","white")
+  sun.setAttribute("transform", `translate(${.5*w}, ${.5*w})`);
+  sun.setAttribute("r", .06*w)
+  svg.appendChild(sun);
 
   const stickFigure = createStickFigure(svgNS, .4*moon.orbitRadius, earth.radius);
   svg.appendChild(stickFigure)
   const datetimeInput = document.getElementById("datetime");
   const playPauseBtn = document.querySelector(".playPauseBtn");
 
-  let solTime = Date.now();  // current time in ms
+  let solTime = Date.now();  
+  updateSolar(solTime);
   let playing = false;
-  let lastTimestamp = null;
+  let animationId = null;
 
-  function pad(n) {
-    return n.toString().padStart(2, '0');
-  }
+  // Play/pause toggle
+  playPauseBtn.addEventListener("click", () => {
+    playing = !playing;
+    playPauseBtn.textContent = playing ? "Pause" : "Play";
+    if (playing) {
+      animationId = requestAnimationFrame(animationStep);
+    } else {
+      cancelAnimationFrame(animationId);
+    }
+  });
 
-  // Format date to YYYY-MM-DDTHH:MM
-  function formatDateTime(ms) {
-  const d = new Date(ms);
-  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
+  // User input changes date/time, pause animation and update solTime
+  datetimeInput.addEventListener("input", () => {
+    playing = false;
+    cancelAnimationFrame(animationId);
+    playPauseBtn.textContent = "Play";
+    const newTime = new Date(datetimeInput.value).getTime();
+    if (!isNaN(newTime)) {
+      solTime = newTime;
+      updateSolar(solTime);
+    }
+  });
 
-// Initial setup
-function init() {
-  solTime = Date.now();
+  // Pause when the input is focused (user is interacting)
+  datetimeInput.addEventListener("focus", () => {
+    playing = false;
+    cancelAnimationFrame(animationId);
+    playPauseBtn.textContent = "Play";
+  });
 
-  datetimeInput.value = formatDateTime(solTime);
-  animate(solTime);
-}
-
-// Animation loop
-function animationStep(timestamp) {
-  if (!lastTimestamp) lastTimestamp = timestamp;
-
-  if (playing) {
-    // Calculate elapsed real time since last frame
-    lastTimestamp = timestamp;
-    solTime += 60*1000*60;
-
-    datetimeInput.value = formatDateTime(solTime);
-    animate(solTime);
-  } else {
-    // When paused, just update lastTimestamp to current to avoid big jumps later
-    lastTimestamp = timestamp;
-  }
-
-  requestAnimationFrame(animationStep);
-}
-
-// Play/pause toggle
-playPauseBtn.addEventListener("click", () => {
-  playing = !playing;
-  playPauseBtn.textContent = playing ? "Pause" : "Play";
-
-  if (playing) {
-    lastTimestamp = null; // reset to avoid jump
+  // Animation loop
+  function animationStep(timestamp) {
+    if (playing) {
+      solTime += 1000*60*60;
+      updateSolar(solTime);
+      animationId = requestAnimationFrame(animationStep);
+    }
   }
 });
 
-// User input changes date/time, pause animation and update solTime
-datetimeInput.addEventListener("input", () => {
-  playing = false;
-  playPauseBtn.textContent = "Play";
-  solTime = new Date(datetimeInput.value).getTime() || Date.now();
-  animate(solTime);
-});
-
-// Pause when the input is focused (user is interacting)
-datetimeInput.addEventListener("focus", () => {
-  playing = false;
-  playPauseBtn.textContent = "Play";
-});
-
-init();
-requestAnimationFrame(animationStep);
-
-});

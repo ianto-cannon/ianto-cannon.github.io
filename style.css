@@ -87,7 +87,10 @@ ul {
 
 input[type="datetime-local"],
 button.playPauseBtn {
-  font-size: 1.5em;
+  font-size: 1.3em;
 }
 
+.playPauseBtn {
+  width: 7ch; 
+}
 
