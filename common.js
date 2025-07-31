@@ -75,6 +75,7 @@ function getTime() {
   timeZoneName = Intl.DateTimeFormat(undefined, { timeZoneName: 'short' }).format(now).split(' ').pop();
   year = now.getFullYear();
   month = now.getMonth(); //Jan=0, Feb=1...
+  monthStr = now.toLocaleString('en-US', { month: 'short'}); // Jul
   date = now.getDate();
 
   //get the week number this month
