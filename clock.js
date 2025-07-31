@@ -296,3 +296,151 @@ function formatDateTime(ms) {
   const d = new Date(ms);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
+
+document.querySelectorAll("svg.waves").forEach(svg => {
+  updateWaves(svg);
+  svg.setAttribute("viewBox", "0 0 100 100");
+  svg.setAttribute("preserveAspectRatio", "none");
+});
+
+document.querySelectorAll("path[data-min][data-max]").forEach(path => {
+  const svg = path.closest("svg");
+  if (svg) svg.setAttribute("viewBox", "0 0 100 100");
+  const min = parseInt(path.dataset.min, 10);
+  const max = parseInt(path.dataset.max, 10);
+  generateBlobPath(path, min, max);
+});
+
+document.querySelectorAll("svg.poly").forEach(svg => {
+  const path = svg.querySelector("path");
+  const level = parseInt(path.dataset.level, 10);
+  maskPolygon(svg,path,level);
+  generatePolygonPath(svg, path, level);
+  svg.setAttribute("viewBox", "0 0 100 100");
+  setInterval(() => maskPolygon(svg, path, level), 1000);
+  setInterval(() => generatePolygonPath(svg, path, level), 1000);
+});
+
+setInterval(() => {
+  getTime();
+  document.querySelectorAll("span[data-level]").forEach(span => {
+    const level = parseInt(span.dataset.level, 10);
+    span.textContent = " ("+time[level]+")";
+  });
+}, 1000);
+
+if (document.getElementById("timeStr")) {
+  updateTimeStr(); // Run on page load
+  setInterval(updateTimeStr, 1000); // Update every second
+}
+
+document.querySelectorAll("svg.binaryClock").forEach(svg => {
+  drawBinaryClock(svg);
+  svg.setAttribute("viewBox", "0 0 31 1");
+  setInterval(() => drawBinaryClock(svg), 1000);
+});
+
+document.querySelectorAll("svg.solar").forEach(svg => {
+  
+  function updateSolar(solTime) {
+    earth.update(solTime);
+    moon.update(solTime);
+    const angle = ( earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000 ) % 360 
+    stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(1)})`);
+    datetimeInput.value = formatDateTime(solTime);
+    document.querySelectorAll("span.tilt").forEach(span => {
+      span.textContent = `${(23.4*Math.cos(earth.angle)).toFixed(2)}`;
+    });
+    //The Earth's tilt is <span class="tilt"></span>, the Moon is <span class="moonPhase"></span>, and <span class="currentZodiac"></span> is in the night sky.
+  }
+  const w = svg.getBoundingClientRect().width;
+  const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
+  const zodiacGroup = document.createElementNS(svgNS, "g");
+  zodiacGroup.setAttribute("class", "zodiac");
+  svg.appendChild(zodiacGroup);
+  zodiac.forEach((sign, i) => {
+    const angle = -10 / 365.25 * 2 * Math.PI - (i - 2) / 12 * 2 * Math.PI;
+    const x = .5 * w + .47 * w * Math.sin(angle);
+    const y = .5 * w - .47 * w * Math.cos(angle);
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("x", x.toFixed(1));
+    text.setAttribute("y", y.toFixed(1));
+    text.textContent = sign;
+    zodiacGroup.appendChild(text);
+  });
+
+  const earth = new CelestialBody({
+    name: "Earth",
+    radius: .04*w,
+    orbitRadius: .3*w,
+    orbitalPeriod: 365.256,
+    orbitStartTime: Date.UTC(2025, 5, 21, 2, 42),
+    orbits: null,
+    svg,
+  });
+
+  const moon = new CelestialBody({
+    name: "Moon",
+    radius: .03*w,
+    orbitRadius: .17*w,
+    orbitalPeriod: 29.531,
+    orbitStartTime: Date.UTC(2025, 7, 9, 7, 54),
+    orbits: earth,
+    svg,
+  });
+  
+  const sun = document.createElementNS(svgNS, "circle");
+  sun.setAttribute("fill","white")
+  sun.setAttribute("transform", `translate(${.5*w}, ${.5*w})`);
+  sun.setAttribute("r", .06*w)
+  svg.appendChild(sun);
+
+  const stickFigure = createStickFigure(svgNS, .4*moon.orbitRadius, earth.radius);
+  svg.appendChild(stickFigure)
+  const datetimeInput = document.getElementById("datetime");
+  const playPauseBtn = document.querySelector(".playPauseBtn");
+
+  let solTime = Date.now();  
+  updateSolar(solTime);
+  let playing = false;
+  let animationId = null;
+
+  // Play/pause toggle
+  playPauseBtn.addEventListener("click", () => {
+    playing = !playing;
+    playPauseBtn.textContent = playing ? "Pause" : "Play";
+    if (playing) {
+      animationId = requestAnimationFrame(animationStep);
+    } else {
+      cancelAnimationFrame(animationId);
+    }
+  });
+
+  // User input changes date/time, pause animation and update solTime
+  datetimeInput.addEventListener("input", () => {
+    playing = false;
+    cancelAnimationFrame(animationId);
+    playPauseBtn.textContent = "Play";
+    const newTime = new Date(datetimeInput.value).getTime();
+    if (!isNaN(newTime)) {
+      solTime = newTime;
+      updateSolar(solTime);
+    }
+  });
+
+  // Pause when the input is focused (user is interacting)
+  datetimeInput.addEventListener("focus", () => {
+    playing = false;
+    cancelAnimationFrame(animationId);
+    playPauseBtn.textContent = "Play";
+  });
+
+  // Animation loop
+  function animationStep(timestamp) {
+    if (playing) {
+      solTime += 1000*60*60;
+      updateSolar(solTime);
+      animationId = requestAnimationFrame(animationStep);
+    }
+  }
+});

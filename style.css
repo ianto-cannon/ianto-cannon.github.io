@@ -41,8 +41,8 @@ ul {
   height: 100%;
 }
 
-/* Specific styles for canvas box */
-.canvas-box {
+/* Specific styles for ball canvas box */
+.ball-box {
   width: 600px;
   height: 400px;
 }
