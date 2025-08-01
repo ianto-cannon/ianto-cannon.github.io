@@ -42,7 +42,7 @@ function resolveCollision(ballA, ballB) {
 }
 
 function VerletStep(ballCanvas) {
-  ctx.clearRect(0, 0, ballCanvas.clientWidth, ballCanvas.clientHeight);
+  ctx.clearRect(0, 0, ballCanvas.width, ballCanvas.height);
   for (let i = 0; i < balls.length; i++) {
     const ball = balls[i];
     // Draw ball
@@ -58,8 +58,8 @@ function VerletStep(ballCanvas) {
     ball.vy += .5*gravity;
     ball.y += .5*ball.vy;
     // Wall collisions
-    if (ball.y + radius > ballCanvas.clientHeight && ball.vy > 0) {
-      ball.y = ballCanvas.clientHeight - radius;
+    if (ball.y + radius > ballCanvas.height && ball.vy > 0) {
+      ball.y = ballCanvas.height - radius;
       ball.vy *= -bounce;
     }
     if (ball.y - radius < 0 && ball.vy < 0) {
@@ -70,8 +70,8 @@ function VerletStep(ballCanvas) {
       ball.x = radius;
       ball.vx *= -bounce;
     }
-    if (ball.x + radius > ballCanvas.clientWidth && ball.vx > 0) {
-      ball.x = ballCanvas.clientWidth - radius;
+    if (ball.x + radius > ballCanvas.width && ball.vx > 0) {
+      ball.x = ballCanvas.width - radius;
       ball.vx *= -bounce;
     }
     // Check collisions with other balls
@@ -92,26 +92,16 @@ let ctx;
 document.querySelectorAll("canvas.ball-box").forEach(ballCanvas => {
   ballCanvas.title = title
   ctx = ballCanvas.getContext("2d");
-  // Get the DPR and size of the ballCanvas
-  const dpr = window.devicePixelRatio;
-  const rect = ballCanvas.getBoundingClientRect();
-  // Set the "actual" size of the ballCanvas
-  ballCanvas.width = rect.width * dpr;
-  ballCanvas.height = rect.height * dpr;
-  // Scale the context to ensure correct drawing operations
-  ctx.scale(dpr, dpr);
-  // Set the "drawn" size of the ballCanvas
-  ballCanvas.style.width = `${rect.width}px`;
-  ballCanvas.style.height = `${rect.height}px`;
   VerletStep(ballCanvas);
   ballCanvas.addEventListener("click", function(e) {
+    const rect = ballCanvas.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     balls.push(createBall(x, y));
   });
   document.addEventListener("keydown", function(e) {
     if (e.key === "Enter") {
-      balls.push(createBall(ballCanvas.clientWidth / 2, ballCanvas.clientHeight / 2));
+      balls.push(createBall(ballCanvas.width / 2, ballCanvas.height / 2));
     }
   });
 });

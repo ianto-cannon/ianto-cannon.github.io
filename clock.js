@@ -364,6 +364,12 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   }
   
   const w = svg.getBoundingClientRect().width;
+  const phases = ['full','waxing gibbous',"in its first quarter",'a waxing crescent','new','a waning crescent',"in its last quarter",'waning gibbous'];
+  const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
+  const zodiacName = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+  const zodiacGroup = document.createElementNS(svgNS, "g");
+  zodiacGroup.setAttribute("class", "zodiac");
+  svg.appendChild(zodiacGroup);
 
   const earth = new CelestialBody({
     name: "Earth",
@@ -387,12 +393,6 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     tilt: 0
   });
 
-  const phases = ['full','waxing gibbous',"in its first quarter",'a waxing crescent','new','a waning crescent',"in its last quarter",'waning gibbous'];
-  const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
-  const zodiacName = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
-  const zodiacGroup = document.createElementNS(svgNS, "g");
-  zodiacGroup.setAttribute("class", "zodiac");
-  svg.appendChild(zodiacGroup);
   zodiac.forEach((sign, i) => {
     const angle = -10 / earth.orbitalPeriod * 2 * Math.PI - (i + 4) / 12 * 2 * Math.PI;
     const x = .5 * w + .47 * w * Math.sin(angle);
