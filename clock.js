@@ -192,7 +192,7 @@ function createStickFigure(svgNS, size = 1, raise=0) {
 }
 
 class CelestialBody {
-  constructor({ name, radius, orbitRadius, orbitalPeriod, orbitStartTime, orbits, svg }) {
+  constructor({ name, radius, orbitRadius, orbitalPeriod, orbitStartTime, orbits, svg, tilt}) {
     this.name = name;
     this.radius = radius;
     this.orbitRadius = orbitRadius;
@@ -200,6 +200,7 @@ class CelestialBody {
     this.orbitStartTime = orbitStartTime;
     this.orbits = orbits;
     this.svg = svg;
+    this.tilt = tilt;
     
     this.w = svg.getBoundingClientRect().width;
 
@@ -230,8 +231,8 @@ class CelestialBody {
         </mask>
       `;
       for (let i = -3; i <= 3; i++) {
-        const y = 0.5 * this.w + orbitRadius * i * 10 / 23.44;
-        const h = orbitRadius * 10 / 23.44;
+        const y = 0.5 * this.w + orbitRadius * i * 10 / this.tilt;
+        const h = orbitRadius * 10 / this.tilt;
         const d = `M0,${y.toFixed(1)} h${this.w} v${h.toFixed(1)} h-${this.w} Z`;
 
         const path = document.createElementNS(svgNS, "path");
@@ -349,25 +350,20 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(1)})`);
     datetimeInput.value = formatDateTime(solTime);
     document.querySelectorAll("span.tilt").forEach(span => {
-      span.textContent = `${(23.4*Math.cos(earth.angle)).toFixed(2)}`;
+      span.textContent = `${(earth.tilt*Math.cos(earth.angle)).toFixed(1)}`;
     });
-    //The Earth's tilt is <span class="tilt"></span>, the Moon is <span class="moonPhase"></span>, and <span class="currentZodiac"></span> is in the night sky.
+   const i = ((((moon.angle - earth.angle) * 4 / Math.PI + 0.5) % 8) + 8) % 8;
+   document.querySelectorAll("span.moonPhase").forEach(span => {
+      span.textContent = phases[Math.floor(i)];
+    });
+    const offset = -10 / earth.orbitalPeriod * 2 * Math.PI;
+    const j = (Math.round(12 * ((offset - earth.angle) / (2 * Math.PI)) + 2) + 12) % 12;
+    document.querySelectorAll("span.currentZodiac").forEach(span => {
+      span.textContent = zodiacName[j];
+    });
   }
+  
   const w = svg.getBoundingClientRect().width;
-  const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
-  const zodiacGroup = document.createElementNS(svgNS, "g");
-  zodiacGroup.setAttribute("class", "zodiac");
-  svg.appendChild(zodiacGroup);
-  zodiac.forEach((sign, i) => {
-    const angle = -10 / 365.25 * 2 * Math.PI - (i - 2) / 12 * 2 * Math.PI;
-    const x = .5 * w + .47 * w * Math.sin(angle);
-    const y = .5 * w - .47 * w * Math.cos(angle);
-    const text = document.createElementNS(svgNS, "text");
-    text.setAttribute("x", x.toFixed(1));
-    text.setAttribute("y", y.toFixed(1));
-    text.textContent = sign;
-    zodiacGroup.appendChild(text);
-  });
 
   const earth = new CelestialBody({
     name: "Earth",
@@ -377,6 +373,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     orbitStartTime: Date.UTC(2025, 5, 21, 2, 42),
     orbits: null,
     svg,
+    tilt: 23.44
   });
 
   const moon = new CelestialBody({
@@ -387,6 +384,24 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     orbitStartTime: Date.UTC(2025, 7, 9, 7, 54),
     orbits: earth,
     svg,
+    tilt: 0
+  });
+
+  const phases = ['full','waxing gibbous',"in its first quarter",'a waxing crescent','new','a waning crescent',"in its last quarter",'waning gibbous'];
+  const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
+  const zodiacName = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
+  const zodiacGroup = document.createElementNS(svgNS, "g");
+  zodiacGroup.setAttribute("class", "zodiac");
+  svg.appendChild(zodiacGroup);
+  zodiac.forEach((sign, i) => {
+    const angle = -10 / earth.orbitalPeriod * 2 * Math.PI - (i + 4) / 12 * 2 * Math.PI;
+    const x = .5 * w + .47 * w * Math.sin(angle);
+    const y = .5 * w - .47 * w * Math.cos(angle);
+    const text = document.createElementNS(svgNS, "text");
+    text.setAttribute("x", x.toFixed(1));
+    text.setAttribute("y", y.toFixed(1));
+    text.textContent = sign;
+    zodiacGroup.appendChild(text);
   });
   
   const sun = document.createElementNS(svgNS, "circle");
@@ -438,7 +453,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   // Animation loop
   function animationStep(timestamp) {
     if (playing) {
-      solTime += 1000*60*60;
+      solTime += 1000*60*20;
       updateSolar(solTime);
       animationId = requestAnimationFrame(animationStep);
     }
