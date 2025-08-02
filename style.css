@@ -43,22 +43,29 @@ ul {
 
 /* Specific styles for ball canvas box */
 .ball-box {
-  width: 600px;
+  width: 100%;
   height: 400px;
+  touch-action: manipulation; /* Prevents double-tap zoom */
+}
+
+.poly-container {
+  width: min(100%, 1000px);
+  font-size: min(1vw, 10px);
+}
+
+.poly {
+  width: 7.9em;
 }
 
 .raised {
   position: relative;
-  top: -32px;
-  font-size: 2em
-}
-
-.poly {
-  width: 80px;
+  top: -.75em;
+  font-size: 4em;
 }
 
 .blob {
   width: 150px;
+  max-width: 13%;
 }
 
 .banner {
@@ -74,8 +81,9 @@ ul {
 }
 
 .solar {
-  width: 600px;
-  height: 600px;
+  width: min(500px, 100%);
+  aspect-ratio: 1;
+  display: block;
 }
 
 .zodiac text {
@@ -83,15 +91,6 @@ ul {
   text-anchor: middle;
   dominant-baseline: middle;
   fill: currentColor;
-}
-
-input[type="datetime-local"],
-button.playPauseBtn {
-  font-size: 1.3em;
-}
-
-.playPauseBtn {
-  width: 7ch; 
 }
 
 .license {

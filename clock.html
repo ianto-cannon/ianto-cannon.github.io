@@ -3,6 +3,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Clock Graphics</title>
   <link rel="stylesheet" href="style.css" />
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
@@ -19,6 +20,7 @@
   <p>
     These polygons show the time in the format yy:M:w:d:h:mm:ss, where M is the month (empty polygon for January and full polygon for December), w is the week in the month, and d is the day of the week (empty polygon for Monday and full polygon for Sunday).
   </p>
+  <div class="poly-container">
   <svg class="poly"><path data-level="0"/></svg>
   <svg class="poly"><path data-level="1"/></svg><span class="raised">:</span>
   <svg class="poly"><path data-level="2"/></svg><span class="raised">:</span>
@@ -29,6 +31,7 @@
   <svg class="poly"><path data-level="7"/></svg><span class="raised">:</span>
   <svg class="poly"><path data-level="8"/></svg>
   <svg class="poly"><path data-level="9"/></svg>
+  </div>
   <h2>Blobs</h2>
   <p>
     Inspired by <a href=https://www.blobmaker.app/>blobmaker</a>, I made some blobs which change in time. The leftmost blob has a travelling wave that passes the top once per millennium.  
@@ -50,8 +53,11 @@
     Shaded lines show the <a href="https://www.pveducation.org/pvcdrom/properties-of-sunlight/declination-angle">declination of the Sun</a> at 10° intervals. The top and bottom of the clock correspond to the June and December solstices, when the midday Sun reaches its highest and lowest points in the sky.
   </p>
   <svg class="solar"></svg>
-  <p>
-    <button class="playPauseBtn">Play</button> or <label for="datetime">set date and time:</label><input type="datetime-local" id="datetime"/><span class="timeZone"></span>.
+  <p class="control">
+    <button class="control playPauseBtn">Play</button> or 
+    <label for="control datetime">set date and time:</label>
+    <input type="datetime-local" id="datetime"/>
+    <span class="control timeZone"></span>.
   </p>
   <p>
     The Sun appears in <span class="currentZodiac">loading…</span> with declination <span class="tilt">loading…</span>&deg;. The Moon is <span class="moonPhase">loading…</span>.
@@ -69,7 +75,7 @@
   <svg class="banner waves"></svg>
   <p>
     <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="cc.svg" alt="CC " class="license"><img src="by.svg" alt="BY-" class="license"><img src="sa.svg" alt="SA" class="license"></a>
-    Ianto Cannon 2025 Jul 31
+    Ianto Cannon 2025 Aug 2
   </p>
   <script src="common.js" defer></script>
   <script src="clock.js" defer></script>

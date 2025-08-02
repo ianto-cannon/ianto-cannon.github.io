@@ -38,9 +38,6 @@ function resolveCollision(ballA, ballB) {
 
 document.querySelectorAll("svg.ball-box").forEach(svg => {
   const balls = [];
-  const svgWidth = svg.clientWidth;
-  const svgHeight = svg.clientHeight;
-
   function createBall(x, y) {
     const ball = {
       x,
@@ -66,8 +63,8 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
       ball.y += 0.5 * ball.vy;
 
       // Bounce off walls
-      if (ball.y + radius > svgHeight && ball.vy > 0) {
-        ball.y = svgHeight - radius;
+      if (ball.y + radius > svg.clientHeight && ball.vy > 0) {
+        ball.y = svg.clientHeight - radius;
         ball.vy *= -bounce;
       }
       if (ball.y - radius < 0 && ball.vy < 0) {
@@ -78,8 +75,8 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
         ball.x = radius;
         ball.vx *= -bounce;
       }
-      if (ball.x + radius > svgWidth && ball.vx > 0) {
-        ball.x = svgWidth - radius;
+      if (ball.x + radius > svg.clientWidth && ball.vx > 0) {
+        ball.x = svg.clientWidth - radius;
         ball.vx *= -bounce;
       }
 
@@ -103,7 +100,7 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
 
   document.addEventListener("keydown", function(e) {
     if (e.key === "Enter") {
-      balls.push(createBall(svgWidth / 2, svgHeight / 2));
+      balls.push(createBall(svg.clientWidth / 2, svg.clientHeight / 2));
     }
   });
 

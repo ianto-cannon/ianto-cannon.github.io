@@ -48,9 +48,9 @@ function maskPolygon(svg,path,level){
 
 function generateBlobPath(blo,wavMin,wavMax) {
   getTime(); 
-  const radius = 28;
+  const radius = 25;
   const points = 80;
-  const variation = 14;
+  const variation = 15;
   const path = [];
   const r = new Array(points).fill(radius);
   for (let h = wavMin; h <= wavMax; h++) {
@@ -363,7 +363,8 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     });
   }
   
-  const w = svg.getBoundingClientRect().width;
+  svg.setAttribute("viewBox", "0 0 500 500");
+  const w = 500//svg.getBoundingClientRect().width;
   const phases = ['full','waxing gibbous',"in its first quarter",'a waxing crescent','new','a waning crescent',"in its last quarter",'waning gibbous'];
   const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
   const zodiacName = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
