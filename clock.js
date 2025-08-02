@@ -192,7 +192,7 @@ function createStickFigure(svgNS, size = 1, raise=0) {
 }
 
 class CelestialBody {
-  constructor({ name, radius, orbitRadius, orbitalPeriod, orbitStartTime, orbits, svg, tilt}) {
+  constructor({ name, radius, orbitRadius, orbitalPeriod, orbitStartTime, orbits, svg, tilt, w}) {
     this.name = name;
     this.radius = radius;
     this.orbitRadius = orbitRadius;
@@ -201,8 +201,7 @@ class CelestialBody {
     this.orbits = orbits;
     this.svg = svg;
     this.tilt = tilt;
-    
-    this.w = svg.getBoundingClientRect().width;
+    this.w = w;
 
     this.group = document.createElementNS(svgNS, "g");
 
@@ -363,8 +362,8 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     });
   }
   
-  svg.setAttribute("viewBox", "0 0 500 500");
   const w = 500//svg.getBoundingClientRect().width;
+  svg.setAttribute("viewBox", `0 0 ${w} ${w}`);
   const phases = ['full','waxing gibbous',"in its first quarter",'a waxing crescent','new','a waning crescent',"in its last quarter",'waning gibbous'];
   const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
   const zodiacName = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
@@ -380,7 +379,8 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     orbitStartTime: Date.UTC(2025, 5, 21, 2, 42),
     orbits: null,
     svg,
-    tilt: 23.44
+    tilt: 23.44,
+    w: w
   });
 
   const moon = new CelestialBody({
@@ -391,7 +391,8 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     orbitStartTime: Date.UTC(2025, 7, 9, 7, 54),
     orbits: earth,
     svg,
-    tilt: 0
+    tilt: 0,
+    w: w
   });
 
   zodiac.forEach((sign, i) => {
