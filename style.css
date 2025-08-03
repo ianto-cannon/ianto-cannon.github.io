@@ -81,17 +81,27 @@ ul {
 }
 
 .solar {
-  width: min(500px, 100%);
-  aspect-ratio: 1;
-  display: block;
+  width: min(500px, 53%);
+}
+
+.lunar {
+  width: min(400px, 42%);
 }
 
 .zodiac text {
   font-size: 2em;
+  font-weight: 300;
+  stroke-width: 1;
   text-anchor: middle;
   dominant-baseline: middle;
   fill: currentColor;
+  stroke: white;
+  @media (prefers-color-scheme: dark) {
+    stroke: black; 
+  }
 }
+
+
 
 .license {
   height: 1em;
