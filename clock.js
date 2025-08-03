@@ -12,6 +12,7 @@ function generatePolygonPath(svg, path, level) {
 }
 
 function maskPolygon(svg,path,level){
+  const name = "ianto cannon";
   // Remove mask if any
   path.removeAttribute("mask");
   // Remove existing mask defs to clean up the SVG
@@ -35,6 +36,19 @@ function maskPolygon(svg,path,level){
     const x = 50 + 50 * Math.sin(theta);
     const y = 50 - 50 * Math.cos(theta);
     d += `M50 50 L${x.toFixed(1)} ${y.toFixed(1)} `;
+    const text = document.createElementNS(svgNS, "text");
+    const textAngle = theta + Math.PI / sides[level]; 
+    const textX = 50 + 25 * Math.sin(textAngle);
+    const textY = 50 - 25 * Math.cos(textAngle);
+    text.setAttribute("x", textX.toFixed(1));
+    text.setAttribute("y", textY.toFixed(1));
+    text.setAttribute("transform", `rotate(${(180*textAngle/Math.PI).toFixed(1)} ${textX.toFixed(1)} ${textY.toFixed(1)})`);
+    text.textContent = name[i];
+    text.setAttribute("font-size", "30px");
+    text.setAttribute("fill", "black");
+    text.setAttribute("text-anchor", "middle");
+    text.setAttribute("dominant-baseline", "middle");
+    mask.appendChild(text);
   }
   maskLine.setAttribute("d", d.trim());
   maskLine.setAttribute("stroke", "black");
@@ -179,9 +193,9 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   const yArmBottom = raise + 0.95 * size;
   const yFoot = raise;
   const d = `
-    M 0 ${yHead} L 0 ${yWaist}
-    M -${0.4 * size} ${yArmBottom} L 0 ${yArmTop} L ${0.4 * size} ${yArmBottom}
-    M -${0.2 * size} ${yFoot} L 0 ${yHead} L ${0.2 * size} ${yFoot}
+    M 0 ${yHead.toFixed(1)} L 0 ${yWaist.toFixed(1)}
+    M -${(0.4 * size).toFixed(1)} ${yArmBottom.toFixed(1)} L 0 ${yArmTop.toFixed(1)} L ${(0.4 * size).toFixed(1)} ${yArmBottom.toFixed(1)}
+    M -${(0.2 * size).toFixed(1)} ${yFoot.toFixed(1)} L 0 ${yHead.toFixed(1)} L ${(0.2 * size).toFixed(1)} ${yFoot.toFixed(1)}
   `.trim();
   p.setAttribute("d", d.replace(/\s+/g, " "));
   p.setAttribute("stroke", "currentColor");
