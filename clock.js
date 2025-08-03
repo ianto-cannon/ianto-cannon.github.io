@@ -88,49 +88,6 @@ function generateBlobPath(blo,wavMin,wavMax) {
   requestAnimationFrame(() => generateBlobPath(blo, wavMin, wavMax));
 }
 
-function createWave(t, width, height, lightness, wavesSVG) {
-  const path = document.createElementNS(svgNS, "path");
-  path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
-  const xrev = 1 - t 
-  const pathStr = [];
-  for (let i = -5; i <= 5; i++) {
-    const x = width * (xrev + .25*i);
-    let y = 6;
-    if (i === -5) {
-      pathStr.push(`M`);
-      pathStr.push(`${x.toFixed(0)},1000 `);
-      pathStr.push(`L`);
-    } if (i%2 === 0) {
-      pathStr.push(`Q`);
-      y = 6 + height;
-    } if (i%4 === 0) {
-      y = 6 - height;
-    }
-    pathStr.push(`${x.toFixed(0)},${y.toFixed(0)} `);
-    if (i === 5) {
-      pathStr.push(`L`);
-      pathStr.push(`${x.toFixed(0)},1000 `);
-      pathStr.push(`Z`);
-    }
-  }
-  path.setAttribute("d", pathStr.join(" "));
-  wavesSVG.appendChild(path);
-}
-
-function updateWaves(wavesSVG) {
-  while (wavesSVG.firstChild) {
-    wavesSVG.removeChild(wavesSVG.firstChild);
-  }
-  const width = 1000;
-  getTime();
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  for (let i = 0; i <= 4; i++) {
-    const lightness = prefersDark ? (20 + i*10) : (100 - 20 - i*10);
-    createWave(    timeFracs[i]%1, width, 11-1.9*i, lightness, wavesSVG);
-  }
-  requestAnimationFrame(() => updateWaves(wavesSVG));
-}
-
 function updateTimeStr() {
   getTime();
   document.getElementById("timeStr").textContent = `${year} ${monthStr} ${date} ${weekday} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
@@ -163,7 +120,7 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   const head = document.createElementNS(svgNS, "circle");
   head.setAttribute("cx", 0);
   head.setAttribute("cy", raise + size);
-  head.setAttribute("r", .2 * size);
+  head.setAttribute("r", (.2 * size).toFixed(0));
   head.setAttribute("fill", "none");
   head.setAttribute("stroke", "currentColor");
   head.setAttribute("stroke-width", 2);
@@ -177,9 +134,9 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   const yArmBottom = raise + 0.95 * size;
   const yFoot = raise;
   const d = `
-    M 0 ${yHead.toFixed(1)} L 0 ${yWaist.toFixed(1)}
-    M -${(0.4 * size).toFixed(1)} ${yArmBottom.toFixed(1)} L 0 ${yArmTop.toFixed(1)} L ${(0.4 * size).toFixed(1)} ${yArmBottom.toFixed(1)}
-    M -${(0.2 * size).toFixed(1)} ${yFoot.toFixed(1)} L 0 ${yHead.toFixed(1)} L ${(0.2 * size).toFixed(1)} ${yFoot.toFixed(1)}
+    M 0 ${yHead.toFixed(0)} L 0 ${yWaist.toFixed(0)}
+    M -${(0.4 * size).toFixed(0)} ${yArmBottom.toFixed(0)} L 0 ${yArmTop.toFixed(0)} L ${(0.4 * size).toFixed(0)} ${yArmBottom.toFixed(0)}
+    M -${(0.2 * size).toFixed(0)} ${yFoot.toFixed(0)} L 0 ${yHead.toFixed(0)} L ${(0.2 * size).toFixed(0)} ${yFoot.toFixed(0)}
   `.trim();
   p.setAttribute("d", d.replace(/\s+/g, " "));
   p.setAttribute("stroke", "currentColor");
@@ -230,7 +187,7 @@ class CelestialBody {
       for (let i = -3; i <= 3; i++) {
         const y = 0.5 * this.w + orbitRadius * i * 10 / this.tilt;
         const h = orbitRadius * 10 / this.tilt;
-        const d = `M0,${y.toFixed(1)} h${this.w} v${h.toFixed(1)} h-${this.w} Z`;
+        const d = `M0,${y.toFixed(0)} h${this.w} v${h.toFixed(0)} h-${this.w} Z`;
 
         const path = document.createElementNS(svgNS, "path");
         path.setAttribute("d", d);
@@ -294,12 +251,6 @@ function formatDateTime(ms) {
   const d = new Date(ms);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
 }
-
-document.querySelectorAll("svg.waves").forEach(svg => {
-  updateWaves(svg);
-  svg.setAttribute("viewBox", "0 0 1000 10");
-  svg.setAttribute("preserveAspectRatio", "none");
-});
 
 document.querySelectorAll("path[data-min][data-max]").forEach(path => {
   const svg = path.closest("svg");
@@ -398,8 +349,8 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     const x = .5 * w + .47 * w * Math.sin(angle);
     const y = .5 * w - .47 * w * Math.cos(angle);
     const text = document.createElementNS(svgNS, "text");
-    text.setAttribute("x", x.toFixed(1));
-    text.setAttribute("y", y.toFixed(1));
+    text.setAttribute("x", x.toFixed(0));
+    text.setAttribute("y", y.toFixed(0));
     text.textContent = sign;
     zodiacGroup.appendChild(text);
   });

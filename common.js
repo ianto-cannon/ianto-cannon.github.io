@@ -118,7 +118,7 @@ function createTriangle(value, width, height, lightness, peaksSVG) {
     const right = width*(1.5-value+i)
     const path = document.createElementNS(svgNS, "path");
     path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
-    path.setAttribute("d", `M${left.toFixed(1)},100 L${mid.toFixed(1)},${100-height} L${right.toFixed(1)},100 Z`);
+    path.setAttribute("d", `M${left.toFixed(0)},10 L${mid.toFixed(0)},${10-height} L${right.toFixed(0)},10 Z`);
       peaksSVG.appendChild(path);
   }
 }
@@ -127,12 +127,12 @@ function updatePeaks(peaksSVG) {
   while (peaksSVG.firstChild) {
     peaksSVG.removeChild(peaksSVG.firstChild);
   }
-  const width = 100;
+  const width = 1000;
   getTime();
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   for (let i = 0; i <= 4; i++) {
     const lightness = prefersDark ? (20 + i*10) : (100 - 20 - i*10);
-    createTriangle(timeFracs[i]%1, width, 100-i*15, lightness, peaksSVG);
+    createTriangle(timeFracs[i]%1, width, 10-i*1.5, lightness, peaksSVG);
   }
   requestAnimationFrame(() => updatePeaks(peaksSVG));
 }
@@ -207,7 +207,7 @@ col = `hsl(${hue}, 30%, ${lightness}%)`;
 
 document.querySelectorAll("svg.peaks").forEach(svg => {
   updatePeaks(svg);
-  svg.setAttribute("viewBox", "0 0 100 100");
+  svg.setAttribute("viewBox", "0 0 1000 10");
   svg.setAttribute("preserveAspectRatio", "none");
 });
 
