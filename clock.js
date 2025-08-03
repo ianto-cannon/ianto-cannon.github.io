@@ -5,14 +5,13 @@ function generatePolygonPath(svg, path, level) {
     const theta = i/ sides[level] * 2 * Math.PI;
     const x = 50 + 50 * Math.sin(theta);
     const y = 50 - 50 * Math.cos(theta);
-    pathStr.push(`L${x.toFixed(1)},${y.toFixed(1)}`);
+    pathStr.push(`L${x.toFixed(0)},${y.toFixed(0)}`);
   }
   path.setAttribute("d", pathStr.join(" ") + " Z");
   path.setAttribute("fill", colorScheme(hue));
 }
 
 function maskPolygon(svg,path,level){
-  const name = "ianto cannon";
   // Remove mask if any
   path.removeAttribute("mask");
   // Remove existing mask defs to clean up the SVG
@@ -35,20 +34,7 @@ function maskPolygon(svg,path,level){
     const theta = (i + time[level]) / sides[level] * 2 * Math.PI;
     const x = 50 + 50 * Math.sin(theta);
     const y = 50 - 50 * Math.cos(theta);
-    d += `M50 50 L${x.toFixed(1)} ${y.toFixed(1)} `;
-    const text = document.createElementNS(svgNS, "text");
-    const textAngle = theta + Math.PI / sides[level]; 
-    const textX = 50 + 25 * Math.sin(textAngle);
-    const textY = 50 - 25 * Math.cos(textAngle);
-    text.setAttribute("x", textX.toFixed(1));
-    text.setAttribute("y", textY.toFixed(1));
-    text.setAttribute("transform", `rotate(${(180*textAngle/Math.PI).toFixed(1)} ${textX.toFixed(1)} ${textY.toFixed(1)})`);
-    text.textContent = name[i];
-    text.setAttribute("font-size", "30px");
-    text.setAttribute("fill", "black");
-    text.setAttribute("text-anchor", "middle");
-    text.setAttribute("dominant-baseline", "middle");
-    mask.appendChild(text);
+    d += `M50 50 L${x.toFixed(0)} ${y.toFixed(0)} `;
   }
   maskLine.setAttribute("d", d.trim());
   maskLine.setAttribute("stroke", "black");
@@ -62,25 +48,41 @@ function maskPolygon(svg,path,level){
 
 function generateBlobPath(blo,wavMin,wavMax) {
   getTime(); 
-  const radius = 25;
-  const points = 80;
-  const variation = 15;
+  const radius = 250;
+  const points = 50;
+  const variation = 150;
   const path = [];
-  const r = new Array(points).fill(radius);
+  const r = new Array(points+1).fill(radius);
+  const r2= new Array(points+1).fill(radius);
   for (let h = wavMin; h <= wavMax; h++) {
     const amp = variation / (h+1);
     const phase = timeFracs[h-1] * 2 * Math.PI;
     for (let i = 0; i <= points; i++) {
-      const theta = (i / points) * 2 * Math.PI;
+      const theta = i / points * 2 * Math.PI;
       r[i] += amp * Math.cos((h+1) * theta - phase);
+      const thet2 = (i - .3) / points * 2 * Math.PI;
+      r2[i] += amp * Math.cos((h+1) * thet2 - phase);
     }
   }
-  for (let i = 0; i < points; i++) {
-    const theta = (i / points) * 2 * Math.PI;
-    const x = 50 + r[i] * Math.sin(theta);
-    const y = 50 - r[i] * Math.cos(theta);
-    path.push(`${i === 0 ? "M" : "L"} ${x.toFixed(1)},${y.toFixed(1)}`);
+  let x1, x2;
+  for (let i = 0; i <= points; i++) {
+    const theta = i / points * 2 * Math.PI;
+    const x = 500 + r[i] * Math.sin(theta);
+    const y = 500 - r[i] * Math.cos(theta);
+    const thet2 = (i - .3) / points * 2 * Math.PI;
+    const x2 = 500 + r2[i] * Math.sin(thet2);
+    const y2 = 500 - r2[i] * Math.cos(thet2);
+    if (i === 0) {
+      path.push(`M ${x.toFixed(0)},${y.toFixed(0)}`);
+      x1 = 2*x - x2
+      y1 = 2*y - y2
+    } else if (i === 1) {
+      path.push(`C ${x1.toFixed(0)},${y1.toFixed(0)} ${x2.toFixed(0)},${y2.toFixed(0)} ${x.toFixed(0)},${y.toFixed(0)}`);
+    } else {
+      path.push(`S ${x2.toFixed(0)},${y2.toFixed(0)} ${x.toFixed(0)},${y.toFixed(0)}`);
+    }
   }
+  console.lo
   blo.setAttribute("d", path.join(" ") + " Z");
   blo.setAttribute("fill", colorScheme(hue));
   requestAnimationFrame(() => generateBlobPath(blo, wavMin, wavMax));
@@ -93,21 +95,21 @@ function createWave(t, width, height, lightness, wavesSVG) {
   const pathStr = [];
   for (let i = -5; i <= 5; i++) {
     const x = width * (xrev + .25*i);
-    let y = 60;
+    let y = 6;
     if (i === -5) {
       pathStr.push(`M`);
-      pathStr.push(`${x.toFixed(1)},100 `);
+      pathStr.push(`${x.toFixed(0)},1000 `);
       pathStr.push(`L`);
     } if (i%2 === 0) {
       pathStr.push(`Q`);
-      y = 60 + height;
+      y = 6 + height;
     } if (i%4 === 0) {
-      y = 60 - height;
+      y = 6 - height;
     }
-    pathStr.push(`${x.toFixed(1)},${y.toFixed(1)} `);
+    pathStr.push(`${x.toFixed(0)},${y.toFixed(0)} `);
     if (i === 5) {
       pathStr.push(`L`);
-      pathStr.push(`${x.toFixed(1)},100 `);
+      pathStr.push(`${x.toFixed(0)},1000 `);
       pathStr.push(`Z`);
     }
   }
@@ -115,34 +117,16 @@ function createWave(t, width, height, lightness, wavesSVG) {
   wavesSVG.appendChild(path);
 }
 
-function createToothedTriangle(value, points, width, height, lightness, peaksSVG) {
-  for (let i = -1; i <= 1; i++) {
-    const left = width*(.5-value+i)
-    const mid = width*(1-value+i)
-    const right = width*(1.5-value+i)
-    for (let j = 1; j <= points; j++) {
-      const l = left + width*j/points
-      const m = l + width/points/2
-      const r = l + width/points
-      const h = 2*height * Math.min(j/points, 1-j/points)
-      const path = document.createElementNS(svgNS, "path");
-      path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
-      path.setAttribute("d", `M${l.toFixed(1)},100 L${m.toFixed(1)},${100-h} L${r.toFixed(1)},100 Z`);
-      peaksSVG.appendChild(path);
-    }
-  }
-}
-
 function updateWaves(wavesSVG) {
   while (wavesSVG.firstChild) {
     wavesSVG.removeChild(wavesSVG.firstChild);
   }
-  const width = 100;
+  const width = 1000;
   getTime();
   const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   for (let i = 0; i <= 4; i++) {
     const lightness = prefersDark ? (20 + i*10) : (100 - 20 - i*10);
-    createWave(    timeFracs[i]%1, width, 110-i*15, lightness, wavesSVG);
+    createWave(    timeFracs[i]%1, width, 11-1.9*i, lightness, wavesSVG);
   }
   requestAnimationFrame(() => updateWaves(wavesSVG));
 }
@@ -313,13 +297,13 @@ function formatDateTime(ms) {
 
 document.querySelectorAll("svg.waves").forEach(svg => {
   updateWaves(svg);
-  svg.setAttribute("viewBox", "0 0 100 100");
+  svg.setAttribute("viewBox", "0 0 1000 10");
   svg.setAttribute("preserveAspectRatio", "none");
 });
 
 document.querySelectorAll("path[data-min][data-max]").forEach(path => {
   const svg = path.closest("svg");
-  if (svg) svg.setAttribute("viewBox", "0 0 100 100");
+  if (svg) svg.setAttribute("viewBox", "0 0 1000 1000");
   const min = parseInt(path.dataset.min, 10);
   const max = parseInt(path.dataset.max, 10);
   generateBlobPath(path, min, max);
