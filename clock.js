@@ -209,7 +209,7 @@ class CelestialBody {
     this.y = cy - this.orbitR * Math.cos(this.angle);
 
     // Position the group
-    this.group.setAttribute("transform", `translate(${this.x.toFixed(1)}, ${this.y.toFixed(1)})`);
+    this.group.setAttribute("transform", `translate(${this.x.toFixed(3)}, ${this.y.toFixed(3)})`);
 
     if (this.lit) {
       // Calculate angle to sun (center)
@@ -235,7 +235,7 @@ function describeLitHemisphere(r, angle) {
   const y0 = r * Math.sin(angle + Math.PI/2);
   const x1 = r * Math.cos(angle - Math.PI/2);
   const y1 = r * Math.sin(angle - Math.PI/2);
-  return `M ${x0.toFixed(2)},${y0.toFixed(2)} A ${r.toFixed(2)},${r.toFixed(2)} 0 0,1 ${x1.toFixed(2)},${y1.toFixed(2)} L 0,0 Z`;
+  return `M ${x0.toFixed(3)},${y0.toFixed(3)} A ${r.toFixed(0)},${r.toFixed(0)} 0 0,1 ${x1.toFixed(3)},${y1.toFixed(3)} L 0,0 Z`;
 }
 
 // Format date to YYYY-MM-DDTHH:MM
@@ -290,7 +290,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     earth.update(solTime);
     moon.update(solTime);
     const angle = ( earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000 ) % 360 
-    stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(1)})`);
+    stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(2)})`);
     datetimeInput.value = formatDateTime(solTime);
     document.querySelectorAll("span.tilt").forEach(span => {
       span.textContent = `${(earth.tilt*Math.cos(earth.angle)).toFixed(1)}`;
@@ -309,7 +309,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     const leftTerminator = crescent*Math.sin(moon.angle - earth.angle) >= 0 ? 1 : 0;
     lightSide.setAttribute("d", 
       `M ${(.4*w).toFixed(0)} ${(w/2 + earth.orbitR).toFixed(0)}`
-      + `A ${(crescent*earth.orbitR).toFixed(0)} ${earth.orbitR.toFixed(0)} 0 0 ${leftTerminator} `
+      + `A ${(crescent*earth.orbitR).toFixed(1)} ${earth.orbitR.toFixed(0)} 0 0 ${leftTerminator} `
       + `${(.4*w).toFixed(0)} ${(w/2 - earth.orbitR).toFixed(0)}`
       + `A ${(1*earth.orbitR).toFixed(0)} ${earth.orbitR.toFixed(0)} 0 0 ${waxing} `
       + `${(.4*w).toFixed(0)} ${(w/2 + earth.orbitR).toFixed(0)}`
