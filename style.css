@@ -22,76 +22,59 @@ ul {
   margin-top: 0.2em;
   margin-bottom: 0;
 }
-
-/* Shared box styling */
 .box {
   border: 1px solid;
   margin-bottom: 1em;
   display: block;
 }
-
-/* Specific styles for portrait box */
 .portrait-box {
   width: 240px;
   height: 300px;
 }
-
 .portrait-box img {
   width: 100%;
   height: 100%;
 }
-
-/* Specific styles for ball canvas box */
 .ball-box {
   width: 100%;
   height: 400px;
   touch-action: manipulation; /* Prevents double-tap zoom */
 }
-
 .license {
   height: 1em;
 }
-
 .poly-container {
   width: min(100%, 1000px);
   font-size: min(1vw, 10px);
 }
-
 .poly {
   width: 7.9em;
 }
-
 .raised {
   position: relative;
   top: -.75em;
   font-size: 4em;
 }
-
 .blob {
   width: 150px;
   max-width: 13%;
 }
-
 .banner {
   width: 100%; 
   height: 150px; 
   display: block; 
   overflow: hidden;
 }
-
 .binaryClock {
   width: 100%;
   height: auto;
 }
-
 .solar {
   width: min(500px, 53%);
 }
-
 .lunar {
   width: min(400px, 42%);
 }
-
 .zodiac text {
   font-size: 2em;
   font-weight: 300;

@@ -91,7 +91,6 @@ function updateTimeStr() {
   });
 }
 
-
 function drawBinaryClock(svg) {
   svg.innerHTML = ''; // Clear existing content
   const path = document.createElementNS(svgNS, "path");
@@ -107,21 +106,15 @@ function drawBinaryClock(svg) {
   svg.appendChild(path);
 }
 
-
 function createStickFigure(svgNS, size = 1, raise=0) {
   const g = document.createElementNS(svgNS, "g");
-
-  // Head
   const head = document.createElementNS(svgNS, "circle");
   head.setAttribute("cx", 0);
   head.setAttribute("cy", raise + size);
   head.setAttribute("r", (.2 * size).toFixed(0));
   head.setAttribute("fill", "none");
   head.setAttribute("stroke", "currentColor");
-  //head.setAttribute("stroke-width", 2);
   g.appendChild(head);
-
-  // Body, arms, and legs as a single path
   const p = document.createElementNS(svgNS, "path");
   const yHead = raise + 0.5 * size;
   const yWaist = raise + 0.8 * size;
@@ -136,7 +129,6 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   p.setAttribute("d", d.replace(/\s+/g, " "));
   p.setAttribute("stroke", "currentColor");
   p.setAttribute("fill", "none");
-  //p.setAttribute("stroke-width", 2);
   g.appendChild(p);
   return g;
 }
@@ -152,7 +144,7 @@ class CelestialBody {
     this.svg = svg;
     this.tilt = tilt;
     this.w = w;
-
+    
     this.group = document.createElementNS(svgNS, "g");
 
     //this.orbitCircle = document.createElementNS(svgNS, "circle");
@@ -161,7 +153,6 @@ class CelestialBody {
     //this.orbitCircle.setAttribute("stroke", "currentColor");
     //this.orbitCircle.setAttribute("stroke-width", .2);
     
-    // Outline
     this.outline = document.createElementNS(svgNS, "circle");
     this.outline.setAttribute("r", radius);
     this.group.appendChild(this.outline); 
@@ -169,7 +160,6 @@ class CelestialBody {
     //Put colors in the Earth's orbit
     if (!this.orbits) {
       this.outline.setAttribute("stroke", "currentColor");
-      //this.outline.setAttribute("stroke-width", 2);
       this.outline.setAttribute("fill", "none");
       const defs = svg.insertBefore(document.createElementNS(svgNS, "defs"), svg.firstChild);
       const maskId = "orbit";
@@ -207,18 +197,12 @@ class CelestialBody {
     this.angle = parentAngle - 2 * Math.PI * (solTime - this.orbitStartTime) / 24 / 60 / 60 / 1000 / this.orbitalPeriod;
     this.x = cx + this.orbitR * Math.sin(this.angle);
     this.y = cy - this.orbitR * Math.cos(this.angle);
-
-    // Position the group
     this.group.setAttribute("transform", `translate(${this.x.toFixed(3)}, ${this.y.toFixed(3)})`);
-
     if (this.lit) {
       // Calculate angle to sun (center)
-      //const dx = this.x - this.w/2;
-      //const dy = this.y - this.w/2;
       const dx = this.orbits.x - this.w/2;
       const dy = this.orbits.y - this.w/2;
       const sunAngle = Math.atan2(dy, dx);
-
       // Lit hemisphere (semi-circle arc path)
       const r = this.radius;
       const path = describeLitHemisphere(r, sunAngle);
@@ -316,7 +300,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     );
   }
   
-  const w = 500//svg.getBoundingClientRect().width;
+  const w = 500;
   svg.setAttribute("viewBox", `0 0 ${w} ${w}`);
   const phases = ['full','waxing gibbous',"in its first quarter",'a waxing crescent','new','a waning crescent',"in its last quarter",'waning gibbous'];
   const zodiac = ['♈︎','♉︎','♊︎','♋︎','♌︎','♍︎','♎︎','♏︎','♐︎','♑︎','♒︎','♓︎'];
@@ -388,7 +372,6 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   let playing = false;
   let animationId = null;
 
-  // Play/pause toggle
   playPauseBtn.addEventListener("click", () => {
     playing = !playing;
     playPauseBtn.textContent = playing ? "Pause" : "Play";
