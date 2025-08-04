@@ -48,6 +48,10 @@ ul {
   touch-action: manipulation; /* Prevents double-tap zoom */
 }
 
+.license {
+  height: 1em;
+}
+
 .poly-container {
   width: min(100%, 1000px);
   font-size: min(1vw, 10px);
@@ -99,10 +103,4 @@ ul {
   @media (prefers-color-scheme: dark) {
     stroke: black; 
   }
-}
-
-
-
-.license {
-  height: 1em;
 }
