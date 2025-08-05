@@ -137,26 +137,6 @@ let title = ""
 let randomColor;
 getTime();
 
-const radioButtons = document.querySelectorAll('input[name="theme"]');
-const body = document.body;
-
-function applyTheme(theme) {
-  body.classList.remove('dark');
-
-  body.classList.add(theme);
-}
-
-
-radioButtons.forEach(btn => {
-  btn.addEventListener('change', () => {
-    applyTheme(btn.value);
-  });
-});
-
-const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
-applyTheme(preferredTheme);
-document.querySelector(`input[value="default"]`).checked = true;
-
 if (month === 9 && date === 31) {
   emoji = " 🎃";
   title = "Happy halloween!";
@@ -212,4 +192,20 @@ document.querySelectorAll("svg.peaks").forEach(svg => {
   updatePeaks(svg);
   svg.setAttribute("viewBox", "0 0 1000 10");
   svg.setAttribute("preserveAspectRatio", "none");
+});
+
+document.querySelectorAll('input[name="theme"]').forEach( btn => { 
+  btn.addEventListener('change', () => {
+    document.body.classList.remove('dark');
+    if (btn.value == 'dark') {
+      document.body.classList.add('dark');
+    }
+    if (btn.value == 'default' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.body.classList.add('dark');
+    }
+  });
+  document.querySelector(`input[value="default"]`).checked = true;
+  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    document.body.classList.add('dark');
+  }
 });
