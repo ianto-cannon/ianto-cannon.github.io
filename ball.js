@@ -61,8 +61,6 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
       ball.y += 0.5 * ball.vy;
       ball.vy += 0.5 * gravity;
       ball.y += 0.5 * ball.vy;
-
-      // Bounce off walls
       if (ball.y + radius > svg.clientHeight && ball.vy > 0) {
         ball.y = svg.clientHeight - radius;
         ball.vy *= -bounce;
@@ -79,15 +77,12 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
         ball.x = svg.clientWidth - radius;
         ball.vx *= -bounce;
       }
-
       for (let j = i + 1; j < balls.length; j++) {
         resolveCollision(ball, balls[j]);
       }
-
       ball.elem.setAttribute("cx", ball.x.toFixed(2));
       ball.elem.setAttribute("cy", ball.y.toFixed(2));
     }
-
     requestAnimationFrame(updateBalls);
   }
 
