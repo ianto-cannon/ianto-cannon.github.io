@@ -120,6 +120,7 @@ const updatePeaks = (peaksSVG) => {
   requestAnimationFrame(() => updatePeaks(peaksSVG));
 };
 getTime();
+emoji = "";
 if (month === 9 && date === 31) {
   emoji = " 🎃";
   title = "Happy halloween!";
