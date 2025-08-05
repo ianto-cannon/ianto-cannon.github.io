@@ -4,43 +4,34 @@ function anyColor() {
   const l = Math.floor(Math.random() * 60 + 20);    
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
-
 function halloweenColor() {
   const colors = ["#8A4985", "#ff7518"];
   return colors[Math.floor(Math.random() * colors.length)];
 }
-
 function christmasColor() {
   const colors = ["#ff0000", "#008000"];
   return colors[Math.floor(Math.random() * colors.length)];
 }
-
 function newYearColor() {
   const colors = ["#ffdd00", "#add8e6", "#800080"];
   return colors[Math.floor(Math.random() * colors.length)];
 }
-
 function valentinesColor() {
   const colors = ["#ff1493", "#db7093"];
   return colors[Math.floor(Math.random() * colors.length)];
 }
-
 function prideColor() {
   const colors = ['#e40303', '#ff8c00', '#ffed00', '#008026', '#24408e', '#732982'];
   return colors[Math.floor(Math.random() * colors.length)];
 }
-
 function earthColor() {
   const colors = ['#008026', '#24408e'];
   return colors[Math.floor(Math.random() * colors.length)];
 }
-
 function colorScheme(hue) {
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-  const lightness = prefersDark ? 70 : 30;
+  const lightness = document.body.classList.contains('dark') ? 70 : 30;
   return `hsl(${hue}, 30%, ${lightness}%)`;
 }
-
 function rgbToHue(rgb) {
   let r, g, b
   if (rgb.startsWith("#")) {
@@ -69,7 +60,6 @@ function rgbToHue(rgb) {
   if (hue < 0) hue += 360;
   return hue;
 }
-
 function getTime() {
   now = new Date();
   timeZoneName = Intl.DateTimeFormat(undefined, { timeZoneName: 'short' }).format(now).split(' ').pop();
@@ -77,7 +67,6 @@ function getTime() {
   month = now.getMonth(); //Jan=0, Feb=1...
   monthStr = now.toLocaleString('en-US', { month: 'short'}); // Jul
   date = now.getDate();
-
   //get the week number this month
   const firstOfMonth = new Date(year, month, 1);
   const lastOfMonth = new Date(year, month + 1, 0);
@@ -129,9 +118,8 @@ function updatePeaks(peaksSVG) {
   }
   const width = 1000;
   getTime();
-  const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
   for (let i = 0; i <= 4; i++) {
-    const lightness = prefersDark ? (20 + i*10) : (100 - 20 - i*10);
+    const lightness = document.body.classList.contains('dark') ? (20 + i*10) : (100 - 20 - i*10);
     createTriangle(timeFracs[i]%1, width, 10-i*1.5, lightness, peaksSVG);
   }
   requestAnimationFrame(() => updatePeaks(peaksSVG));
@@ -150,6 +138,26 @@ let emoji = "";
 let title = ""
 let randomColor;
 getTime();
+
+const radioButtons = document.querySelectorAll('input[name="theme"]');
+const body = document.body;
+
+function applyTheme(theme) {
+  body.classList.remove('dark');
+
+  body.classList.add(theme);
+}
+
+
+radioButtons.forEach(btn => {
+  btn.addEventListener('change', () => {
+    applyTheme(btn.value);
+  });
+});
+
+const preferredTheme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+applyTheme(preferredTheme);
+document.querySelector(`input[value="default"]`).checked = true;
 
 if (month === 9 && date === 31) {
   emoji = " 🎃";
@@ -188,12 +196,10 @@ if (month === 9 && date === 31) {
 } else {
   randomColor = anyColor;
 }
-
-headings.forEach(h => {
+document.querySelectorAll("h2").forEach(h => {
   h.textContent += emoji;
   h.title = title;
 });
-
 let col = randomColor()
 let hue;
 if (col.startsWith("hsl(")) {
@@ -201,8 +207,7 @@ if (col.startsWith("hsl(")) {
 } else {
   hue = rgbToHue(col); 
 }
-const prefersDark = window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
-const lightness = prefersDark ? 70 : 30;
+const lightness = document.body.classList.contains('dark') ? 70 : 30;
 col = `hsl(${hue}, 30%, ${lightness}%)`;
 
 document.querySelectorAll("svg.peaks").forEach(svg => {

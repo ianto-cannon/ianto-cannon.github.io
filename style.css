@@ -1,19 +1,13 @@
 body {
   font-family: Verdana;
+  background-color: white;
+  color: black;
 }
 .halloween{
   font-family: 'Creepster', cursive;
 }
 .valentines {
   font-family: cursive;
-}
-@media (prefers-color-scheme: dark) {
-  body {
-    background-color: black;
-    color: white;
-  }
-  a { color: #90e8df; }
-  a:visited{ color: #aed5fc; }
 }
 h1, h2, h3 {
   margin-bottom: 0.2em;
@@ -92,7 +86,30 @@ ul {
   dominant-baseline: middle;
   fill: currentColor;
 }
-
 .license {
   height: 1em;
+}
+.foot {
+ display: flex; 
+ justify-content: space-between; 
+ align-items: center;
+}
+body.dark {
+  background-color: black;
+  color: white;
+}
+body.dark a { 
+  color: #90e8df; 
+}
+body.dark a:visited{ 
+  color: #aed5fc; 
+}
+body.dark button, 
+body.dark input {
+  background-color: #333;
+  color: currentColor;
+  border: 1px solid currentColor;
+}
+body.dark .zodiac text {
+  stroke: black; 
 }
