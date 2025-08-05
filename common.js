@@ -194,6 +194,11 @@ document.querySelectorAll("svg.peaks").forEach(svg => {
   svg.setAttribute("preserveAspectRatio", "none");
 });
 
+//display the buttons if js is running
+document.querySelectorAll('.theme-toggle').forEach(el => {
+  el.style.display = 'inline';
+});
+
 document.querySelectorAll('input[name="theme"]').forEach( btn => { 
   btn.addEventListener('change', () => {
     document.body.classList.remove('dark');

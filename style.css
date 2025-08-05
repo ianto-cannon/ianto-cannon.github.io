@@ -104,3 +104,6 @@ body.dark input {
 body.dark .zodiac text {
   stroke: black; 
 }
+.theme-toggle {/*hide the buttons if no javascript*/
+  display: none;
+}
