@@ -1,4 +1,8 @@
-function generatePolygonPath(svg, path, level) {
+const colorScheme = (hue) => {
+  const lightness = document.body.classList.contains('dark') ? 70 : 30;
+  return `hsl(${hue}, 30%, ${lightness}%)`;
+};
+const generatePolygonPath = (svg, path, level) => {
   getTime();
   const pathStr = [`M50,50 `];
   for (let i = 0; i <= time[level]; i++) {
@@ -9,9 +13,8 @@ function generatePolygonPath(svg, path, level) {
   }
   path.setAttribute("d", pathStr.join(" ") + " Z");
   path.setAttribute("fill", colorScheme(hue));
-}
-
-function maskPolygon(svg,path,level){
+};
+const maskPolygon = (svg, path, level) => {
   path.removeAttribute("mask");
   const oldDefs = svg.querySelector("defs");
   if (oldDefs) svg.removeChild(oldDefs);
@@ -40,10 +43,9 @@ function maskPolygon(svg,path,level){
   defs.appendChild(mask);
   svg.insertBefore(defs, svg.firstChild);
   path.setAttribute("mask", `url(#${maskId})`);
-}
-
-function generateBlobPath(blo,wavMin,wavMax) {
-  getTime(); 
+};
+const generateBlobPath = (blo, wavMin, wavMax) => {
+  getTime();
   const radius = 250;
   const points = 50;
   const variation = 150;
@@ -60,7 +62,7 @@ function generateBlobPath(blo,wavMin,wavMax) {
       r2[i] += amp * Math.cos((h+1) * thet2 - phase);
     }
   }
-  let x1, x2;
+  let x1;
   for (let i = 0; i <= points; i++) {
     const theta = i / points * 2 * Math.PI;
     const x = 500 + r[i] * Math.sin(theta);
@@ -70,8 +72,8 @@ function generateBlobPath(blo,wavMin,wavMax) {
     const y2 = 500 - r2[i] * Math.cos(thet2);
     if (i === 0) {
       path.push(`M ${x.toFixed(0)},${y.toFixed(0)}`);
-      x1 = 2*x - x2
-      y1 = 2*y - y2
+      x1 = 2*x - x2;
+      y1 = 2*y - y2;
     } else if (i === 1) {
       path.push(`C ${x1.toFixed(0)},${y1.toFixed(0)} ${x2.toFixed(0)},${y2.toFixed(0)} ${x.toFixed(0)},${y.toFixed(0)}`);
     } else {
@@ -81,17 +83,15 @@ function generateBlobPath(blo,wavMin,wavMax) {
   blo.setAttribute("d", path.join(" ") + " Z");
   blo.setAttribute("fill", colorScheme(hue));
   requestAnimationFrame(() => generateBlobPath(blo, wavMin, wavMax));
-}
-
-function updateTimeStr() {
+};
+const updateTimeStr = () => {
   getTime();
   document.getElementById("timeStr").textContent = `${year} ${monthStr} ${date} ${weekday} ${String(hour).padStart(2,'0')}:${String(minute).padStart(2,'0')}:${String(second).padStart(2,'0')}`;
   document.querySelectorAll("span.timeZone").forEach(span => {
     span.textContent = `${timeZoneName}`;
   });
-}
-
-function drawBinaryClock(svg) {
+};
+const drawBinaryClock = (svg) => {
   svg.innerHTML = ''; // Clear existing content
   const path = document.createElementNS(svgNS, "path");
   let d = "";
@@ -104,9 +104,8 @@ function drawBinaryClock(svg) {
   path.setAttribute("d", d.trim());
   path.setAttribute("fill", colorScheme(hue));
   svg.appendChild(path);
-}
-
-function createStickFigure(svgNS, size = 1, raise=0) {
+};
+const createStickFigure = (svgNS, size = 1, raise=0) => {
   const g = document.createElementNS(svgNS, "g");
   const head = document.createElementNS(svgNS, "circle");
   head.setAttribute("cx", 0);
@@ -131,10 +130,17 @@ function createStickFigure(svgNS, size = 1, raise=0) {
   p.setAttribute("fill", "none");
   g.appendChild(p);
   return g;
-}
-
+};
+// Create a semi-circle path facing the sun
+const describeLitHemisphere = (r, angle) => {
+  const x0 = r * Math.cos(angle + Math.PI/2);
+  const y0 = r * Math.sin(angle + Math.PI/2);
+  const x1 = r * Math.cos(angle - Math.PI/2);
+  const y1 = r * Math.sin(angle - Math.PI/2);
+  return `M ${x0.toFixed(3)},${y0.toFixed(3)} A ${r.toFixed(0)},${r.toFixed(0)} 0 0,1 ${x1.toFixed(3)},${y1.toFixed(3)} L 0,0 Z`;
+};
 class CelestialBody {
-  constructor({ name, radius, orbitR, orbitalPeriod, orbitStartTime, orbits, svg, tilt, w}) {
+  constructor({name, radius, orbitR, orbitalPeriod, orbitStartTime, orbits, svg, tilt, w}) {
     this.name = name;
     this.radius = radius;
     this.orbitR = orbitR;
@@ -144,7 +150,7 @@ class CelestialBody {
     this.svg = svg;
     this.tilt = tilt;
     this.w = w;
-    
+
     this.group = document.createElementNS(svgNS, "g");
 
     //this.orbitCircle = document.createElementNS(svgNS, "circle");
@@ -152,13 +158,17 @@ class CelestialBody {
     //this.orbitCircle.setAttribute("fill", "none");
     //this.orbitCircle.setAttribute("stroke", "currentColor");
     //this.orbitCircle.setAttribute("stroke-width", .2);
-    
+
     this.outline = document.createElementNS(svgNS, "circle");
     this.outline.setAttribute("r", radius);
-    this.group.appendChild(this.outline); 
+    this.group.appendChild(this.outline);
 
-    //Put colors in the Earth's orbit
-    if (!this.orbits) {
+    if (this.orbits) {
+      this.outline.setAttribute("fill", `hsl(${hue}, 30%, 20%)`);
+      this.lit = document.createElementNS(svgNS, "path");
+      this.lit.setAttribute("fill", `hsl(${hue}, 30%, 80%)`);
+      this.group.appendChild(this.lit);
+    } else {//Put colors in the Earth's orbit
       this.outline.setAttribute("stroke", "currentColor");
       this.outline.setAttribute("fill", "none");
       const defs = svg.insertBefore(document.createElementNS(svgNS, "defs"), svg.firstChild);
@@ -180,17 +190,11 @@ class CelestialBody {
         path.setAttribute("mask", `url(#${maskId})`);
         svg.appendChild(path);
       }
-    } else {
-      this.outline.setAttribute("fill", `hsl(${hue}, 30%, 20%)`);
-      this.lit = document.createElementNS(svgNS, "path");
-      this.lit.setAttribute("fill", `hsl(${hue}, 30%, 80%)`);
-      this.group.appendChild(this.lit);
     }
     //svg.appendChild(this.orbitCircle);
     svg.appendChild(this.group);
   }
-
-  update(solTime) {
+  updateOrbits(solTime) {
     const cx = this.orbits ? this.orbits.x : this.w/2;
     const cy = this.orbits ? this.orbits.y : this.w/2;
     const parentAngle = this.orbits ? this.orbits.angle : 0;
@@ -212,25 +216,12 @@ class CelestialBody {
     //this.orbitCircle.setAttribute("cy", cy.toFixed(1));
   }
 }
-
-// Create a semi-circle path facing the sun
-function describeLitHemisphere(r, angle) {
-  const x0 = r * Math.cos(angle + Math.PI/2);
-  const y0 = r * Math.sin(angle + Math.PI/2);
-  const x1 = r * Math.cos(angle - Math.PI/2);
-  const y1 = r * Math.sin(angle - Math.PI/2);
-  return `M ${x0.toFixed(3)},${y0.toFixed(3)} A ${r.toFixed(0)},${r.toFixed(0)} 0 0,1 ${x1.toFixed(3)},${y1.toFixed(3)} L 0,0 Z`;
-}
-
 // Format date to YYYY-MM-DDTHH:MM
-function pad(n) {
-  return n.toString().padStart(2, '0');
-}
-function formatDateTime(ms) {
+const pad = (n) => n.toString().padStart(2, '0');
+const formatDateTime = (ms) => {
   const d = new Date(ms);
   return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
-}
-
+};
 document.querySelectorAll("path[data-min][data-max]").forEach(path => {
   const svg = path.closest("svg");
   if (svg) svg.setAttribute("viewBox", "0 0 1000 1000");
@@ -238,7 +229,6 @@ document.querySelectorAll("path[data-min][data-max]").forEach(path => {
   const max = parseInt(path.dataset.max, 10);
   generateBlobPath(path, min, max);
 });
-
 document.querySelectorAll("svg.poly").forEach(svg => {
   const path = svg.querySelector("path");
   const level = parseInt(path.dataset.level, 10);
@@ -248,7 +238,6 @@ document.querySelectorAll("svg.poly").forEach(svg => {
   setInterval(() => maskPolygon(svg, path, level), 1000);
   setInterval(() => generatePolygonPath(svg, path, level), 1000);
 });
-
 setInterval(() => {
   getTime();
   document.querySelectorAll("span[data-level]").forEach(span => {
@@ -256,50 +245,16 @@ setInterval(() => {
     span.textContent = " ("+time[level]+")";
   });
 }, 1000);
-
 if (document.getElementById("timeStr")) {
   updateTimeStr(); // Run on page load
   setInterval(updateTimeStr, 1000); // Update every second
 }
-
 document.querySelectorAll("svg.binaryClock").forEach(svg => {
   drawBinaryClock(svg);
   svg.setAttribute("viewBox", "0 0 31 1");
   setInterval(() => drawBinaryClock(svg), 1000);
 });
-
 document.querySelectorAll("svg.solar").forEach(svg => {
-  
-  function updateSolar(solTime) {
-    earth.update(solTime);
-    moon.update(solTime);
-    const angle = ( earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000 ) % 360 
-    stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(2)})`);
-    datetimeInput.value = formatDateTime(solTime);
-    document.querySelectorAll("span.tilt").forEach(span => {
-      span.textContent = `${(earth.tilt*Math.cos(earth.angle)).toFixed(1)}`;
-    });
-    const offset = -10 / earth.orbitalPeriod * 2 * Math.PI;
-    const j = (Math.round(12 * ((offset - earth.angle) / (2 * Math.PI)) + 2) + 12) % 12;
-    document.querySelectorAll("span.currentZodiac").forEach(span => {
-      span.textContent = zodiacName[j] + ' ' + zodiac[j];
-    });
-   const i = ((((moon.angle - earth.angle) * 4 / Math.PI + 0.5) % 8) + 8) % 8;
-   document.querySelectorAll("span.moonPhase").forEach(span => {
-      span.textContent = phases[Math.floor(i)];
-    });
-    const waxing = Math.sin(moon.angle - earth.angle) >= 0 ? 1 : 0;
-    crescent = Math.cos(moon.angle - earth.angle)
-    const leftTerminator = crescent*Math.sin(moon.angle - earth.angle) >= 0 ? 1 : 0;
-    lightSide.setAttribute("d", 
-      `M ${(.4*w).toFixed(0)} ${(w/2 + earth.orbitR).toFixed(0)}`
-      + `A ${(crescent*earth.orbitR).toFixed(1)} ${earth.orbitR.toFixed(0)} 0 0 ${leftTerminator} `
-      + `${(.4*w).toFixed(0)} ${(w/2 - earth.orbitR).toFixed(0)}`
-      + `A ${(1*earth.orbitR).toFixed(0)} ${earth.orbitR.toFixed(0)} 0 0 ${waxing} `
-      + `${(.4*w).toFixed(0)} ${(w/2 + earth.orbitR).toFixed(0)}`
-    );
-  }
-  
   const w = 500;
   svg.setAttribute("viewBox", `0 0 ${w} ${w}`);
   const phases = ['full','waxing gibbous',"in its first quarter",'a waxing crescent','new','a waning crescent',"in its last quarter",'waning gibbous'];
@@ -308,7 +263,6 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   const zodiacGroup = document.createElementNS(svgNS, "g");
   zodiacGroup.setAttribute("class", "zodiac");
   svg.appendChild(zodiacGroup);
-
   const earth = new CelestialBody({
     name: "Earth",
     radius: .04*w,
@@ -320,7 +274,6 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     tilt: 23.44,
     w: w
   });
-
   const moon = new CelestialBody({
     name: "Moon",
     radius: .03*w,
@@ -332,7 +285,6 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     tilt: 0,
     w: w
   });
-
   zodiac.forEach((sign, i) => {
     const angle = -10 / earth.orbitalPeriod * 2 * Math.PI - (i + 4) / 12 * 2 * Math.PI;
     const x = .5 * w + .47 * w * Math.sin(angle);
@@ -343,14 +295,13 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     text.textContent = sign;
     zodiacGroup.appendChild(text);
   });
-  
   const sun = document.createElementNS(svgNS, "circle");
-  sun.setAttribute("fill","white")
+  sun.setAttribute("fill","white");
   sun.setAttribute("transform", `translate(${.5*w}, ${.5*w})`);
-  sun.setAttribute("r", .06*w)
+  sun.setAttribute("r", .06*w);
   svg.appendChild(sun);
-  
-  svgLunar = document.querySelector("svg.lunar")
+
+  svgLunar = document.querySelector("svg.lunar");
   svgLunar.setAttribute("viewBox", `0 0 ${.8*w} ${w}`);
   const darkSide = document.createElementNS(svgNS, "circle");
   darkSide.setAttribute("cx", (.4*w).toFixed(0));
@@ -363,15 +314,52 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   svgLunar.appendChild(lightSide);
 
   const stickFigure = createStickFigure(svgNS, .3*moon.orbitR, earth.radius);
-  svg.appendChild(stickFigure)
+  svg.appendChild(stickFigure);
   const datetimeInput = document.getElementById("datetime");
   const playPauseBtn = document.querySelector(".playPauseBtn");
 
-  let solTime = Date.now();  
+  const updateSolar = (solTime) => {
+    earth.updateOrbits(solTime);
+    moon.updateOrbits(solTime);
+    const angle = ( earth.angle*180/Math.PI + 180 - 360*solTime/24/60/60/1000 ) % 360;
+    stickFigure.setAttribute("transform", `translate(${earth.x.toFixed(1)}, ${earth.y.toFixed(1)}) rotate(${angle.toFixed(2)})`);
+    datetimeInput.value = formatDateTime(solTime);
+    document.querySelectorAll("span.tilt").forEach(span => {
+      span.textContent = `${(earth.tilt*Math.cos(earth.angle)).toFixed(1)}`;
+    });
+    const offset = -10 / earth.orbitalPeriod * 2 * Math.PI;
+    const j = (Math.round(12 * ((offset - earth.angle) / (2 * Math.PI)) + 2) + 12) % 12;
+    document.querySelectorAll("span.currentZodiac").forEach(span => {
+      span.textContent = zodiacName[j] + ' ' + zodiac[j];
+    });
+    const i = ((((moon.angle - earth.angle) * 4 / Math.PI + 0.5) % 8) + 8) % 8;
+    document.querySelectorAll("span.moonPhase").forEach(span => {
+      span.textContent = phases[Math.floor(i)];
+    });
+    const waxing = Math.sin(moon.angle - earth.angle) >= 0 ? 1 : 0;
+    crescent = Math.cos(moon.angle - earth.angle);
+    const leftTerminator = crescent*Math.sin(moon.angle - earth.angle) >= 0 ? 1 : 0;
+    lightSide.setAttribute("d",
+      `M ${(.4*w).toFixed(0)} ${(w/2 + earth.orbitR).toFixed(0)}`
+      + `A ${(crescent*earth.orbitR).toFixed(1)} ${earth.orbitR.toFixed(0)} 0 0 ${leftTerminator} `
+      + `${(.4*w).toFixed(0)} ${(w/2 - earth.orbitR).toFixed(0)}`
+      + `A ${earth.orbitR.toFixed(0)} ${earth.orbitR.toFixed(0)} 0 0 ${waxing} `
+      + `${(.4*w).toFixed(0)} ${(w/2 + earth.orbitR).toFixed(0)}`
+    );
+  };
+  let solTime = Date.now();
   updateSolar(solTime);
   let playing = false;
   let animationId = null;
 
+  // Animation loop
+  const animationStep = () => {
+    if (playing) {
+      solTime += 1000*60*20;
+      updateSolar(solTime);
+      animationId = requestAnimationFrame(animationStep);
+    }
+  };
   playPauseBtn.addEventListener("click", () => {
     playing = !playing;
     playPauseBtn.textContent = playing ? "Pause" : "Play";
@@ -381,8 +369,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
       cancelAnimationFrame(animationId);
     }
   });
-
-  // User input changes date/time, pause animation and update solTime
+  // User input changes date/time, pause animation and updatesolTime
   datetimeInput.addEventListener("input", () => {
     playing = false;
     cancelAnimationFrame(animationId);
@@ -393,20 +380,10 @@ document.querySelectorAll("svg.solar").forEach(svg => {
       updateSolar(solTime);
     }
   });
-
   // Pause when the input is focused (user is interacting)
   datetimeInput.addEventListener("focus", () => {
     playing = false;
     cancelAnimationFrame(animationId);
     playPauseBtn.textContent = "Play";
   });
-
-  // Animation loop
-  function animationStep(timestamp) {
-    if (playing) {
-      solTime += 1000*60*20;
-      updateSolar(solTime);
-      animationId = requestAnimationFrame(animationStep);
-    }
-  }
 });

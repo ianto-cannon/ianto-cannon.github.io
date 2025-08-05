@@ -81,9 +81,17 @@ ul {
   height: 1em;
 }
 .foot {
- display: flex; 
- justify-content: space-between; 
- align-items: center;
+  display: block; /*on old browsers*/
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.theme-toggle {/*hide the buttons if no javascript*/
+  display: none;
+}
+input[type="radio"], label {/*prevent line break between button and label*/
+  display: inline;
+  white-space: nowrap;
 }
 body.dark {
   background-color: black;
@@ -103,7 +111,4 @@ body.dark input {
 }
 body.dark .zodiac text {
   stroke: black; 
-}
-.theme-toggle {/*hide the buttons if no javascript*/
-  display: none;
 }

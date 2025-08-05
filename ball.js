@@ -2,8 +2,7 @@ const gravity = 0.3;
 const bounce = 0.99;
 const restitution = 1.0;
 const radius = 15;
-
-function resolveCollision(ballA, ballB) {
+const resolveCollision = (ballA, ballB) => {
   const dx = ballB.x - ballA.x;
   const dy = ballB.y - ballA.y;
   const dist = Math.hypot(dx, dy);
@@ -34,11 +33,10 @@ function resolveCollision(ballA, ballB) {
   ballA.y -= ny * overlap / 2;
   ballB.x += nx * overlap / 2;
   ballB.y += ny * overlap / 2;
-}
-
+};
 document.querySelectorAll("svg.ball-box").forEach(svg => {
   const balls = [];
-  function createBall(x, y) {
+  const createBall = (x, y) => {
     const ball = {
       x,
       y,
@@ -51,9 +49,8 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
     ball.elem.setAttribute("fill", ball.color);
     svg.appendChild(ball.elem);
     return ball;
-  }
-
-  function updateBalls() {
+  };
+  const updateBalls = () => {
     for (let i = 0; i < balls.length; i++) {
       const ball = balls[i];
       ball.x += ball.vx;
@@ -84,20 +81,18 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
       ball.elem.setAttribute("cy", ball.y.toFixed(2));
     }
     requestAnimationFrame(updateBalls);
-  }
-
-  svg.addEventListener("click", function(e) {
+  };
+  svg.addEventListener("click", (e) => {
     const rect = svg.getBoundingClientRect();
     const x = e.clientX - rect.left;
     const y = e.clientY - rect.top;
     balls.push(createBall(x, y));
   });
-
-  document.addEventListener("keydown", function(e) {
+  document.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       balls.push(createBall(svg.clientWidth / 2, svg.clientHeight / 2));
     }
   });
-
   updateBalls(); // Start the animation loop
 });
+
