@@ -3,10 +3,15 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Clock Graphics</title>
-  <link rel="stylesheet" href="style.css" />
-  <link rel="icon" href="favicon.svg" type="image/svg+xml" />
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <title>Ianto Cannon's clock graphics</title>
+  <meta name="description" content="Scalable vector graphics clocks made with JavaScript.">
+  <meta property="og:title" content="Ianto Cannon's clock graphics">
+  <meta property="og:description" content="Scalable vector graphics clocks made with JavaScript.">
+  <meta property="og:image" content="favicon.svg">
+  <meta property="og:type" content="website">
+  <link rel="stylesheet" href="style.css"/>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
 </head>
 <body>
 <h1><a href="index.html">Ianto Cannon</a>'s clock graphics</h1>
@@ -47,16 +52,17 @@
   <svg class="blob"><path data-min="1" data-max="6" /></svg>
   <h2>Solar system</h2>
   <p>
-    This clock shows orbits of the Earth and Moon, as seen from the perspective of the North Star. The Sun is in the centre, and the zodiac constellations are fixed in space.
-  </p>
-  <p>
+    The left clock shows orbits of the Earth and Moon, viewed from the perspective of the North Star. The Sun is in the centre, and the zodiac constellations are fixed in space.
     Shaded lines show the <a href="https://www.pveducation.org/pvcdrom/properties-of-sunlight/declination-angle">declination of the Sun</a> at 10° intervals. The top and bottom of the clock correspond to the June and December solstices, when the midday Sun reaches its highest and lowest points in the sky.
+  <p>
+    The right clock shows the Moon phase, as seen from Earth.
+  </p>
   </p>
   <svg class="solar"></svg>
   <svg class="lunar"></svg>
-  <p>
-    <button class="playPauseBtn">Play</button> or 
-    <label for="datetime">set date and time:</label>
+  <p class="control">
+    <button class="control playPauseBtn">Play</button> or 
+    <label for="control datetime">set date and time:</label>
     <input type="datetime-local" id="datetime"/>
     <span class="timeZone"></span>.
   </p>

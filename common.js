@@ -1,7 +1,7 @@
 function anyColor() {
-  const h = Math.floor(Math.random() * 360);        
-  const s = Math.floor(Math.random() * 40 + 30);    
-  const l = Math.floor(Math.random() * 60 + 20);    
+  const h = Math.floor(Math.random() * 360);
+  const s = Math.floor(Math.random() * 40 + 30);
+  const l = Math.floor(Math.random() * 60 + 20);
   return `hsl(${h}, ${s}%, ${l}%)`;
 }
 function halloweenColor() {
@@ -36,7 +36,6 @@ function rgbToHue(rgb) {
   let r, g, b
   if (rgb.startsWith("#")) {
     rgb = rgb.replace(/^#/, '');
-    // Parse RGB components
     r = parseInt(rgb.slice(0, 2), 16) / 255;
     g = parseInt(rgb.slice(2, 4), 16) / 255;
     b = parseInt(rgb.slice(4, 6), 16) / 255;
@@ -126,7 +125,6 @@ function updatePeaks(peaksSVG) {
 }
 
 const svgNS = "http://www.w3.org/2000/svg";
-const headings = document.querySelectorAll("h2");  
 let timeZoneName;
 let now
 let year, month, date, weekday, hour, minute, second, millisecond
@@ -215,5 +213,3 @@ document.querySelectorAll("svg.peaks").forEach(svg => {
   svg.setAttribute("viewBox", "0 0 1000 10");
   svg.setAttribute("preserveAspectRatio", "none");
 });
-
-
