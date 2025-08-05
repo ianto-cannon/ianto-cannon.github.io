@@ -200,12 +200,12 @@ document.querySelectorAll('input[name="theme"]').forEach( btn => {
     if (btn.value == 'dark') {
       document.body.classList.add('dark');
     }
-    if (btn.value == 'default' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
+    if (btn.value == 'browser' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
       document.body.classList.add('dark');
     }
   });
-  document.querySelector(`input[value="default"]`).checked = true;
-  if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+  document.querySelector(`input[value="browser"]`).checked = true;
+  if (!window.matchMedia('(prefers-color-scheme: light)').matches) {
     document.body.classList.add('dark');
   }
 });
