@@ -1,7 +1,7 @@
 const svgNS = "http://www.w3.org/2000/svg";
 let year, month, date, hour, minute, second, millisecond, hue; //numbers
 let timeFracs=[], time=[], sides=[];
-let timeZoneName, binary, monthStr, emoji, title, weekday; //strings
+let timeZoneName, binary, monthStr, emoji="", title="", weekday; //strings
 let randomColor=null;
 const anyColor = () => {
   const h = Math.floor(Math.random() * 360);
