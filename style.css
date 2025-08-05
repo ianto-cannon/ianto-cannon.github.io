@@ -33,9 +33,7 @@ ul {
   width: 100%;
   height: 400px;
   touch-action: manipulation; /* Prevents double-tap zoom */
-}
-.license {
-  height: 1em;
+  cursor: pointer;
 }
 .poly-container {
   width: min(100%, 1000px);
@@ -43,6 +41,7 @@ ul {
 }
 .poly {
   width: 7.9em;
+  aspect-ratio: 1;
 }
 .raised {
   position: relative;
@@ -65,9 +64,11 @@ ul {
 }
 .solar {
   width: min(500px, 53%);
+  aspect-ratio: 1;
 }
 .lunar {
   width: min(400px, 42%);
+  aspect-ratio: 0.8;
 }
 .zodiac text {
   font-size: 2em;
@@ -77,8 +78,22 @@ ul {
   dominant-baseline: middle;
   fill: currentColor;
 }
+button,
+input[type="button"],
+input[type="submit"],
+input[type="datetime-local"] {
+  padding: .7em; 
+  border-radius: .5em;
+}
+button {
+  cursor: pointer;
+}
+input[type="datetime-local"] {
+  cursor: text;
+}
 .license {
   height: 1em;
+  aspect-ratio: 1;
 }
 .foot {
   display: block; /*on old browsers*/
@@ -90,8 +105,11 @@ ul {
   display: none;
 }
 input[type="radio"], label {/*prevent line break between button and label*/
+  cursor: pointer;
   display: inline;
   white-space: nowrap;
+}
+input[type="radio"] {
 }
 body.dark {
   background-color: black;
@@ -107,8 +125,8 @@ body.dark button,
 body.dark input {
   background-color: #333;
   color: currentColor;
-  border: 1px solid currentColor;
 }
 body.dark .zodiac text {
   stroke: black; 
+  border-radius: 5px;
 }

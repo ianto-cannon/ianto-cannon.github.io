@@ -362,7 +362,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   };
   playPauseBtn.addEventListener("click", () => {
     playing = !playing;
-    playPauseBtn.textContent = playing ? "Pause" : "Play";
+    playPauseBtn.innerHTML = playing ? "&#9208; Pause" : "&#9654; Play";
     if (playing) {
       animationId = requestAnimationFrame(animationStep);
     } else {
@@ -373,7 +373,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   datetimeInput.addEventListener("input", () => {
     playing = false;
     cancelAnimationFrame(animationId);
-    playPauseBtn.textContent = "Play";
+    playPauseBtn.innerHTML = "&#9654; Play";
     const newTime = new Date(datetimeInput.value).getTime();
     if (!isNaN(newTime)) {
       solTime = newTime;
@@ -384,6 +384,6 @@ document.querySelectorAll("svg.solar").forEach(svg => {
   datetimeInput.addEventListener("focus", () => {
     playing = false;
     cancelAnimationFrame(animationId);
-    playPauseBtn.textContent = "Play";
+    playPauseBtn.innerHTML = "&#9654; Play";
   });
 });
