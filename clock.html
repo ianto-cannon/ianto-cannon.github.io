@@ -9,7 +9,7 @@
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
 </head>
 <body>
-  <h1><a href="index.html">Ianto Cannon</a>'s clock graphics</h1>
+<h1><a href="index.html">Ianto Cannon</a>'s clock graphics</h1>
   <p>These clocks are rendered as scalable vector graphics using JavaScript. Please feel free to use and modify the source code.</p>
   <p>The current time is <span id="timeStr">loading…</span> (<span class="timeZone"></span>).</p>
   <h2>Binary</h2>
@@ -53,11 +53,12 @@
     Shaded lines show the <a href="https://www.pveducation.org/pvcdrom/properties-of-sunlight/declination-angle">declination of the Sun</a> at 10° intervals. The top and bottom of the clock correspond to the June and December solstices, when the midday Sun reaches its highest and lowest points in the sky.
   </p>
   <svg class="solar"></svg>
-  <p class="control">
-    <button class="control playPauseBtn">Play</button> or 
-    <label for="control datetime">set date and time:</label>
+  <svg class="lunar"></svg>
+  <p>
+    <button class="playPauseBtn">Play</button> or 
+    <label for="datetime">set date and time:</label>
     <input type="datetime-local" id="datetime"/>
-    <span class="control timeZone"></span>.
+    <span class="timeZone"></span>.
   </p>
   <p>
     The Sun appears in <span class="currentZodiac">loading…</span> with declination <span class="tilt">loading…</span>&deg;. The Moon is <span class="moonPhase">loading…</span>.
@@ -67,9 +68,17 @@
   <h2>Peaks</h2>
   <p>The highest peak moves from right to left once per millenium, the next highest once per year, once per day, once per hour, and once per minute.</p>
   <svg class="banner peaks"></svg>
-  <p>
+  <p class="foot">
+  <span>
     <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="cc.svg" alt="CC " class="license"><img src="by.svg" alt="BY-" class="license"><img src="sa.svg" alt="SA" class="license"></a>
-    Ianto Cannon 2025 Aug 2
+    Ianto Cannon 2025 Aug 4
+  </span>
+  <span>
+    Theme:
+    <label><input type="radio" name="theme" value="light"> light</label>
+    <label><input type="radio" name="theme" value="dark"> dark</label>
+    <label><input type="radio" name="theme" value="default"> default</label>
+  </span>
   </p>
   <script src="common.js" defer></script>
   <script src="clock.js" defer></script>
