@@ -1,5 +1,5 @@
 const colorScheme = (hue) => {
-  const lightness = document.body.classList.contains('dark') ? 70 : 30;
+  const lightness = darkMode ? 70 : 30;
   return `hsl(${hue}, 30%, ${lightness}%)`;
 };
 const generatePolygonPath = (svg, path, level) => {

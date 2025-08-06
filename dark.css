@@ -1,0 +1,19 @@
+body {
+  background-color: black;
+  color: white;
+}
+body a {
+  color: #90e8df;
+}
+body a:visited {
+  color: #aed5fc;
+}
+body button,
+body input {
+  background-color: #333;
+  color: currentColor;
+}
+body .zodiac text {
+  stroke: black;
+  border-radius: 5px;
+}
