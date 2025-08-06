@@ -3,6 +3,7 @@ let year, month, date, hour, minute, second, millisecond, hue; //numbers
 let timeFracs=[], time=[], sides=[];
 let timeZoneName="", binary="", monthStr="", emoji="", title="", weekday=""; //strings
 let randomColor=null;
+let darkMode = true;
 const anyColor = () => {
   const h = Math.floor(Math.random() * 360);
   const s = Math.floor(Math.random() * 40 + 30);
@@ -114,11 +115,32 @@ const updatePeaks = (peaksSVG) => {
   const width = 1000;
   getTime();
   for (let i = 0; i <= 4; i++) {
-    const lightness = document.body.classList.contains('dark') ? (20 + i*10) : (100 - 20 - i*10);
+    const lightness = darkMode ? (20 + i*10) : (100 - 20 - i*10);
     createTriangle(timeFracs[i]%1, width, 10-i*1.5, lightness, peaksSVG);
   }
   requestAnimationFrame(() => updatePeaks(peaksSVG));
 };
+//display the buttons if js is running
+document.querySelectorAll('.theme-toggle').forEach( (el) => {
+  el.style.display = 'inline';
+});
+document.querySelectorAll('input[name="theme"]').forEach( (btn) => {
+  btn.addEventListener('change', () => {
+    const darkLink = document.querySelector('link[data-theme="dark"]');
+    darkMode = ( btn.value === 'dark' || ( btn.value === 'browser' && !(window.matchMedia('(prefers-color-scheme: light)').matches) ) )
+    if (darkMode) {
+      darkLink.media = 'all';
+    } else {
+      darkLink.media = 'not all';
+    }
+  });
+  document.querySelector(`input[value="browser"]`).checked = true;
+  if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+    darkMode = false;
+  } else {
+    darkMode = true;
+  }
+});
 getTime();
 emoji = "";
 if (month === 9 && date === 31) {
@@ -174,23 +196,4 @@ document.querySelectorAll("svg.peaks").forEach(svg => {
   updatePeaks(svg);
   svg.setAttribute("viewBox", "0 0 1000 10");
   svg.setAttribute("preserveAspectRatio", "none");
-});
-//display the buttons if js is running
-document.querySelectorAll('.theme-toggle').forEach( (el) => {
-  el.style.display = 'inline';
-});
-document.querySelectorAll('input[name="theme"]').forEach( (btn) => {
-  btn.addEventListener('change', () => {
-    document.body.classList.remove('dark');
-    if (btn.value === 'dark') {
-      document.body.classList.add('dark');
-    }
-    if (btn.value === 'browser' && window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.body.classList.add('dark');
-    }
-  });
-  document.querySelector(`input[value="browser"]`).checked = true;
-  if (!window.matchMedia('(prefers-color-scheme: light)').matches) {
-    document.body.classList.add('dark');
-  }
 });

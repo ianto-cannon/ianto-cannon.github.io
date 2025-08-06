@@ -35,6 +35,7 @@ const resolveCollision = (ballA, ballB) => {
   ballB.y += ny * overlap / 2;
 };
 document.querySelectorAll("svg.ball-box").forEach(svg => {
+  svg.innerHTML = '';
   const balls = [];
   const createBall = (x, y) => {
     const ball = {
