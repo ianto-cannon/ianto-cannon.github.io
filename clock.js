@@ -286,7 +286,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     w: w
   });
   zodiac.forEach((sign, i) => {
-    const angle = -10 / earth.orbitalPeriod * 2 * Math.PI - (i + 4) / 12 * 2 * Math.PI;
+    const angle = - (i + 3.5) * 2 * Math.PI / 12;
     const x = .5 * w + .47 * w * Math.sin(angle);
     const y = .5 * w - .47 * w * Math.cos(angle);
     const text = document.createElementNS(svgNS, "text");
@@ -295,6 +295,23 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     text.textContent = sign;
     zodiacGroup.appendChild(text);
   });
+  const getZodiacFromDate = (date) => {
+    const month = date.getMonth() + 1; // getMonth() returns 0-11
+    const day = date.getDate();
+    if ((month == 3 && day >= 21) || (month == 4 && day <= 19)) return 0; // Aries
+    if ((month == 4 && day >= 20) || (month == 5 && day <= 20)) return 1; // Taurus
+    if ((month == 5 && day >= 21) || (month == 6 && day <= 20)) return 2; // Gemini
+    if ((month == 6 && day >= 21) || (month == 7 && day <= 22)) return 3; // Cancer
+    if ((month == 7 && day >= 23) || (month == 8 && day <= 22)) return 4; // Leo
+    if ((month == 8 && day >= 23) || (month == 9 && day <= 22)) return 5; // Virgo
+    if ((month == 9 && day >= 23) || (month == 10 && day <= 22)) return 6; // Libra
+    if ((month == 10 && day >= 23) || (month == 11 && day <= 21)) return 7; // Scorpio
+    if ((month == 11 && day >= 22) || (month == 12 && day <= 21)) return 8; // Sagittarius
+    if ((month == 12 && day >= 22) || (month == 1 && day <= 19)) return 9; // Capricorn
+    if ((month == 1 && day >= 20) || (month == 2 && day <= 18)) return 10; // Aquarius
+    if ((month == 2 && day >= 19) || (month == 3 && day <= 20)) return 11; // Pisces
+    return 0; // fallback to Aries
+  };
   const sun = document.createElementNS(svgNS, "circle");
   sun.setAttribute("fill","white");
   sun.setAttribute("transform", `translate(${.5*w}, ${.5*w})`);
@@ -327,8 +344,7 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     document.querySelectorAll("span.tilt").forEach(span => {
       span.textContent = `${(earth.tilt*Math.cos(earth.angle)).toFixed(1)}`;
     });
-    const offset = -10 / earth.orbitalPeriod * 2 * Math.PI;
-    const j = (Math.round(12 * ((offset - earth.angle) / (2 * Math.PI)) + 2) + 12) % 12;
+    const j = getZodiacFromDate(new Date(solTime));
     document.querySelectorAll("span.currentZodiac").forEach(span => {
       span.textContent = zodiacName[j] + ' ' + zodiac[j];
     });
