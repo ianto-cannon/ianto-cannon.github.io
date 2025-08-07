@@ -3,10 +3,10 @@ body {
   color: white;
 }
 body a {
-  color: #90e8df;
+  color: lightskyblue;
 }
 body a:visited {
-  color: #aed5fc;
+  color: powderblue;
 }
 body button,
 body input {
