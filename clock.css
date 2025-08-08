@@ -1,0 +1,48 @@
+.poly-container {
+  width: min(100%, 1000px);
+  font-size: min(1vw, 10px);
+}
+.poly {
+  width: 7.9em;
+  aspect-ratio: 1;
+}
+.raised {
+  position: relative;
+  top: -.75em;
+  font-size: 4em;
+}
+.blob {
+  width: 150px;
+  max-width: 13%;
+}
+.binaryClock {
+  width: 100%;
+  height: auto;
+  aspect-ratio: 31;
+}
+.solar {
+  width: min(500px, 53%);
+  aspect-ratio: 1;
+}
+.lunar {
+  width: min(400px, 42%);
+  aspect-ratio: 0.8;
+}
+.zodiac text {
+  font-size: 2em;
+  font-weight: 300;
+  stroke-width: 1;
+  text-anchor: middle;
+  dominant-baseline: middle;
+  fill: currentColor;
+}
+button,
+input[type="button"],
+input[type="submit"],
+input[type="datetime-local"] {
+  padding: .7em; 
+  border-radius: .5em;
+}
+input[type="datetime-local"] {
+  cursor: text;
+}

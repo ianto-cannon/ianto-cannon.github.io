@@ -1,0 +1,19 @@
+.box {
+  border: 1px solid;
+  margin-bottom: 1em;
+  display: block;
+}
+.portrait-box {
+  width: 240px;
+  height: 300px;
+}
+.portrait-box img {
+  width: 100%;
+  height: 100%;
+}
+.ball-box {
+  width: 100%;
+  height: 400px;
+  touch-action: manipulation; /* Prevents double-tap zoom */
+  cursor: pointer;
+}
