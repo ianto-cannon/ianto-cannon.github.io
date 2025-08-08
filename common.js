@@ -147,10 +147,9 @@ if (month === 9 && date === 31) {
   emoji = " 🎃";
   title = "Happy halloween!";
   randomColor = halloweenColor;
-  const link = document.createElement("link");
-  link.rel = "stylesheet";
-  link.href = "https://fonts.googleapis.com/css2?family=Creepster&display=swap";
-  document.head.appendChild(link);
+  const style = document.createElement("style");
+  style.textContent = `@font-face {font-family: 'Creepster'; src: url('creepster.woff2') format('woff2'); font-display: swap;}`;
+  document.head.appendChild(style);
   document.querySelectorAll('h1, h2, h3').forEach( (el) => {
     el.classList.add('halloween');
   });
