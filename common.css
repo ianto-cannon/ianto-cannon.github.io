@@ -1,0 +1,42 @@
+body {
+  font-family: Verdana;
+}
+h1, h2, h3 {
+  margin-bottom: 0.2em;
+}
+ul, p {
+  margin-top: 0.2em;
+}
+.halloween{
+  font-family: 'Creepster', cursive;
+}
+.valentines {
+  font-family: cursive;
+}
+button {
+  cursor: pointer;
+}
+.license {
+  height: 1em;
+  aspect-ratio: 1;
+}
+.foot {
+  display: block; /*on old browsers*/
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.theme-toggle {/*hide the buttons if no javascript*/
+  display: none;
+}
+input[type="radio"], label {/*prevent line break between button and label*/
+  cursor: pointer;
+  display: inline;
+  white-space: nowrap;
+}
+.banner {
+  width: 100%; 
+  height: 150px; 
+  display: block; 
+  overflow: hidden;
+}
