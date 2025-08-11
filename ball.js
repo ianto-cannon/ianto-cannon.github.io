@@ -96,8 +96,11 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
   });
   updateBalls(); // Start the animation loop
 });
-
 const addLink = (placeholder) => {
+  console.log(placeholder.innerHTML);
+  document.querySelectorAll("input.phone").forEach(honeypot=> {
+    if (honeypot.value.trim() !== "") return;
+  });
   if (placeholder.innerHTML.includes("Say")) return;
   placeholder.innerHTML += `Say hi at <a href="mailto:
      &#105;&#97;&#110;&#116;&#111;&#46;&#99;&#97;&#110;&#110;&#111;&#110;&#64;&#117;&#110;&#105;&#45;&#98;&#114;&#101;&#109;&#101;&#110;&#46;&#122;&#97;&#114;&#109;&#46;&#100;&#101; 
