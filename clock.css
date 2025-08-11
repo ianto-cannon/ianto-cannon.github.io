@@ -30,8 +30,6 @@
 }
 .zodiac text {
   font-size: 2em;
-  font-weight: 300;
-  stroke-width: 1;
   text-anchor: middle;
   dominant-baseline: middle;
   fill: currentColor;
