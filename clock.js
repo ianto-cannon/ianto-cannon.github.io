@@ -403,3 +403,10 @@ document.querySelectorAll("svg.solar").forEach(svg => {
     playPauseBtn.innerHTML = "&#9654; Play";
   });
 });
+if ('serviceWorker' in navigator) {
+  window.addEventListener('load', () => {
+    navigator.serviceWorker.register('clock-sw.js')
+      .then(reg => console.log('Service Worker registered', reg))
+      .catch(err => console.error('SW registration failed:', err));
+  });
+}
