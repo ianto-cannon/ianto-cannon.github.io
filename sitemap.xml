@@ -3,12 +3,20 @@
 
   <url>
     <loc>https://ianto-cannon.github.io/</loc>
-    <priority>1.0</priority>
+    <lastmod>2025-09-03T14:57:37+00:00</lastmod>
+    <priority>1.00</priority>
+  </url>
+
+  <url>
+    <loc>https://ianto-cannon.github.io/cannon-masters-thesis.pdf</loc>
+    <lastmod>2025-09-03T14:57:37+00:00</lastmod>
+    <priority>0.80</priority>
   </url>
 
   <url>
     <loc>https://ianto-cannon.github.io/clock.html</loc>
-    <priority>0.8</priority>
+    <lastmod>2025-09-03T14:57:37+00:00</lastmod>
+    <priority>0.80</priority>
   </url>
 
 </urlset>
