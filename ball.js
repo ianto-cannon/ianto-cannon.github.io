@@ -106,7 +106,7 @@ const addLink = (placeholder) => {
      &#105;&#97;&#110;&#`+`116;&#111;`+`&#46;&#99;&#97;&#110;&#`+`110;&#111;&#110;&#64;&#117`+`;&#110;&#105;&#45;&#98;&#114;&`+`#101;&#109;&#101;&#110;&#46`+`;&#122;&#97;&#114`+`;&#109;&#46;`+`&#100;&#101; 
      ">
      &#105;&#97;&#110;&#11`+`6;&#111;&#46;&#99;&#97;&`+`#110;&#110;&#111;`+`&#110;&#64;&#117;&#110;&#105`+`;&#45;&#98;&#114;&#101;&#1`+`09;&#101;&#110;`+`&#46;&#122;&#97;`+`&#114;&#109;&#46;&#100;&#101;</a><br>
-      Use my <a href=`+`"iantoE`+`CCPubK`+`ey.as`+`c">PG`+`P pub`+`lic ke`+`y</a> to send me en`+`cry`+`pted messages`+` and verify my signatures.`
+      <a href="iantoECCPubKey.asc" download>Download my PGP public key</a> to send me en`+`cry`+`pted messages`+` and verify my signatures.`
 };
 document.querySelectorAll("p.misc").forEach(placeholder => {
   ['mousemove', 'keydown', 'scroll', 'touchstart'].forEach(event => {
