@@ -97,18 +97,21 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
   updateBalls(); // Start the animation loop
 });
 const addLink = (placeholder) => {
-  console.log(placeholder.innerHTML);
   document.querySelectorAll("input.phone").forEach(honeypot=> {
     if (honeypot.value.trim() !== "") return;
   });
   if (placeholder.innerHTML.includes("Say")) return;
-  placeholder.innerHTML += `Say hi at <a href="mailto:
+  const li1 = document.createElement("li");
+  li1.innerHTML = `Say hi at <a href="mailto:
      &#105;&#97;&#110;&#116;&#1`+`11;&#46;&#99;&#97;&#110;&#110;`+`&#111;&#110;&#64;&#1`+`03;&#109;&#97;&#105;`+`&#108;&#46;&#99;&#111;&#109;
      ">
-     &#105;&#97;&#110;&#116;&`+`#111;&#46;&#99;&#9`+`7;&#110;&#110;&#11`+`1;&#110;&#64;&#103`+`;&#109;&#97;&#105;&#108;&#46`+`;&#99;&#111;&#109;</a><br>
-      <a href="iantoECCPubKey.asc" download>Download my PGP public key</a> to send me en`+`cry`+`pted messages`+` and verify my signatures.`
+     &#105;&#97;&#110;&#116;&`+`#111;&#46;&#99;&#9`+`7;&#110;&#110;&#11`+`1;&#110;&#64;&#103`+`;&#109;&#97;&#105;&#108;&#46`+`;&#99;&#111;&#109;</a>`
+  placeholder.appendChild(li1);
+  const li2 = document.createElement("li");
+  li2.innerHTML = `<a href="iantoECCPubKey.asc" download>Download my PGP public key</a> to send me en`+`cry`+`pted messages`+` and verify my signatures.`
+  placeholder.appendChild(li2);
 };
-document.querySelectorAll("p.misc").forEach(placeholder => {
+document.querySelectorAll("ul.contact").forEach(placeholder => {
   ['mousemove', 'keydown', 'scroll', 'touchstart'].forEach(event => {
     window.addEventListener(event, () => addLink(placeholder), { once: true });
   });
