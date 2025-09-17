@@ -1,3 +1,12 @@
+const addLink = (li) => {
+  document.querySelectorAll("input.phone").forEach(honeypot=> {
+    if (honeypot.value.trim() !== "") return;
+  });
+  li.innerHTML = `Say hi at <a href="mailto:
+     &#105;&#97;&#110;&#116;&#1`+`11;&#46;&#99;&#97;&#110;&#110;`+`&#111;&#110;&#64;&#1`+`03;&#109;&#97;&#105;`+`&#108;&#46;&#99;&#111;&#109;
+     ">
+     &#105;&#97;&#110;&#116;&`+`#111;&#46;&#99;&#9`+`7;&#110;&#110;&#11`+`1;&#110;&#64;&#103`+`;&#109;&#97;&#105;&#108;&#46`+`;&#99;&#111;&#109;</a>`
+};
 const gravity = 0.3;
 const bounce = 0.99;
 const restitution = 1.0;
@@ -49,6 +58,10 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
     ball.elem.setAttribute("r", radius);
     ball.elem.setAttribute("fill", ball.color);
     svg.appendChild(ball.elem);
+    document.querySelectorAll("li.contact").forEach(li => {
+      if (li.innerHTML.includes("Say")) return; //don't modify this li
+      addLink(li);
+    });
     return ball;
   };
   const updateBalls = () => {
@@ -95,24 +108,4 @@ document.querySelectorAll("svg.ball-box").forEach(svg => {
     }
   });
   updateBalls(); // Start the animation loop
-});
-const addLink = (placeholder) => {
-  document.querySelectorAll("input.phone").forEach(honeypot=> {
-    if (honeypot.value.trim() !== "") return;
-  });
-  if (placeholder.innerHTML.includes("Say")) return;
-  const li1 = document.createElement("li");
-  li1.innerHTML = `Say hi at <a href="mailto:
-     &#105;&#97;&#110;&#116;&#1`+`11;&#46;&#99;&#97;&#110;&#110;`+`&#111;&#110;&#64;&#1`+`03;&#109;&#97;&#105;`+`&#108;&#46;&#99;&#111;&#109;
-     ">
-     &#105;&#97;&#110;&#116;&`+`#111;&#46;&#99;&#9`+`7;&#110;&#110;&#11`+`1;&#110;&#64;&#103`+`;&#109;&#97;&#105;&#108;&#46`+`;&#99;&#111;&#109;</a>`
-  placeholder.appendChild(li1);
-  const li2 = document.createElement("li");
-  li2.innerHTML = `<a href="iantoECCPubKey.asc" download>Download my PGP public key</a> to send me en`+`cry`+`pted messages`+` and verify my signatures.`
-  placeholder.appendChild(li2);
-};
-document.querySelectorAll("ul.contact").forEach(placeholder => {
-  ['mousemove', 'keydown', 'scroll', 'touchstart'].forEach(event => {
-    window.addEventListener(event, () => addLink(placeholder), { once: true });
-  });
 });
