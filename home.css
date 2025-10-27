@@ -26,10 +26,10 @@
 .portrait-bg {
   position: absolute;
   width: 100%;
-  height: 100%;
+  height: 110%;
+  bottom: 0;
   background-image: url('bg.avif');
   background-size: cover;
-  background-position: left bottom;
   will-change: transform;
 }
 .portrait-box img {

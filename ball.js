@@ -1,11 +1,9 @@
 const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
 if (!reduceMotion.matches) {
   window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
     document.querySelectorAll('.portrait-box').forEach(box => {
-      const rect = box.getBoundingClientRect();
-      const bg = box.querySelector('.portrait-bg');
-      const scrollFraction = rect.top / window.innerHeight;
-      bg.style.transform = `translateY(${-50*scrollFraction}px)`;
+      box.querySelector('.portrait-bg').style.transform = `translateY(${.1*window.scrollY}px)`;
     });
   });
 }
