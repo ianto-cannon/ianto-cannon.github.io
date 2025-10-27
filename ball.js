@@ -1,3 +1,14 @@
+const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)');
+if (!reduceMotion.matches) {
+  window.addEventListener('scroll', () => {
+    document.querySelectorAll('.portrait-box').forEach(box => {
+      const rect = box.getBoundingClientRect();
+      const bg = box.querySelector('.portrait-bg');
+      const scrollFraction = rect.top / window.innerHeight;
+      bg.style.transform = `translateY(${-50*scrollFraction}px)`;
+    });
+  });
+}
 const addLink = (li) => {
   document.querySelectorAll("input.phone").forEach(honeypot=> {
     if (honeypot.value.trim() !== "") return;
