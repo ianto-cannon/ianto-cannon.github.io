@@ -1,16 +1,3 @@
-.box {
-  border: 1px solid;
-  margin-bottom: 1em;
-  display: block;
-}
-.portrait-box {
-  width: 240px;
-  height: 296px;
-}
-.portrait-box img {
-  width: 100%;
-  height: 100%;
-}
 .ball-box {
   width: 100%;
   height: 400px;
@@ -24,4 +11,35 @@
   width: 1px !important;
   height: 1px !important;
   overflow: hidden !important;
+}
+.box {
+  border: 1px solid;
+  margin-bottom: 1em;
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
+.portrait-box {
+  width: 240px;
+  height: 296px;
+}
+.portrait-bg {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  background-image: url('bg.avif');
+  background-size: cover;
+  background-position: left bottom;
+  will-change: transform;
+}
+.portrait-box img {
+  width: 100%;
+  height: 100%;
+  position: relative;
+  z-index: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  .portrait-bg {
+    transform: none !important;
+  }
 }
