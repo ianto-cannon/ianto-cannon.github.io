@@ -3,7 +3,7 @@ if (!reduceMotion.matches) {
   window.addEventListener('scroll', () => {
     const scrollY = window.scrollY;
     document.querySelectorAll('.portrait-box').forEach(box => {
-      box.querySelector('.portrait-bg').style.transform = `translateY(${.05*window.scrollY}px)`;
+      box.querySelector('.portrait-bg').style.transform = `translateY(${.1*window.scrollY}px)`;
     });
   });
 }
