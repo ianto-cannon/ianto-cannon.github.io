@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>Guestbook</title>
+</head>
+<body>
+
+<h1>Guestbook</h1>
+
+<form id="form">
+  <input id="name" placeholder="Name">
+  <input id="message" placeholder="Message">
+  <button type="submit">Send</button>
+</form>
+
+<ul id="entries"></ul>
+
+<script>
+<!-- const API = "https://[2a02:8109:1b03:7b00::a908]/guestbook/api.php"; -->
+const API = "https://ianto-cannon.duckdns.org/guestbook/api.php";
+
+async function load() {
+  const res = await fetch(API);
+  const data = await res.json();
+
+  document.getElementById("entries").innerHTML =
+    data.map(e => `<li><b>${e.name}</b>: ${e.message}</li>`).join("");
+}
+
+document.getElementById("form").onsubmit = async (e) => {
+  e.preventDefault();
+
+  await fetch(API, {
+    method: "POST",
+    headers: {"Content-Type": "application/json"},
+    body: JSON.stringify({
+      name: name.value,
+      message: message.value
+    })
+  });
+
+  load();
+};
+
+load();
+</script>
+
+</body>
+</html>
