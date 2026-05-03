@@ -18,8 +18,8 @@
 }
 .portrait-bg {
   position: absolute;
-  width: 280px;
-  height: 340px;
+  width: 260px;
+  height: 330px;
   top: -20px;
   background-image: url('bgr.avif');
   background-size: cover;
