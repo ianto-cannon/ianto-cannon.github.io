@@ -24,3 +24,7 @@
 .down #status {
   color: red;
 }
+.down input,
+.down textarea {
+  background: #e0e0e0;
+}
