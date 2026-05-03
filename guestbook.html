@@ -1,47 +1,109 @@
-<!DOCTYPE html>
-<html>
+<!doctype html>
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>Guestbook</title>
+<meta charset="UTF-8">
+<title>Ianto Cannon's guestbook</title>
+
+<meta name="description" content="A self-hosted guestbook.">
+
+<link rel="icon" href="https://ianto-cannon.github.io/favicon.svg" type="image/svg+xml">
+<link rel="icon" href="https://ianto-cannon.github.io/favicon.png" type="image/png">
+
+<style>
+body { font-family: sans-serif; max-width: 700px; margin: auto; }
+textarea { width: 100%; height: 100px; }
+input { width: 100%; }
+.message { border-top: 1px solid #ccc; padding: 10px 0; }
+</style>
 </head>
+
 <body>
 
-<h1>Guestbook</h1>
+<h1><a href="https://ianto-cannon.github.io/index.html">Ianto Cannon</a>'s guestbook</h1>
+
+<div>
+<img src="macbookAir.webp" style="max-width:300px; width:100%; border-radius:8px;">
+
+<p>This guestbook runs on a 2011 macbook air using Debian Linux with the XFCE desktop environment. The internal SSD is no longer functional, so a 32GB SD card is mounted as the storage and boot drive. The laptop is always plugged in because the battery is toast. The full-stop and comma keys were damaged by a tea spill and are remapped using Xmodmap to the caps lock and plus/minus keys, which I never used anyway. We have Nginx serving an API written in PHP, and the comments are stored in an SQLite database.</p> 
+
+<p>Be nice in the comments and please don't hack me.</p> 
+</div>
 
 <form id="form">
-  <input id="name" placeholder="Name">
-  <input id="message" placeholder="Message">
-  <button type="submit">Send</button>
+<input id="name" placeholder="Name" required><br><br>
+<textarea id="message" placeholder="Message" required></textarea><br><br>
+<button type="submit">Post</button>
 </form>
 
-<ul id="entries"></ul>
+<hr>
+
+<div id="messages"></div>
 
 <script>
-<!-- const API = "https://[2a02:8109:1b03:7b00::a908]/guestbook/api.php"; -->
-const API = "https://ianto-cannon.duckdns.org/guestbook/api.php";
+<!-- const API = "https://[2a02:8109:1b03:7b00:e3fa:6262:6b3c:afc0]/api.php"; -->
+<!-- const API = "https://threshold-hist-cloud-ago.trycloudflare.com/api.php"; -->
+const API = "https://guestbook.maricakes.de/api.php";
 
 async function load() {
-  const res = await fetch(API);
-  const data = await res.json();
+    try {
+        const res = await fetch(API);
+        if (!res.ok) throw new Error("Server error");
 
-  document.getElementById("entries").innerHTML =
-    data.map(e => `<li><b>${e.name}</b>: ${e.message}</li>`).join("");
+        const data = await res.json();
+
+        const container = document.getElementById("messages");
+        container.innerHTML = "";
+
+        data.forEach(m => {
+            const div = document.createElement("div");
+            div.className = "message";
+
+            div.innerHTML = `
+                <b>${escapeHTML(m.name)}</b> (${m.ts || m.time || ""})<br>
+                ${escapeHTML(m.message).replace(/\n/g, "<br>")}
+            `;
+
+            container.appendChild(div);
+        });
+
+    } catch (err) {
+        console.error(err);
+        document.getElementById("messages").innerText = "Failed to load messages.";
+    }
 }
 
-document.getElementById("form").onsubmit = async (e) => {
-  e.preventDefault();
+document.getElementById("form").addEventListener("submit", async (e) => {
+    e.preventDefault();
 
-  await fetch(API, {
-    method: "POST",
-    headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({
-      name: name.value,
-      message: message.value
-    })
-  });
+    const name = document.getElementById("name").value.trim();
+    const message = document.getElementById("message").value.trim();
 
-  load();
-};
+    try {
+        const res = await fetch(API, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({ name, message })
+        });
+
+        if (!res.ok) throw new Error("Post failed");
+
+        document.getElementById("message").value = "";
+        load();
+
+    } catch (err) {
+        console.error(err);
+        alert("Failed to post message.");
+    }
+});
+
+function escapeHTML(str) {
+    return str.replace(/[&<>"']/g, c => ({
+        "&":"&amp;", "<":"&lt;", ">":"&gt;",
+        '"':"&quot;", "'":"&#039;"
+    }[c]));
+}
 
 load();
 </script>
