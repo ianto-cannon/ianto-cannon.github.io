@@ -21,7 +21,7 @@
   width: 100%;
   height: 110%;
   bottom: 0;
-  background-image: url('bg.avif');
+  background-image: url('bgr.avif');
   background-size: cover;
   will-change: transform;
 }
