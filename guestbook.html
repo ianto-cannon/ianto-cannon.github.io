@@ -31,8 +31,17 @@
 <h1>Guestbook</h1>
 <div>
 <img src="macbookAir.webp" class="box mac-box">
-<p>This guestbook is served by a 2011 macbook air running Debian Linux with the XFCE desktop environment. The internal SSD is no longer functional, so a 32GB SD card is mounted as the storage and boot drive. The laptop is always plugged in because the battery is toast. The full-stop and comma keys were damaged by a tea spill and are remapped using Xmodmap to the caps lock and plus/minus keys, which I never used anyway. A tunnel is made to my home network using cloudflare. We have Nginx serving an API written in PHP, and the comments are stored in an SQLite database. Vim is my text editor of choice.</p> 
-<p>Be nice in the comments and please don't hack me.</p> 
+  <ul>
+    <li>A 2011 MacBook Air is used as the server for this guestbook.</li>
+    <li>It runs Debian Linux with XFCE as the desktop environment.</li>
+    <li>Since the internal SSD no longer works, a 32GB SD card is used as boot and sole storage.</li>
+    <li>The machine is always plugged in because the battery holds no charge.</li>
+    <li>The full-stop and comma keys were damaged by a tea spill. These are remapped using Xmodmap to alternative keys (caps lock and plus/minus).</li>
+    <li>The web stack consists of a PHP-based API, Nginx handling HTTP requests, and SQLite for storing guestbook comments.</li>
+    <li>A Cloudflare tunnel is used to securely expose the API to the internet.</li>
+    <li>Vim is my text editor of choice.</li>
+    <li>Be nice in the comments and please don't hack me.</li> 
+  </ul>
 </div>
 <form id="form">
 <textarea id="message" placeholder="Message" maxlength="500" class="message-area" required></textarea>
