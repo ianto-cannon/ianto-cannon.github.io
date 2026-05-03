@@ -7,6 +7,13 @@ h1, h2, h3 {
 ul, p {
   margin-top: 0.2em;
 }
+.box {
+  border: 1px solid;
+  margin-bottom: 1em;
+  display: block;
+  overflow: hidden;
+  position: relative;
+}
 .halloween{
   font-family: 'Creepster', cursive;
 }
@@ -39,4 +46,10 @@ input[type="radio"], label {/*prevent line break between button and label*/
   height: 150px; 
   display: block; 
   overflow: hidden;
+}
+nav ul {
+  list-style: none;
+  display: flex;
+  gap: 1rem;
+  padding: 0;
 }

@@ -1,112 +1,57 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<title>Ianto Cannon's guestbook</title>
-
-<meta name="description" content="A self-hosted guestbook.">
-
-<link rel="icon" href="https://ianto-cannon.github.io/favicon.svg" type="image/svg+xml">
-<link rel="icon" href="https://ianto-cannon.github.io/favicon.png" type="image/png">
-
-<style>
-body { font-family: sans-serif; max-width: 700px; margin: auto; }
-textarea { width: 100%; height: 100px; }
-input { width: 100%; }
-.message { border-top: 1px solid #ccc; padding: 10px 0; }
-</style>
+  <meta charset="UTF-8">
+  <title>Ianto Cannon's guestbook</title>
+  <meta property="og:title" content="Ianto Cannon's guestbook">
+  <meta name="description" content="A self hosted guestbook for my personal site.">
+  <meta name="keywords" content="guestbook, messageboard, self-hosteds">
+  <meta name="fediverse:creator" content="@jantuss@mathstodon.xyz">
+  <meta name="viewport" content="width=device-width, initial-scale=1"/>
+  <meta property="og:description" content="A self hosted guestbook for my personal site.">
+  <meta property="og:image" content="macbookAir.webp">
+  <meta property="og:image:alt" content="Photo of a macbook air with a debian logo on screen">
+  <link rel="stylesheet" href="dark.css" media="not (prefers-color-scheme: light)" data-theme="dark">
+  <link rel="stylesheet" href="common.css"/>
+  <link rel="stylesheet" href="guestbook.css"/>
+  <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
+  <link rel="icon" href="/favicon.png"  type="image/png" sizes="192x192" />
+  <link rel="icon" href="/favicon512.png"  type="image/png" sizes="512x512" />
+  <link rel="canonical" href="https://ianto-cannon.github.io/guestbook.html">
 </head>
-
 <body>
-
-<h1><a href="https://ianto-cannon.github.io/index.html">Ianto Cannon</a>'s guestbook</h1>
-
+<nav>
+  <ul>
+    <li><a href="index.html">Home</a></li>
+    <li><a href="clock.html">Clock graphics</a></li>
+    <!--li><a href="presentations.html">Presentations</a></li-->
+    <li><a href="guestbook.html">Guestbook</a></li>
+  </ul>
+</nav>
+<h1>Guestbook</h1>
 <div>
-<img src="macbookAir.webp" style="max-width:300px; width:100%; border-radius:8px;">
-
-<p>This guestbook runs on a 2011 macbook air using Debian Linux with the XFCE desktop environment. The internal SSD is no longer functional, so a 32GB SD card is mounted as the storage and boot drive. The laptop is always plugged in because the battery is toast. The full-stop and comma keys were damaged by a tea spill and are remapped using Xmodmap to the caps lock and plus/minus keys, which I never used anyway. We have Nginx serving an API written in PHP, and the comments are stored in an SQLite database.</p> 
-
+<img src="macbookAir.webp" class="box mac-box">
+<p>This guestbook is served by a 2011 macbook air running Debian Linux with the XFCE desktop environment. The internal SSD is no longer functional, so a 32GB SD card is mounted as the storage and boot drive. The laptop is always plugged in because the battery is toast. The full-stop and comma keys were damaged by a tea spill and are remapped using Xmodmap to the caps lock and plus/minus keys, which I never used anyway. A tunnel is made to my home network using cloudflare. We have Nginx serving an API written in PHP, and the comments are stored in an SQLite database. Vim is my text editor of choice.</p> 
 <p>Be nice in the comments and please don't hack me.</p> 
 </div>
-
 <form id="form">
-<input id="name" placeholder="Name" required><br><br>
-<textarea id="message" placeholder="Message" required></textarea><br><br>
+<textarea id="message" placeholder="Message" maxlength="500" class="message-area" required></textarea>
+<input id="name" placeholder="Name" maxlength="50" required>
 <button type="submit">Post</button>
 </form>
-
-<hr>
-
 <div id="messages"></div>
-
-<script>
-<!-- const API = "https://[2a02:8109:1b03:7b00:e3fa:6262:6b3c:afc0]/api.php"; -->
-<!-- const API = "https://threshold-hist-cloud-ago.trycloudflare.com/api.php"; -->
-const API = "https://guestbook.maricakes.de/api.php";
-
-async function load() {
-    try {
-        const res = await fetch(API);
-        if (!res.ok) throw new Error("Server error");
-
-        const data = await res.json();
-
-        const container = document.getElementById("messages");
-        container.innerHTML = "";
-
-        data.forEach(m => {
-            const div = document.createElement("div");
-            div.className = "message";
-
-            div.innerHTML = `
-                <b>${escapeHTML(m.name)}</b> (${m.ts || m.time || ""})<br>
-                ${escapeHTML(m.message).replace(/\n/g, "<br>")}
-            `;
-
-            container.appendChild(div);
-        });
-
-    } catch (err) {
-        console.error(err);
-        document.getElementById("messages").innerText = "Failed to load messages.";
-    }
-}
-
-document.getElementById("form").addEventListener("submit", async (e) => {
-    e.preventDefault();
-
-    const name = document.getElementById("name").value.trim();
-    const message = document.getElementById("message").value.trim();
-
-    try {
-        const res = await fetch(API, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json"
-            },
-            body: JSON.stringify({ name, message })
-        });
-
-        if (!res.ok) throw new Error("Post failed");
-
-        document.getElementById("message").value = "";
-        load();
-
-    } catch (err) {
-        console.error(err);
-        alert("Failed to post message.");
-    }
-});
-
-function escapeHTML(str) {
-    return str.replace(/[&<>"']/g, c => ({
-        "&":"&amp;", "<":"&lt;", ">":"&gt;",
-        '"':"&quot;", "'":"&#039;"
-    }[c]));
-}
-
-load();
-</script>
-
+<svg class="banner peaks"></svg>
+<p class="foot">
+<span>
+  <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="cc.svg" alt="CC " class="license"><img src="by.svg" alt="BY-" class="license"><img src="sa.svg" alt="SA" class="license"></a> Ianto Cannon 2026 May 3
+</span>
+<span class='theme-toggle'>
+  <label><input type="radio" name="theme" value="light">light</label>
+  <label><input type="radio" name="theme" value="dark">dark</label>
+  <label><input type="radio" name="theme" value="browser">browser</label>
+</span>
+</p>
+<script defer src="common.js"></script>
+<script defer src="guestbook.js"></script>
 </body>
 </html>
