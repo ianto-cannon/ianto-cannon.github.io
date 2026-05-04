@@ -12,8 +12,8 @@
   <meta property="og:image" content="macbookAir.webp">
   <meta property="og:image:alt" content="Photo of a macbook air with a debian logo on screen">
   <link rel="stylesheet" href="dark.css" media="not (prefers-color-scheme: light)" data-theme="dark">
-  <link rel="stylesheet" href="common.css?v=20260503"/>
-  <link rel="stylesheet" href="guestbook.css?v=20260503"/>
+  <link rel="stylesheet" href="common.css"/>
+  <link rel="stylesheet" href="guestbook.css"/>
   <link rel="icon" href="favicon.svg" type="image/svg+xml"/>
   <link rel="icon" href="/favicon.png"  type="image/png" sizes="192x192" />
   <link rel="icon" href="/favicon512.png"  type="image/png" sizes="512x512" />
@@ -23,20 +23,20 @@
 <nav>
   <ul>
     <li><a href="index.html">Home</a></li>
-    <li><a href="clock.html?v=20260503">Clock graphics</a></li>
+    <li><a href="clock.html">Clock graphics</a></li>
     <!--li><a href="presentations.html">Presentations</a></li-->
     <li><a href="guestbook.html">Guestbook</a></li>
   </ul>
 </nav>
 <h1>Guestbook</h1>
 <div id="status">Guestbook server is connected</div>
-<img src="macbookAir.webp" class="box mac-box">
+<img src="macbookAir.webp" class="box mac-box" alt="Photo of a macbook air with a debian logo on screen">
   <ul>
     <li>A 2011 Macbook Air is used as the server for this guestbook.</li>
     <li>It runs Debian Linux with XFCE as the desktop environment.</li>
     <li>Since the internal SSD no longer works, a 32GB SD card is used as boot and sole storage.</li>
     <li>The machine is always plugged in because the battery holds no charge.</li>
-    <li>The full-stop and comma keys were damaged by a tea spill. These are remapped using Xmodmap to alternative keys (caps lock and plus/minus).</li>
+    <li>The full-stop and comma keys were damaged by a tea spill. These are remapped using Xmodmap to caps lock and plus-minus keys, which I don't use anyway.</li>
     <li>The web stack consists of a PHP-based API, Nginx handling HTTP requests, and SQLite for storing guestbook comments.</li>
     <li>A Cloudflare tunnel is used to securely expose the API to the internet.</li>
     <li>Vim is my text editor of choice.</li>

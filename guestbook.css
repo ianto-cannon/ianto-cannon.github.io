@@ -9,6 +9,7 @@
 .mac-box { 
   width: 500px;
   max-width: 100%; 
+  aspect-ratio: 3072 / 2626;
 }
 .message-area { 
   width: 100%; 

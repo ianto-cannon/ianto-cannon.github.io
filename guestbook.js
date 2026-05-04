@@ -10,7 +10,7 @@ async function load() {
       const div = document.createElement("div");
       div.className = "message";
       div.innerHTML = `
-        <b>${escapeHTML(m.name)}</b> (${m.ts || m.time || ""})<br>
+        <b>${escapeHTML(m.name)}</b> (${m.ts || m.time || ""} UCT)<br>
         ${escapeHTML(m.message).replace(/\n/g, "<br>")}
       `;
       container.appendChild(div);
