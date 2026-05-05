@@ -15,6 +15,7 @@ async function load() {
       `;
       container.appendChild(div);
     });
+    guestbookUnreachable(false);
   } catch {
     guestbookUnreachable(true);
     document.getElementById("messages").innerText =
