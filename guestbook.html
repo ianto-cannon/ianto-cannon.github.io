@@ -11,6 +11,9 @@
   <meta property="og:description" content="A self hosted guestbook for my personal site.">
   <meta property="og:image" content="macbookAir.webp">
   <meta property="og:image:alt" content="Photo of a macbook air with a debian logo on screen">
+  <link rel="preload" href="https://guestbook.maricakes.de/api.php" as="fetch" crossorigin>
+  <script defer src="common.js"></script>
+  <script defer src="guestbook.js"></script>
   <link rel="stylesheet" href="dark.css" media="not (prefers-color-scheme: light)" data-theme="dark">
   <link rel="stylesheet" href="common.css"/>
   <link rel="stylesheet" href="guestbook.css"/>
@@ -59,7 +62,5 @@
   <label><input type="radio" name="theme" value="browser">browser</label>
 </span>
 </p>
-<script defer src="common.js"></script>
-<script defer src="guestbook.js"></script>
 </body>
 </html>
