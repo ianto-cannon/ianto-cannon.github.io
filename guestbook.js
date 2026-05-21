@@ -8,7 +8,7 @@ async function load() {
     container.innerHTML = "";
     data.forEach(m => {
      
-      //if (m.includes('Bonusmember')) return; 
+      if (m.includes('http')) return; 
 
       const div = document.createElement("div");
       div.className = "message";
