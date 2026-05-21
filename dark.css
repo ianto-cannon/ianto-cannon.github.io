@@ -8,11 +8,6 @@ body a {
 body a:visited {
   color: powderblue;
 }
-/*body button,
-body input {
-  background-color: #333;
-  color: currentColor;
-}*/
 body .zodiac text {
   stroke: black;
   border-radius: 5px;

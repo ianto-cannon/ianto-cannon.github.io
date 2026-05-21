@@ -4,14 +4,6 @@
   touch-action: manipulation; /* Prevents double-tap zoom */
   cursor: pointer;
 }
-.honeypot {
-  position: absolute !important;
-  left: -9999px !important;
-  top: auto !important;
-  width: 1px !important;
-  height: 1px !important;
-  overflow: hidden !important;
-}
 .portrait-box {
   width: 240px;
   height: 296px;
