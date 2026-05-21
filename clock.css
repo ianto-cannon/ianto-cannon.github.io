@@ -34,13 +34,6 @@
   dominant-baseline: middle;
   fill: currentColor;
 }
-/*button,
-input[type="button"],
-input[type="submit"],
-input[type="datetime-local"] {
-  padding: .7em; 
-  border-radius: .5em;
-}*/
 input[type="datetime-local"] {
   cursor: text;
 }
