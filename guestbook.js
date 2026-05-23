@@ -7,9 +7,6 @@ async function load() {
     const container = document.getElementById("messages");
     container.innerHTML = "";
     data.forEach(m => {
-     
-      //if (m.message.includes('http')) return; 
-
       const div = document.createElement("div");
       div.className = "message";
       div.innerHTML = `
@@ -27,12 +24,13 @@ async function load() {
 }
 document.getElementById("form").addEventListener("submit", async (e) => {
   e.preventDefault();
+  const honeypot = document.getElementById("honeypot").value.trim();
   const name = document.getElementById("name").value.trim();
   const message = document.getElementById("message").value.trim();
   const res = await fetch(API, {
     method: "POST",
     headers: {"Content-Type": "application/json"},
-    body: JSON.stringify({ name, message })
+    body: JSON.stringify({ honeypot, name, message })
   });
   if (res.ok) {
     document.getElementById("message").value = "";
