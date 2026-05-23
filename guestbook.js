@@ -36,8 +36,8 @@ document.getElementById("form").addEventListener("submit", async (e) => {
     document.getElementById("message").value = "";
     load();
   } else {
-    alert("Failed to post");
-    guestbookUnreachable(true);
+    const errorResult = await res.json();
+    alert(`Submission Failed: ${errorResult.error}`); 
   }
 });
 function escapeHTML(str) {
