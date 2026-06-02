@@ -10,9 +10,8 @@ async function load() {
       const div = document.createElement("div");
       div.className = "message";
       div.innerHTML = `
-        <b>${escapeHTML(m.name)}</b> (${m.ts || m.time || ""} UTC)<br>
-        ${escapeHTML(m.message).replace(/\n/g, "<br>")}
-      `;
+        <b>${escapeHTML(m.name)}</b> (${m.ts || ""} UTC)<br>
+        ${escapeHTML(m.message).replace(/\n/g, "<br>")}`;
       container.appendChild(div);
     });
     guestbookUnreachable(false);
