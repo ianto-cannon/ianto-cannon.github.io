@@ -47,12 +47,6 @@ input[type="radio"], label {/*prevent line break between button and label*/
   display: block; 
   overflow: hidden;
 }
-nav ul {
-  list-style: none;
-  display: flex;
-  gap: 1rem;
-  padding: 0;
-}
 .honeypot {
   position: absolute !important;
   left: -9999px !important;
