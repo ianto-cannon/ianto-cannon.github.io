@@ -6,33 +6,14 @@ async function load() {
     const data = await res.json();
     const container = document.getElementById("messages");
     container.innerHTML = "";
-    
-data.forEach(m => {
-  const div = document.createElement("div");
-  div.className = "message";
-
-  div.innerHTML = `
-    <div class="time">${m.ts || ""}</div>
-    <div class="content">
-      <b>${escapeHTML(m.name)}</b><br>
-      ${escapeHTML(m.message).replace(/\n/g, "<br>")}
-    </div>
-  `;
-
-  container.appendChild(div);
-});
-
-
-
-
-//    data.forEach(m => {
-//      const div = document.createElement("div");
-//      div.className = "message";
-//      div.innerHTML = `
-//        <b>${escapeHTML(m.name)}</b> (${m.ts || ""} UTC)<br>
-//        ${escapeHTML(m.message).replace(/\n/g, "<br>")}`;
-//      container.appendChild(div);
-//    });
+    data.forEach(m => {
+      const div = document.createElement("div");
+      div.className = "message";
+      div.innerHTML = `
+        <b>${escapeHTML(m.name)}</b> (${m.ts || ""} UTC)<br>
+        ${escapeHTML(m.message).replace(/\n/g, "<br>")}`;
+      container.appendChild(div);
+    });
     guestbookUnreachable(false);
   } catch {
     guestbookUnreachable(true);
