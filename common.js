@@ -124,23 +124,32 @@ const updatePeaks = (peaksSVG) => {
 document.querySelectorAll('.theme-toggle').forEach( (el) => {
   el.style.display = 'inline';
 });
-document.querySelectorAll('input[name="theme"]').forEach( (btn) => {
-  btn.addEventListener('change', () => {
-    const darkLink = document.querySelector('link[data-theme="dark"]');
-    darkMode = ( btn.value === 'dark' || ( btn.value === 'browser' && !(window.matchMedia('(prefers-color-scheme: light)').matches) ) )
-    if (darkMode) {
-      darkLink.media = 'all';
-    } else {
-      darkLink.media = 'not all';
-    }
-  });
-  document.querySelector(`input[value="browser"]`).checked = true;
-  if (window.matchMedia('(prefers-color-scheme: light)').matches) {
+const themeInputs = document.querySelectorAll('input[name="theme"]');
+const darkLink = document.querySelector('link[data-theme="dark"]');
+function applyTheme(mode) {
+  let darkMode;
+  if (mode === 'dark') {
+    darkMode = true;
+  } else if (mode === 'light') {
     darkMode = false;
   } else {
-    darkMode = true;
+    darkMode = !window.matchMedia('(prefers-color-scheme: light)').matches;
   }
+  darkLink.media = darkMode ? 'all' : 'not all';
+}
+// LOAD saved theme first
+const saved = localStorage.getItem('theme') || 'browser';
+applyTheme(saved);
+themeInputs.forEach((btn) => {
+  btn.addEventListener('change', () => {
+    const mode = btn.value;
+    // SAVE
+    localStorage.setItem('theme', mode);
+    applyTheme(mode);
+  });
 });
+// set default checked state
+document.querySelector(`input[value="${saved}"]`).checked = true;
 getTime();
 emoji = "";
 if (month === 9 && date === 31) {
