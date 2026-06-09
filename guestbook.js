@@ -87,8 +87,8 @@ async function load() {
 document.getElementById("form").addEventListener("submit", async (e) => {
   e.preventDefault();
   const honeypot = document.getElementById("honeypot").value.trim();
-  const name = document.getElementById("name").value.trim();
-  const message = document.getElementById("message").value.trim();
+  const name = document.getElementById("nameBox").value.trim();
+  const message = document.getElementById("messageBox").value.trim();
   try {
     const res = await fetch(API, {
       method: "POST",
@@ -96,7 +96,7 @@ document.getElementById("form").addEventListener("submit", async (e) => {
       body: JSON.stringify({ honeypot, name, message })
     });
     if (res.ok) {
-      document.getElementById("message").value = "";
+      document.getElementById("messageBox").value = "";
       load();
     } else {
       const errorResult = await res.json();

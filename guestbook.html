@@ -44,20 +44,21 @@
     <li>Be nice in the comments and please don't hack me.</li> 
   </ul>
   <form id="form">
-    <input id="honeypot" class="honeypot" maxlength="50" autocomplete="off" tabindex="-1">
-    <textarea id="message" placeholder="Message" maxlength="500" class="message-area" required></textarea>
-    <input id="name" placeholder="Name" maxlength="50" required>
+    <label class="honeypot">
+      Leave blank
+      <input id="honeypot" maxlength="50" autocomplete="off" tabindex="-1">
+    </label>
+    <label>
+      Message:<br>
+      <textarea id="messageBox" maxlength="500" required></textarea>
+    </label>
+    <label>Name: 
+      <input id="nameBox" maxlength="50" required>
+    </label>
     <button type="submit">Post</button>
   </form>
-
-
-<div id="messages-wrapper">
   <div id="timeline"></div>
   <div id="messages">Could not load messages. Try again later.</div>
-</div>
-
-
-
   <svg class="banner peaks"></svg>
   <p class="foot">
     <span>
