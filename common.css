@@ -7,6 +7,9 @@ h1, h2, h3 {
 ul, p {
   margin-top: 0.2em;
 }
+a {
+  text-decoration: none;
+}
 .box {
   border: 1px solid;
   margin-bottom: 1em;
