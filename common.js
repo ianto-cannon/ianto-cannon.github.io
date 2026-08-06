@@ -149,7 +149,10 @@ themeInputs.forEach((btn) => {
   });
 });
 // set default checked state
-document.querySelector(`input[value="${saved}"]`).checked = true;
+const savedThemeInput = document.querySelector(`input[value="${saved}"]`);
+if (savedThemeInput) {
+  savedThemeInput.checked = true;
+}
 getTime();
 emoji = "";
 if (month === 9 && date === 31) {
