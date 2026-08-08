@@ -1,210 +1,149 @@
-const svgNS = "http://www.w3.org/2000/svg";
-let year, month, date, hour, minute, second, millisecond, hue; //numbers
-let timeFracs=[], time=[], sides=[];
-let timeZoneName="", binary="", monthStr="", emoji="", title="", weekday=""; //strings
-let randomColor=null;
-let darkMode = true;
-const anyColor = () => {
-  const h = Math.floor(Math.random() * 360);
-  const s = Math.floor(Math.random() * 40 + 30);
-  const l = Math.floor(Math.random() * 60 + 20);
-  return `hsl(${h}, ${s}%, ${l}%)`;
-};
-const halloweenColor = () => {
-  const colors = ["#8A4985", "#ff7518"];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-const christmasColor = () => {
-  const colors = ["#ff0000", "#008000"];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-const newYearColor = () => {
-  const colors = ["#ffdd00", "#add8e6", "#800080"];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-const valentinesColor = () => {
-  const colors = ["#ff1493", "#db7093"];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-const prideColor = () => {
-  const colors = ['#e40303', '#ff8c00', '#ffed00', '#008026', '#24408e', '#732982'];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-const earthColor = () => {
-  const colors = ['#008026', '#24408e'];
-  return colors[Math.floor(Math.random() * colors.length)];
-};
-const rgbToHue = (rgb) => {
-  let r, g, b;
-  if (rgb.startsWith("#")) {
-    rgb = rgb.replace(/^#/, '');
-    r = parseInt(rgb.slice(0, 2), 16) / 255;
-    g = parseInt(rgb.slice(2, 4), 16) / 255;
-    b = parseInt(rgb.slice(4, 6), 16) / 255;
+var svgNS = "http://www.w3.org/2000/svg";
+var year, month, date, hour, minute, second, millisecond, hue;
+var timeFracs=[], time=[], sides=[];
+var timeZoneName="", binary="", monthStr="", emoji="", title="", weekday="";
+var randomColor=null;
+var darkMode = true;
+
+function padStartFn(str, targetLength, padString) {
+  str = String(str);
+  while (str.length < targetLength) { str = padString + str; }
+  return str;
+}
+
+function anyColor() {
+  var h = Math.floor(Math.random() * 360);
+  var s = Math.floor(Math.random() * 40 + 30);
+  var l = Math.floor(Math.random() * 60 + 20);
+  return "hsl(" + h + ", " + s + "%, " + l + "%)";
+}
+function halloweenColor() { var c = ["#8A4985", "#ff7518"]; return c[Math.floor(Math.random() * c.length)]; }
+function christmasColor() { var c = ["#ff0000", "#008000"]; return c[Math.floor(Math.random() * c.length)]; }
+function newYearColor() { var c = ["#ffdd00", "#add8e6", "#800080"]; return c[Math.floor(Math.random() * c.length)]; }
+function valentinesColor() { var c = ["#ff1493", "#db7093"]; return c[Math.floor(Math.random() * c.length)]; }
+function prideColor() { var c = ['#e40303', '#ff8c00', '#ffed00', '#008026', '#24408e', '#732982']; return c[Math.floor(Math.random() * c.length)]; }
+function earthColor() { var c = ['#008026', '#24408e']; return c[Math.floor(Math.random() * c.length)]; }
+
+function rgbToHue(rgb) {
+  var r, g, b;
+  if (rgb.charAt(0) === "#") {
+    rgb = rgb.substring(1);
+    r = parseInt(rgb.substring(0, 2), 16) / 255;
+    g = parseInt(rgb.substring(2, 4), 16) / 255;
+    b = parseInt(rgb.substring(4, 6), 16) / 255;
   } else {
-    [r, g, b] = rgb.match(/\d+/g).map(Number).map(v => v / 255);
+    var m = rgb.match(/\d+/g);
+    r = parseInt(m[0], 10) / 255; g = parseInt(m[1], 10) / 255; b = parseInt(m[2], 10) / 255;
   }
-  const max = Math.max(r, g, b);
-  const min = Math.min(r, g, b);
-  const delta = max - min;
-  let hue = 0;
-  if (delta === 0) {
-    hue = 0;
-  } else if (max === r) {
-    hue = ((g - b) / delta) % 6;
-  } else if (max === g) {
-    hue = (b - r) / delta + 2;
-  } else {
-    hue = (r - g) / delta + 4;
+  var max = Math.max(r, g, b), min = Math.min(r, g, b), delta = max - min;
+  var calcHue = 0;
+  if (delta !== 0) {
+    if (max === r) calcHue = ((g - b) / delta) % 6;
+    else if (max === g) calcHue = (b - r) / delta + 2;
+    else calcHue = (r - g) / delta + 4;
   }
-  hue = Math.round(hue * 60);
-  if (hue < 0) hue += 360;
-  return hue;
-};
-const getTime = () => {
-  const now = new Date();
-  timeZoneName = Intl.DateTimeFormat("en-US", {timeZoneName: 'short'}).format(now).split(' ').pop();
-  year = now.getFullYear();
-  month = now.getMonth(); 
-  monthStr = now.toLocaleString('en-US', {month: 'short'}); // Jul
+  calcHue = Math.round(calcHue * 60);
+  if (calcHue < 0) calcHue += 360;
+  return calcHue;
+}
+
+function getTime() {
+  var now = new Date();
+  try { timeZoneName = now.toTimeString().split('(')[1].split(')')[0]; } catch(e) { timeZoneName = "Local"; }
+  year = now.getFullYear(); month = now.getMonth(); 
+  monthStr = now.toLocaleString('en-US', {month: 'short'}); 
   date = now.getDate();
-  //get the week number this month
-  const firstOfMonth = new Date(year, month, 1);
-  const lastOfMonth = new Date(year, month + 1, 0);
-  const firstDay = (firstOfMonth.getDay() + 6) % 7; // Monday = 0
-  const week = Math.floor((firstDay + date - 1) / 7);
-  const totalDays = lastOfMonth.getDate();
-  const weeksInMonth = Math.ceil((firstDay + totalDays) / 7);
+  var firstOfMonth = new Date(year, month, 1);
+  var lastOfMonth = new Date(year, month + 1, 0);
+  var firstDay = (firstOfMonth.getDay() + 6) % 7; 
+  var week = Math.floor((firstDay + date - 1) / 7);
+  var weeksInMonth = Math.ceil((firstDay + lastOfMonth.getDate()) / 7);
   sides = [9, 9, 11, weeksInMonth-1, 6, 23, 5, 9, 5, 9];
-  weekday = now.toLocaleString('en-US', {weekday: 'short'}); // Thu
-  const wkday = (now.getDay()+6)%7; //Sun=6, Mon=0...
-  hour = now.getHours();
-  minute = now.getMinutes();
-  second = now.getSeconds();
-  millisecond = now.getMilliseconds();
-  time= [Math.floor(year/10)%10, year%10, month, week, wkday, hour, Math.floor(minute/10), minute%10, Math.floor(second/10), second%10];
-  const secFrac = millisecond/1000;
-  const minFrac = (second + secFrac)/60;
-  const hrFrac  = (minute + minFrac)/60;
-  const dayFrac = (hour + hrFrac)/24;
-  //get the day number this year
-  const start = new Date(year, 0, 0); // Jan 1 
-  const oneDay = 1000 * 60 * 60 * 24;
-  const days = Math.floor((now - start) / oneDay);
-  const yrFrac = (days + dayFrac)/365.25;
-  const milFrac = (year + yrFrac)/1000;
+  weekday = now.toLocaleString('en-US', {weekday: 'short'});
+  var wkday = (now.getDay()+6)%7; 
+  hour = now.getHours(); minute = now.getMinutes(); second = now.getSeconds(); millisecond = now.getMilliseconds();
+  time = [Math.floor(year/10)%10, year%10, month, week, wkday, hour, Math.floor(minute/10), minute%10, Math.floor(second/10), second%10];
+  var secFrac = millisecond/1000, minFrac = (second + secFrac)/60, hrFrac = (minute + minFrac)/60, dayFrac = (hour + hrFrac)/24;
+  var start = new Date(year, 0, 0); 
+  var days = Math.floor((now - start) / (1000 * 60 * 60 * 24));
+  var yrFrac = (days + dayFrac)/365.25, milFrac = (year + yrFrac)/1000;
   timeFracs = [milFrac, yrFrac, dayFrac, hrFrac, minFrac, secFrac];
-  const unixTime = Math.floor(now.getTime() / 1000);
-  binary = unixTime.toString(2).padStart(31, '0');
-};
-const createTriangle = (value, width, height, lightness, peaksSVG) => {
-  for (let i = -1; i <= 1; i++) {
-    const left = width*(.5-value+i);
-    const mid = width*(1-value+i);
-    const right = width*(1.5-value+i);
-    const path = document.createElementNS(svgNS, "path");
-    path.setAttribute("fill", `hsl(${hue}, 30%, ${lightness}%)`);
-    path.setAttribute("d", `M${left.toFixed(0)},10 L${mid.toFixed(0)},${10-height} L${right.toFixed(0)},10 Z`);
+  binary = padStartFn(Math.floor(now.getTime() / 1000).toString(2), 31, '0');
+}
+
+function createTriangle(value, width, height, lightness, peaksSVG) {
+  for (var i = -1; i <= 1; i++) {
+    var left = width*(.5-value+i), mid = width*(1-value+i), right = width*(1.5-value+i);
+    var path = document.createElementNS(svgNS, "path");
+    path.setAttribute("fill", "hsl(" + hue + ", 30%, " + lightness + "%)");
+    path.setAttribute("d", "M" + left.toFixed(0) + ",10 L" + mid.toFixed(0) + "," + (10-height) + " L" + right.toFixed(0) + ",10 Z");
     peaksSVG.appendChild(path);
   }
-};
-const updatePeaks = (peaksSVG) => {
-  while (peaksSVG.firstChild) {
-    peaksSVG.removeChild(peaksSVG.firstChild);
-  }
-  const width = 1000;
-  getTime();
-  for (let i = 0; i <= 4; i++) {
-    const lightness = darkMode ? (20 + i*10) : (100 - 20 - i*10);
+}
+
+function updatePeaks(peaksSVG) {
+  while (peaksSVG.firstChild) peaksSVG.removeChild(peaksSVG.firstChild);
+  var width = 1000; getTime();
+  for (var i = 0; i <= 4; i++) {
+    var lightness = darkMode ? (20 + i*10) : (100 - 20 - i*10);
     createTriangle(timeFracs[i]%1, width, 10-i*1.5, lightness, peaksSVG);
   }
-  requestAnimationFrame(() => updatePeaks(peaksSVG));
-};
-//display the buttons if js is running
-document.querySelectorAll('.theme-toggle').forEach( (el) => {
-  el.style.display = 'inline';
-});
-const themeInputs = document.querySelectorAll('input[name="theme"]');
-const darkLink = document.querySelector('link[data-theme="dark"]');
-function applyTheme(mode) {
-  let darkMode;
-  if (mode === 'dark') {
-    darkMode = true;
-  } else if (mode === 'light') {
-    darkMode = false;
-  } else {
-    darkMode = !window.matchMedia('(prefers-color-scheme: light)').matches;
-  }
-  darkLink.media = darkMode ? 'all' : 'not all';
+  if (window.requestAnimationFrame) { window.requestAnimationFrame(function() { updatePeaks(peaksSVG); }); } 
+  else { setTimeout(function() { updatePeaks(peaksSVG); }, 100); }
 }
-// LOAD saved theme first
-const saved = localStorage.getItem('theme') || 'browser';
+
+var themeToggles = document.querySelectorAll('.theme-toggle');
+for (var i = 0; i < themeToggles.length; i++) { themeToggles[i].style.display = 'inline'; }
+
+var themeInputs = document.querySelectorAll('input[name="theme"]');
+var darkLink = document.querySelector('link[data-theme="dark"]');
+
+function applyTheme(mode) {
+  var isDark;
+  if (mode === 'dark') isDark = true;
+  else if (mode === 'light') isDark = false;
+  else isDark = !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
+  if (darkLink) darkLink.media = isDark ? 'all' : 'not all';
+}
+
+var saved = 'browser';
+try { saved = localStorage.getItem('theme') || 'browser'; } catch (e) {}
 applyTheme(saved);
-themeInputs.forEach((btn) => {
-  btn.addEventListener('change', () => {
-    const mode = btn.value;
-    // SAVE
-    localStorage.setItem('theme', mode);
+
+for (var i = 0; i < themeInputs.length; i++) {
+  themeInputs[i].addEventListener('change', function() {
+    var mode = this.value;
+    try { localStorage.setItem('theme', mode); } catch(e) {}
     applyTheme(mode);
   });
-});
-// set default checked state
-const savedThemeInput = document.querySelector(`input[value="${saved}"]`);
-if (savedThemeInput) {
-  savedThemeInput.checked = true;
 }
+
+var savedThemeInput = document.querySelector('input[value="' + saved + '"]');
+if (savedThemeInput) savedThemeInput.checked = true;
+
 getTime();
-emoji = "";
-if (month === 9 && date === 31) {
-  emoji = " 🎃";
-  title = "Happy halloween!";
-  randomColor = halloweenColor;
-  const style = document.createElement("style");
-  style.textContent = `@font-face {font-family: 'Creepster'; src: url('creepster.woff2') format('woff2'); font-display: swap;}`;
-  document.head.appendChild(style);
-  document.querySelectorAll('h1, h2, h3').forEach( (el) => {
-    el.classList.add('halloween');
-  });
-} else if (month === 11 && date >= 24 && date <= 26) {
-  emoji = " 🎄";
-  title = "Merry Christmas!";
-  randomColor = christmasColor;
-} else if (month === 0 && date <= 3) {
-  emoji = " 🎆";
-  title = "Happy new year!";
-  randomColor = newYearColor;
-} else if (month === 1 && date === 14) {
-  emoji = " 💘";
-  title = "Happy Valentine's day!";
-  randomColor = valentinesColor;
-  document.querySelectorAll('h1, h2, h3').forEach( (el) => {
-    el.classList.add('valentines');
-  });
-} else if (month === 5 && date === 28) {
-  emoji = " 🌈";
-  title = "Happy pride!";
-  randomColor = prideColor;
-} else if (month === 3 && date === 22) {
-  emoji = " 🌎";
-  title = "Happy Earth day!";
-  randomColor = earthColor;
-} else {
-  randomColor = anyColor;
+emoji = ""; title = ""; randomColor = anyColor;
+
+if (month === 9 && date === 31) { emoji = " 🎃"; title = "Happy halloween!"; randomColor = halloweenColor; /* Font loading omitted for Kindle */ }
+else if (month === 11 && date >= 24 && date <= 26) { emoji = " 🎄"; title = "Merry Christmas!"; randomColor = christmasColor; }
+else if (month === 0 && date <= 3) { emoji = " 🎆"; title = "Happy new year!"; randomColor = newYearColor; }
+else if (month === 1 && date === 14) { emoji = " 💘"; title = "Happy Valentine's day!"; randomColor = valentinesColor; }
+else if (month === 5 && date === 28) { emoji = " 🌈"; title = "Happy pride!"; randomColor = prideColor; }
+else if (month === 3 && date === 22) { emoji = " 🌎"; title = "Happy Earth day!"; randomColor = earthColor; }
+
+var h2Tags = document.querySelectorAll("h2");
+for (var i = 0; i < h2Tags.length; i++) { h2Tags[i].textContent += emoji; h2Tags[i].title = title; }
+
+var col = randomColor();
+if (col.indexOf("hsl(") === 0) {
+  var hueMatch = col.match(/hsl\((\d+),/);
+  if (hueMatch) hue = parseInt(hueMatch[1], 10);
+} else { hue = rgbToHue(col); }
+
+var lightness = document.body.classList.contains('dark') ? 70 : 30;
+var svgPeaks = document.querySelectorAll("svg.peaks");
+for (var i = 0; i < svgPeaks.length; i++) {
+  updatePeaks(svgPeaks[i]);
+  svgPeaks[i].setAttribute("viewBox", "0 0 1000 10");
+  svgPeaks[i].setAttribute("preserveAspectRatio", "none");
 }
-document.querySelectorAll("h2").forEach( (h) => {
-  h.textContent += emoji;
-  h.title = title;
-});
-let col = randomColor();
-if (col.startsWith("hsl(")) {
-  hue = parseInt(col.match(/hsl\((\d+),/)[1], 10);
-} else {
-  hue = rgbToHue(col);
-}
-const lightness = document.body.classList.contains('dark') ? 70 : 30;
-col = `hsl(${hue}, 30%, ${lightness}%)`;
-document.querySelectorAll("svg.peaks").forEach(svg => {
-  updatePeaks(svg);
-  svg.setAttribute("viewBox", "0 0 1000 10");
-  svg.setAttribute("preserveAspectRatio", "none");
-});
