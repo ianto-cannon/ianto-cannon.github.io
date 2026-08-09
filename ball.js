@@ -1,14 +1,3 @@
-var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)');
-if (!reduceMotion || !reduceMotion.matches) {
-  window.addEventListener('scroll', function() {
-    var portraitBoxes = document.querySelectorAll('.portrait-box');
-    for (var i = 0; i < portraitBoxes.length; i++) {
-      var bg = portraitBoxes[i].querySelector('.portrait-bg');
-      if (bg) bg.style.transform = "translateY(" + (.1 * window.scrollY) + "px)";
-    }
-  });
-}
-
 function addLink(li) {
   var phones = document.querySelectorAll("input.phone");
   for (var i = 0; i < phones.length; i++) { if (phones[i].value.trim() !== "") return; }
