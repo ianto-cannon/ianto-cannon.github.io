@@ -24,3 +24,6 @@ footer {
     font-size: .7em;
     color: #666;
 }
+input[type="number"] {
+  width: 7ch;
+}
