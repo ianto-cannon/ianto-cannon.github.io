@@ -50,8 +50,8 @@ function startTimer() {
             if (game.turn() === 'w') whiteTime -= elapsed; else blackTime -= elapsed;
             lastTickTime += elapsed * 1000; // Preserve fractional seconds to prevent drift
             
-            if (whiteTime <= 0) { whiteTime = 0; stopTimer(); document.getElementById("title").textContent = "Black Wins on Time!"; }
-            if (blackTime <= 0) { blackTime = 0; stopTimer(); document.getElementById("title").textContent = "White Wins on Time!"; }
+            if (whiteTime <= 0) { document.getElementById("title").textContent = "Black Wins on Time!"; }
+            if (blackTime <= 0) { document.getElementById("title").textContent = "White Wins on Time!"; }
             updateClockDisplay();
         }
     }, 250);
@@ -78,7 +78,11 @@ function checkAndTriggerBot() {
     if (game.game_over() || isPaused) return;
     var turn = game.turn();
     if (getMode(turn) === getColorName(turn) + "-robot") {
-        if (!firstMoveMade) { firstMoveMade = true; startTimer(); }
+        if (!firstMoveMade) { 
+          firstMoveMade = true; 
+          lastTickTime = Date.now();
+          startTimer(); 
+        }
         if (botTimeoutId) clearTimeout(botTimeoutId);
         botTimeoutId = setTimeout(function () {
             if (game.game_over() || isPaused) return;
@@ -128,7 +132,11 @@ function handleModeChange() {
     if (game.game_over() || isPaused) return;
     var turn = game.turn();
     if (getMode(turn) === getColorName(turn) + "-robot") {
-        if (!firstMoveMade) { firstMoveMade = true; startTimer(); }
+        if (!firstMoveMade) { 
+          firstMoveMade = true; 
+          lastTickTime = Date.now();
+          startTimer(); 
+        }
         checkAndTriggerBot();
     } else {
         if (botTimeoutId) { clearTimeout(botTimeoutId); botTimeoutId = null; }
@@ -217,7 +225,11 @@ document.getElementById("chessboard").parentNode.addEventListener("click", funct
     
     if (turn === 'w') whiteTime += whiteIncrement; else blackTime += blackIncrement;
     
-    if (!firstMoveMade) { firstMoveMade = true; startTimer(); }
+    if (!firstMoveMade) { 
+      firstMoveMade = true; 
+      lastTickTime = Date.now();
+      startTimer(); 
+    }
     updateClockDisplay();
     handlegameover();
     checkAndTriggerBot();
@@ -344,6 +356,14 @@ function evaluateboard(bd) {
     return t;
 }
 
+window.addEventListener("resize", function() {
+    if (board) {
+        board.resize();
+    }
+});
+
 // --- INIT ---
 applyClockSettings();
 document.getElementById("reset").addEventListener("click", resetgame);
+
+
