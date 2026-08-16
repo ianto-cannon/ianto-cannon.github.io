@@ -15,9 +15,6 @@ h1 {
 #log {
   font-family: monospace;
 }
-#buttons{
-    min-height: 4em;
-}
 footer {
     text-align: center;
     margin-top: 40px;
