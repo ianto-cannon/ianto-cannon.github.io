@@ -12,50 +12,38 @@
   <div class="container">
     <h1 id="title">Kindle chess</h1>
     
-    <div id="black-mode">
+    <div>
+      <label>
+        Start (minutes): <input type="number" id="black-start-time" value="5" min="0">
+      </label>
+      <label>
+        increment (seconds): <input type="number" id="black-increment" value="0" min="0">
+      </label>
+      <span id="black-clock">5:00</span>
       <label>
         <input type="radio" name="black-mode" id="black-human" checked>human</label>
       <label>
         <input type="radio" name="black-mode" id="black-robot">robot
       </label>
-      <label>
-        level <input type="number" id="black-level" value="1" min="1" max="3">
-      </label>
+      <button id="reset">restart</button>
     </div>
     
-    <div id="black-clock-settings">
-      <label>
-        start (min): <input type="number" id="black-start-time" value="5" min="0">
-      </label>
-      <label>
-        increment (sec): <input type="number" id="black-increment" value="0" min="0">
-      </label>
-    </div>
-    
-    <span id="black-clock">5:00</span>
     <div id="chessboard"></div>
-    <button id="reset">reset pieces</button>
-    <span id="white-clock">5:00</span>
-    <button id="pause">pause</button>
     
-    <div id="white-mode">
+    <div>
+      <label>
+        Start (minutes): <input type="number" id="white-start-time" value="5" min="0">
+      </label>
+      <label>
+        increment (seconds): <input type="number" id="white-increment" value="0" min="0">
+      </label>
+      <span id="white-clock">5:00</span>
       <label>
         <input type="radio" name="white-mode" id="white-human" checked>human</label>
       <label>
         <input type="radio" name="white-mode" id="white-robot">robot
       </label>
-      <label>
-        level <input type="number" id="white-level" value="1" min="1" max="3">
-      </label>
-    </div>
-    
-    <div id="white-clock-settings">
-      <label>
-        start (min): <input type="number" id="white-start-time" value="5" min="0">
-      </label>
-      <label>
-        increment (sec): <input type="number" id="white-increment" value="0" min="0">
-      </label>
+      <button id="pause">pause</button>
     </div>
     
   </div>
@@ -66,7 +54,6 @@
     <p>Chessboard made for Kindle. Based on <a href="https://github.com/penguins184/IllusionChess">IllusionChess</a> by penguins184. Released under the MIT License.</p>
   </footer>
   
-  <script src="js/polyfill.min.js"></script>
   <script src="js/jquery.js"></script> 
   <script src="js/chessboard.min.js"></script> 
   <script src="js/chess.js"></script> 
