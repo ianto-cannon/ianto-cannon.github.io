@@ -25,7 +25,7 @@ footer {
     color: #666;
 }
 input[type="number"] {
-  width: 3ch;
+  width: 40px;
   font-size: 16px;
   text-align: center;
   padding: 2px;
