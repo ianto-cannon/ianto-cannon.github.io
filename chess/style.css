@@ -1,0 +1,26 @@
+.container {
+  text-align: center;
+}
+h1 {
+  margin-top: 0px;   
+  margin-bottom: 0px;
+}
+#chessboard {
+  display: block;
+  width: 100%;
+}
+#black-clock, #white-clock {
+  font-weight: bold;
+}
+#log {
+  font-family: monospace;
+}
+#buttons{
+    min-height: 4em;
+}
+footer {
+    text-align: center;
+    margin-top: 40px;
+    font-size: .7em;
+    color: #666;
+}
