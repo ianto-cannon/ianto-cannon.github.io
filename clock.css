@@ -1,10 +1,11 @@
 .poly-container {
-  width: min(100%, 1000px);
-  font-size: min(1vw, 10px);
+  width: 100%;
+  max-width: 1000px; 
+  font-size: 10px; 
 }
 .poly {
   width: 7.9em;
-  aspect-ratio: 1;
+  height: 7.9em; 
 }
 .raised {
   position: relative;
@@ -13,20 +14,25 @@
 }
 .blob {
   width: 150px;
-  max-width: 13%;
+  max-width: 16%;
+  height: 150px; 
+  max-height: 16vw;
 }
 .binaryClock {
   width: 100%;
-  height: auto;
-  aspect-ratio: 31;
+  height: 3.22vw; 
 }
 .solar {
-  width: min(500px, 53%);
-  aspect-ratio: 1;
+  width: 53%;
+  max-width: 500px;
+  height: 53vw;
+  max-height: 500px; 
 }
 .lunar {
-  width: min(400px, 42%);
-  aspect-ratio: 0.8;
+  width: 42%;
+  max-width: 400px;
+  height: 53vw;
+  max-height: 500px;
 }
 .zodiac text {
   font-size: 2em;
