@@ -68,8 +68,7 @@ function generateBlobPath(blo, wavMin, wavMax) {
   }
   blo.setAttribute("d", path.join(" ") + " Z");
   blo.setAttribute("fill", colorScheme(hue));
-  if (window.requestAnimationFrame) { window.requestAnimationFrame(function() { generateBlobPath(blo, wavMin, wavMax); }); } 
-  else { setTimeout(function() { generateBlobPath(blo, wavMin, wavMax); }, 100); }
+  scheduleFrame(function() { generateBlobPath(blo, wavMin, wavMax); });
 }
 
 function updateTimeStr() {
@@ -283,40 +282,42 @@ if (svgSolar || svgLunar) {
   var solTime = Date.now(), playing = false, animationId = null;
   updateSolar(solTime);
 
+  // Simulated minutes advanced per redraw, scaled so the clock covers the
+  // same simulated time per real second whether redrawing at 60fps or, on
+  // old/e-ink browsers, once every couple of seconds via scheduleFrame.
+  var simMsPerRedraw = 1000 * 60 * 20 * (FRAME_MS / (1000 / 60));
+
   var animationStep = function() {
     if (playing) {
-      solTime += 1000 * 60 * 20;
+      solTime += simMsPerRedraw;
       updateSolar(solTime);
-      if (window.requestAnimationFrame) animationId = window.requestAnimationFrame(animationStep);
-      else animationId = setTimeout(animationStep, 1000/60);
+      animationId = scheduleFrame(animationStep);
     }
+  };
+
+  var stopAnimation = function() {
+    if (window.cancelAnimationFrame) window.cancelAnimationFrame(animationId);
+    clearTimeout(animationId);
   };
 
   if (playPauseBtn) {
     playPauseBtn.addEventListener("click", function() {
       playing = !playing;
       playPauseBtn.innerHTML = playing ? "&#9208; Pause" : "&#9654; Play";
-      if (playing) {
-        if (window.requestAnimationFrame) animationId = window.requestAnimationFrame(animationStep);
-        else animationId = setTimeout(animationStep, 1000/60);
-      } else {
-        if (window.cancelAnimationFrame) window.cancelAnimationFrame(animationId);
-        else clearTimeout(animationId);
-      }
+      if (playing) { animationId = scheduleFrame(animationStep); }
+      else { stopAnimation(); }
     });
     if (datetimeInput) {
       datetimeInput.addEventListener("input", function() {
         playing = false;
-        if (window.cancelAnimationFrame) window.cancelAnimationFrame(animationId);
-        else clearTimeout(animationId);
+        stopAnimation();
         playPauseBtn.innerHTML = "&#9654; Play";
         var newTime = new Date(datetimeInput.value).getTime();
         if (!isNaN(newTime)) { solTime = newTime; updateSolar(solTime); }
       });
       datetimeInput.addEventListener("focus", function() {
         playing = false;
-        if (window.cancelAnimationFrame) window.cancelAnimationFrame(animationId);
-        else clearTimeout(animationId);
+        stopAnimation();
         playPauseBtn.innerHTML = "&#9654; Play";
       });
     }
