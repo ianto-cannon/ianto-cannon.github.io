@@ -18,6 +18,12 @@ function generatePolygonPath(svg, path, level) {
 
 function maskPolygon(svg, path, level) {
   path.removeAttribute("mask");
+  // Old browsers (the same ones that miss aspect-ratio support) have been
+  // seen to fail to resolve a dynamically-created <mask> element and hide
+  // the masked shape entirely instead of ignoring the mask. Skip masking
+  // there so the polygon stays visible; it just loses the thin decorative
+  // notch line at the current position.
+  if (reducedAnimation) return;
   var mask = svg.querySelector("#line" + level), maskLine;
   if (!mask) {
     var oldDefs = svg.querySelector("defs");
@@ -68,7 +74,7 @@ function generateBlobPath(blo, wavMin, wavMax) {
   }
   blo.setAttribute("d", path.join(" ") + " Z");
   blo.setAttribute("fill", colorScheme(hue));
-  scheduleFrame(function() { generateBlobPath(blo, wavMin, wavMax); });
+  scheduleFrame(function() { generateBlobPath(blo, wavMin, wavMax); }, 300);
 }
 
 function updateTimeStr() {
@@ -126,7 +132,18 @@ function CelestialBody(opts) {
       var defs = document.createElementNS(svgNS, "defs");
       this.svg.insertBefore(defs, this.svg.firstChild);
       var maskId = "orbit";
-      defs.innerHTML = '<mask id="' + maskId + '"><rect x="0" y="0" width="' + this.w + '" height="' + this.w + '" fill="black"/><circle cx="' + (.5 * this.w) + '" cy="' + (.5 * this.w) + '" r="' + this.orbitR + '" fill="white"/></mask>';
+      var orbitMask = document.createElementNS(svgNS, "mask");
+      orbitMask.setAttribute("id", maskId);
+      var maskBg = document.createElementNS(svgNS, "rect");
+      maskBg.setAttribute("x", 0); maskBg.setAttribute("y", 0);
+      maskBg.setAttribute("width", this.w); maskBg.setAttribute("height", this.w);
+      maskBg.setAttribute("fill", "black");
+      orbitMask.appendChild(maskBg);
+      var maskCircle = document.createElementNS(svgNS, "circle");
+      maskCircle.setAttribute("cx", .5 * this.w); maskCircle.setAttribute("cy", .5 * this.w);
+      maskCircle.setAttribute("r", this.orbitR); maskCircle.setAttribute("fill", "white");
+      orbitMask.appendChild(maskCircle);
+      defs.appendChild(orbitMask);
       for (var i = -3; i <= 3; i++) {
         var y = 0.5 * this.w + this.orbitR * i * 10 / this.tilt, h = this.orbitR * 10 / this.tilt;
         var d = "M0," + y.toFixed(0) + " h" + this.w + " v" + h.toFixed(0) + " h-" + this.w + " Z";

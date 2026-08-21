@@ -23,8 +23,8 @@ var FRAME_MS = reducedAnimation ? 2000 : (1000 / 60);
 // this is a normal requestAnimationFrame loop; on old/e-ink browsers it
 // falls back to a slow setTimeout so the screen isn't asked to redraw faster
 // than it can physically refresh.
-function scheduleFrame(fn) {
-  if (reducedAnimation) { return setTimeout(fn, FRAME_MS); }
+function scheduleFrame(fn, reducedMs) {
+  if (reducedAnimation) { return setTimeout(fn, reducedMs != null ? reducedMs : FRAME_MS); }
   else if (window.requestAnimationFrame) { return window.requestAnimationFrame(fn); }
   else { return setTimeout(fn, 100); }
 }
