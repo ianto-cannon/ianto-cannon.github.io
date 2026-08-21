@@ -28,6 +28,7 @@ button {
 }
 .license {
   height: 1em;
+  width: 1em;
   aspect-ratio: 1;
 }
 .foot {
