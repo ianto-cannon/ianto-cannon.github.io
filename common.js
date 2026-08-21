@@ -11,6 +11,43 @@ function padStartFn(str, targetLength, padString) {
   return str;
 }
 
+// Old browsers (e.g. Kindle's "Experimental Browser") don't support the CSS
+// aspect-ratio property, and their e-ink screens can't keep up with a
+// requestAnimationFrame loop anyway. We use the same feature check to decide
+// both how to size elements and how often to redraw them.
+var supportsAspectRatio = !!(window.CSS && CSS.supports && CSS.supports('aspect-ratio', '1'));
+var reducedAnimation = !supportsAspectRatio;
+var FRAME_MS = reducedAnimation ? 2000 : (1000 / 60);
+
+// Schedules fn to run again for the next animation step. On capable browsers
+// this is a normal requestAnimationFrame loop; on old/e-ink browsers it
+// falls back to a slow setTimeout so the screen isn't asked to redraw faster
+// than it can physically refresh.
+function scheduleFrame(fn) {
+  if (reducedAnimation) { return setTimeout(fn, FRAME_MS); }
+  else if (window.requestAnimationFrame) { return window.requestAnimationFrame(fn); }
+  else { return setTimeout(fn, 100); }
+}
+
+// Fallback sizing for browsers that ignore the CSS aspect-ratio property:
+// sets an explicit pixel height based on each element's rendered width, so
+// non-square SVGs (the binary clock, solar/lunar clocks, blobs) don't just
+// fall back to the browser's default 300x150 replaced-element box.
+var ASPECT_RATIOS = { binaryClock: 31, solar: 1, lunar: 0.8, blob: 1 };
+function applyAspectRatioFallback() {
+  if (supportsAspectRatio) return;
+  for (var cls in ASPECT_RATIOS) {
+    var els = document.querySelectorAll("svg." + cls);
+    for (var i = 0; i < els.length; i++) {
+      var el = els[i];
+      var w = el.clientWidth || (el.parentNode && el.parentNode.clientWidth);
+      if (w) el.style.height = (w / ASPECT_RATIOS[cls]).toFixed(0) + "px";
+    }
+  }
+}
+applyAspectRatioFallback();
+window.addEventListener('resize', applyAspectRatioFallback);
+
 function anyColor() {
   var h = Math.floor(Math.random() * 360);
   var s = Math.floor(Math.random() * 40 + 30);
@@ -88,8 +125,7 @@ function updatePeaks(peaksSVG) {
     var lightness = darkMode ? (20 + i*10) : (100 - 20 - i*10);
     createTriangle(timeFracs[i]%1, width, 10-i*1.5, lightness, peaksSVG);
   }
-  if (window.requestAnimationFrame) { window.requestAnimationFrame(function() { updatePeaks(peaksSVG); }); } 
-  else { setTimeout(function() { updatePeaks(peaksSVG); }, 100); }
+  scheduleFrame(function() { updatePeaks(peaksSVG); });
 }
 
 var themeToggles = document.querySelectorAll('.theme-toggle');
