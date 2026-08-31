@@ -12,3 +12,16 @@
   width: 100%;
   height: 100%;
 }
+.portrait-box picture {
+  position: relative;
+  display: block;
+}
+.portrait-box picture::after {
+  content: "Photo: " attr(data-credit);
+  position: absolute;
+  bottom: 0.2rem;
+  left: 0.1rem;
+  color: white;
+  font-size: 0.5rem;
+  text-shadow: 0 1px 3px black;
+}
