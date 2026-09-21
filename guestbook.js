@@ -83,8 +83,11 @@ function load() {
           for (var i = 0; i < guestbookData.length; i++) {
             var m = guestbookData[i];
             var div = document.createElement("div");
+            var formattedMessage = escapeHTML(m.message)
+              .replace(/(https?:\/\/[^\s]+)/g, '<a href="$1">$1</a>')
+              .replace(/\n/g, "<br>");
             div.className = "message";
-            div.innerHTML = '<b>' + escapeHTML(m.name) + '</b> (' + (m.ts || "") + ' UTC)<br>' + escapeHTML(m.message).replace(/\n/g, "<br>");
+            div.innerHTML = '<b>' + escapeHTML(m.name) + '</b> (' + (m.ts || "") + ' UTC)<br>' + formattedMessage;
             container.appendChild(div);
           }
           render();
