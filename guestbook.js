@@ -1,4 +1,6 @@
-var API = "https://guestbook.maricakes.de/api.php";
+const API = location.hostname.endsWith('.onion')
+    ? '/api.php'
+    : 'https://guestbook.maricakes.de/api.php';
 var timeline, t0, t1, guestbookData = [];
 
 function escapeHTML(str) {
