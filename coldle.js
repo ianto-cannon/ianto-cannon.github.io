@@ -78,14 +78,14 @@ function render(){
  if(!done){if(n>=3)h+=` · Hint: its key col is at ${mm(t.col)}`;if(n>=5)h+=` · its parent starts with “${(t.par||"—")[0]}”`}
  $("#hint").textContent=done?"":h;
  const s=v=>178-v/9000*168;let m="";
- [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}" stroke="var(--bd)" stroke-width=".5"/><text x="2" y="${s(v)+3}" font-size="8" fill="var(--mut)">${v}</text>`);
+ [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}" stroke="var(--bd)" stroke-width=".5"/><text x="2" y="${s(v)+3}" fill="currentcolor" font-size="8">${v}</text>`);
  const bar=(x,p,f,b)=>`<rect x="${x-7}" y="${s(p.h)}" width="14" height="${s(b)-s(p.h)}" rx="2" fill="${f}" opacity=".85"/>`;
  G.forEach((gi,i)=>{const x=48+i*38,g=P[gi],w=gi===T,m0=w?g.col:link(gi,T).m;
-  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${s(g.h)-3}" font-size="8" text-anchor="middle" fill="var(--mut)">${i+1}</text><text x="${x}" y="${s(m0)+9}" font-size="7.5" font-weight="bold" text-anchor="middle" fill="var(--fg)">${w?"":m0.toLocaleString()}</text>`});
+  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${s(g.h)-3}" font-size="8" text-anchor="middle">${i+1}</text><text x="${x}" y="${s(m0)+9}" font-size="7.5" font-weight="bold" text-anchor="middle" fill="var(--fg)">${w?"":m0.toLocaleString()}</text>`});
  if(done&&!won)m+=bar(345,t,"var(--fg)",t.col)+`<text x="345" y="${s(t.col)+10}" font-size="9" text-anchor="middle">⭐</text>`;
  $("#ch").innerHTML=m;drawMap();if(done)$("#sel").textContent="Round over. Pick Random for another peak.";
- if(done){const c=chain(T),path=c.map((x,i)=>i<c.length-1?`${P[x].n} <span class="hint">—${mm(P[x].col)}→</span>`:P[x].n).join(" ");
-  $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${G.length}!`:"Out of guesses."}</b> The peak was <b>${t.n}</b> (${t.r}, ${t.c}), ${t.h.toLocaleString()} m high with ${t.p.toLocaleString()} m of prominence.<br><br>Its key-col path to the top:<br>${path}<p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;$("#sh").onclick=share}else $("#end").innerHTML="";
+ if(done){const c=chain(T);
+  $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${G.length}!`:"Out of guesses."}</b> The peak was <b>${t.n}</b> (${t.r}, ${t.c}), ${t.h.toLocaleString()} m high with ${t.p.toLocaleString()} m of prominence.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;$("#sh").onclick=share}else $("#end").innerHTML="";
 }
 const Y0=0,H=180,R=H/360;let vb={x:0,y:Y0,w:360},sel=null,moved=false,dr=null;
 const mp=$("#mp"),pk=$("#pk");
@@ -110,7 +110,7 @@ mp.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY<0?.7:1.4)},{pas
 $("#go").onclick=guess;
 document.querySelectorAll("input[name=mode]").forEach(r=>r.onchange=()=>{mode=r.value;start()});
 function share(){const won=G.includes(T),pc=g=>link(g,T).pct,sq=G.map(g=>g===T?"🎯":pc(g)>=50?"🟩":pc(g)>=15?"🟨":"🟥").join("");
- const txt=`Coldle ${mode==="daily"?new Date().toISOString().slice(0,10):"(random)"} ${won?G.length:"X"}/${MAX}\n${sq}\nhttps://ianto-cannon.github.io/coldle`;
+ const txt=`Coldle ${mode==="daily"?new Date().toISOString().slice(0,10):"(random)"} ${won?G.length:"X"}/${MAX}\n${sq}\nhttps://ianto-cannon.github.io/coldle.html`;
  const fb=()=>{const m=$("#shm");m.textContent="";const ta=document.createElement("textarea");ta.value=txt;ta.readOnly=true;ta.rows=4;ta.style.width="100%";m.appendChild(ta);ta.select()};
  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>{$("#shm").textContent="Copied to clipboard"},fb);else fb()}
 start();
