@@ -81,8 +81,8 @@ function render(){
  [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}" stroke="var(--bd)" stroke-width=".5"/><text x="2" y="${s(v)+3}" fill="currentcolor" font-size="8">${v}</text>`);
  const bar=(x,p,f,b)=>`<rect x="${x-7}" y="${s(p.h)}" width="14" height="${s(b)-s(p.h)}" rx="2" fill="${f}" opacity=".85"/>`;
  G.forEach((gi,i)=>{const x=48+i*38,g=P[gi],w=gi===T,m0=w?g.col:link(gi,T).m;
-  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${s(g.h)-3}" font-size="8" text-anchor="middle">${i+1}</text><text x="${x}" y="${s(m0)+9}" font-size="7.5" font-weight="bold" text-anchor="middle" fill="var(--fg)">${w?"":m0.toLocaleString()}</text>`});
- if(done&&!won)m+=bar(345,t,"var(--fg)",t.col)+`<text x="345" y="${s(t.col)+10}" font-size="9" text-anchor="middle">⭐</text>`;
+  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${s(g.h)-3}" font-size="8" text-anchor="middle">${i+1}</text><text x="${x}" y="${s(m0)+9}" font-size="7.5" font-weight="bold" text-anchor="middle" fill="currentColor">${w?"":m0.toLocaleString()}</text>`});
+ if(done&&!won)m+=bar(345,t,"currentColor",t.col)+`<text x="345" y="${s(t.col)+10}" font-size="9" text-anchor="middle">⭐</text>`;
  $("#ch").innerHTML=m;drawMap();if(done)$("#sel").textContent="Round over. Pick Random for another peak.";
  if(done){const c=chain(T);
   $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${G.length}!`:"Out of guesses."}</b> The peak was <b>${t.n}</b> (${t.r}, ${t.c}), ${t.h.toLocaleString()} m high with ${t.p.toLocaleString()} m of prominence.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;$("#sh").onclick=share}else $("#end").innerHTML="";
@@ -95,10 +95,10 @@ function resetMap(){vb={x:0,y:Y0,w:360};drawMap()}
 function drawMap(){clampV();const sc=vb.w/360;mp.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.w*R}`);
  let s="";
  P.forEach((p,i)=>{const gi=G.indexOf(i);let f="var(--mut)";
-  if(gi>=0)f=i===T?"var(--ok)":colr(link(i,T).pct);else if(done&&i===T)f="var(--fg)";
+  if(gi>=0)f=i===T?"var(--ok)":colr(link(i,T).pct);else if(done&&i===T)f="currentColor";
   const x=p.lo+180,y=90-p.la,on=i===sel;
-  s+=`<circle data-i="${i}" cx="${x}" cy="${y}" r="${(on?3.6:3)*sc}" fill="${f}" stroke="${on?"var(--fg)":"var(--card)"}" stroke-width="${(on?1.4:.6)*sc}" style="cursor:pointer"/>`;
-  if(vb.w<=100||on||(gi>=0&&vb.w<=200))s+=`<text x="${x+4.5*sc}" y="${y+sc}" font-size="${7*sc}" fill="var(--fg)" stroke="var(--card)" stroke-width="${2*sc}" paint-order="stroke" style="pointer-events:none">${p.n}</text>`});
+  s+=`<circle data-i="${i}" cx="${x}" cy="${y}" r="${(on?3.6:3)*sc}" fill="${f}" stroke="${on?"currentColor":"var(--card)"}" stroke-width="${(on?1.4:.6)*sc}" style="cursor:pointer"/>`;
+  if(vb.w<=100||on||(gi>=0&&vb.w<=200))s+=`<text x="${x+4.5*sc}" y="${y+sc}" font-size="${7*sc}" fill="black" stroke="var(--card)" stroke-width="${2*sc}" paint-order="stroke" style="pointer-events:none">${p.n}</text>`});
  pk.innerHTML=s}
 mp.onpointerdown=e=>{dr={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y};moved=false};
 mp.onpointermove=e=>{if(!dr)return;const dx=e.clientX-dr.x,dy=e.clientY-dr.y;if(Math.abs(dx)+Math.abs(dy)>5)moved=true;
