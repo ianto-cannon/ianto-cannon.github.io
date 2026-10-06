@@ -1,0 +1,36 @@
+:root{
+  --fg:CanvasText;
+  --card:Canvas;
+  --mut:GrayText;
+  --bd:#8886;
+  --ok:#2f8f5b;
+  --near:#c78f10;
+  --far:#c8553d;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px)
+} html {
+  scroll-padding-top:env(safe-area-inset-top,0px)
+} body {
+  background:Canvas;
+  color:CanvasText;
+  max-width:640px;
+} svg {
+  width:100%;
+  height:auto;
+  border:1px solid var(--bd);
+  background:Canvas
+} table {
+  border-collapse:collapse;
+  width:100%
+} th,td {
+  border-bottom:1px solid var(--bd);
+  padding:4px 6px;
+  text-align:left
+} .on {
+  font-weight:bold
+} .hint {
+  color:GrayText;
+  font-size:13px
+}
+
