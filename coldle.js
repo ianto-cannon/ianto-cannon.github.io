@@ -69,7 +69,7 @@ const cmp=(v,t,u)=>t===v?`<span class="c y">✓ ${u}</span>`:`<span class="c n">
 const shareC=(a,b)=>a.split("/").some(x=>b.split("/").includes(x));
 const mm=v=>v?v.toLocaleString()+" m":"sea level";
 let mode="daily",T,G=[],done=false;
-function start(){const d=Math.floor(Date.now()/864e5);T=mode==="daily"?(d*2654435761>>>0)%P.length:Math.random()*P.length|0;G=[];done=false;sel=null;$("#sel").textContent="Tap a peak on the map (zoom in for crowded ranges), then press Guess.";render()}
+function start(){const d=Math.floor(Date.now()/864e5);T=mode==="daily"?(d*2654435761>>>0)%P.length:Math.random()*P.length|0;G=[];done=false;sel=null;$("#sel").textContent="Tap a peak on the map, then press Guess.";render()}
 function guess(){const g=sel;if(done||g===null||G.includes(g))return;G.push(g);sel=null;if(g===T||G.length>=MAX)done=true;$("#sel").textContent=done?"":"Tap another peak on the map, then press Guess.";render()}
 function render(){
  const won=G.includes(T),t=P[T];
@@ -106,7 +106,7 @@ mp.onpointermove=e=>{if(!dr)return;const dx=e.clientX-dr.x,dy=e.clientY-dr.y;if(
 mp.onpointerup=mp.onpointerleave=()=>{dr=null};
 mp.onclick=e=>{if(moved||done)return;const c=e.target.closest("circle");if(!c)return;sel=+c.dataset.i;
  $("#sel").textContent=`Selected: ${P[sel].n}. Press Guess to confirm.`;drawMap()};
-mp.addEventListener("wheel",e=>{e.preventDefault();zoom(e.deltaY<0?.7:1.4)},{passive:false});
+mp.addEventListener("wheel",e=>{e.preventDefault();zoom(Math.exp(Math.max(-100,Math.min(100,e.deltaY))*(e.deltaMode===1?.05:.0015)))},{passive:false});
 $("#go").onclick=guess;
 document.querySelectorAll("input[name=mode]").forEach(r=>r.onchange=()=>{mode=r.value;start()});
 function share(){const won=G.includes(T),pc=g=>link(g,T).pct,sq=G.map(g=>g===T?"🎯":pc(g)>=50?"🟩":pc(g)>=15?"🟨":"🟥").join("");

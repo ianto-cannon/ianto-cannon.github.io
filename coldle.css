@@ -6,7 +6,7 @@
   --near:#c78f10;
   --far:#c8553d;
 } body {
-  max-width:800px;
+  max-width:640px;
 } svg, table {
   width:100%;
   height:auto;
