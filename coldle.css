@@ -6,7 +6,7 @@
   --near:#c78f10;
   --far:#c8553d;
 } body {
-  max-width:640px;
+  max-width:800px;
 } svg, table {
   width:100%;
   height:auto;
@@ -15,4 +15,6 @@
   text-align:left
 } #mp {
   touch-action: none;
-} 
+  user-select: none;
+  -webkit-user-select: none;
+}
