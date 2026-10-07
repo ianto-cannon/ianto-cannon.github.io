@@ -55,7 +55,8 @@ function render(){
   $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${G.length}!`:"Out of guesses."}</b> The peak was <b>${t.n}</b> (${t.r}, ${t.c}), ${t.h.toLocaleString()} m high with ${t.p.toLocaleString()} m of prominence.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;$("#sh").onclick=share}else $("#end").innerHTML="";
 }
 function drawChart(){
- const ch=$("#ch"),cw=ch.clientWidth||360,chh=ch.clientHeight||300,
+ // fs = body font size in user units for this viewBox; set once on the root, paint comes from coldle.css
+ const ch=$("#ch"),cw=ch.clientWidth||360,chh=ch.clientHeight||500,
   W=Math.max(360,360*cw/chh),sc=Math.min(cw/W,chh/236)||1,fs=(bodyFS()/sc).toFixed(2),
   won=G.includes(T),t=P[T],s=v=>178-v/9000*168,
   slot=(W-36)/9,x0=i=>36+slot*(i+.5),bw=Math.min(14,slot*.45);
@@ -95,21 +96,22 @@ addEventListener("resize",()=>{if(!P.length)return;drawMap();drawChart()});
 function drawMap(){clampV();const u=vb.w/(mp.clientWidth||640),fs=bodyFS()*u,fr=vb.w/MV.W; // fs = body font size in user units, set on the group so labels stay body-sized on screen at any zoom
  mp.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
  let s="";
- P.forEach((p,i)=>{const gi=G.indexOf(i),cls=gi>=0?(i===T?"f-ok":fcls(link(i,T).pct)):(done&&i===T?"f-tgt":""),on=i===sel,x=p.x.toFixed(1),y=p.y.toFixed(1);
-  s+=`<circle class="${cls}${on?" sel":""}" cx="${x}" cy="${y}" r="${((on?6.5:5)*u).toFixed(1)}"/>`;
-  if(fr<=.28||on||(gi>=0&&fr<=.56))s+=`<text x="${(p.x+8*u).toFixed(1)}" y="${(p.y+4*u).toFixed(1)}">${p.n}</text>`});
+ P.forEach((p,i)=>{const gi=G.indexOf(i),cls=gi>=0?(i===T?"f-ok":fcls(link(i,T).pct)):(done&&i===T?"f-tgt":""),on=i===sel,x=p.x.toFixed(1),y=p.y.toFixed(1),hit=!done?` data-i="${i}"`:"";
+  s+=`<circle class="${cls}${on?" sel":""}"${hit} cx="${x}" cy="${y}" r="${((on?6.5:5)*u).toFixed(1)}"/>`;
+  if(fr<=.28||on||(gi>=0&&fr<=.56))s+=`<text${hit} x="${(p.x+8*u).toFixed(1)}" y="${(p.y+4*u).toFixed(1)}">${p.n}</text>`});
  pk.setAttribute("font-size",fs.toFixed(2));pk.innerHTML=s}
 function pick(cx,cy){const[mx,my]=at(cx,cy),k=vb.w/mp.getBoundingClientRect().width;let b=-1,bd=(20*k)**2;
  P.forEach((p,i)=>{const d=(p.x-mx)**2+(p.y-my)**2;if(d<bd){bd=d;b=i}});return b}
 function select(i){sel=i;$("#sel").textContent=`Selected: ${P[i].n}. Press Guess to confirm.`;drawMap()}
-// pointer events: one pointer pans, two pointers pinch-zoom (and pan with the midpoint)
+// pointer events: one pointer pans, two pointers pinch-zoom (and pan with the midpoint);
+// taps on a marker or its label select the peak (hit recorded at pointerdown, because
+// setPointerCapture retargets pointerup to #mp)
 const mid=()=>{const[a,b]=[...ptr.values()];return{x:(a.x+b.x)/2,y:(a.y+b.y)/2,d:Math.hypot(a.x-b.x,a.y-b.y)||1}};
 const startPin=()=>{const m=mid();pin={d:m.d,w:vb.w,at:at(m.x,m.y)}};
 mp.onpointerdown=e=>{if(!P.length)return;mp.setPointerCapture(e.pointerId);ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
- if(ptr.size===1){moved=false;dr={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y}}
+ if(ptr.size===1){moved=false;const el=e.target.closest("[data-i]");dr={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y,hit:el?+el.dataset.i:-1}}
  else if(ptr.size===2){moved=true;dr=null;startPin()}};
-mp.onpointermove=e=>{if(!ptr.has(e.pointerId)){ // hover: pointer cursor over a selectable peak
-  if(e.pointerType==="mouse"&&P.length)mp.classList.toggle("pick",!done&&pick(e.clientX,e.clientY)>=0);return}
+mp.onpointermove=e=>{if(!ptr.has(e.pointerId))return; // hover cursor comes from CSS on #pk [data-i]
  ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
  const r=mp.getBoundingClientRect();
  if(ptr.size>=2&&pin){const m=mid(),nw=Math.max(minW(),Math.min(maxW(),pin.w*pin.d/m.d)),nh=nw/asp();
@@ -119,8 +121,8 @@ mp.onpointermove=e=>{if(!ptr.has(e.pointerId)){ // hover: pointer cursor over a 
 const endPtr=e=>{if(!ptr.delete(e.pointerId))return;
  if(ptr.size===2)startPin();
  else if(ptr.size===1){const[p]=ptr.values();dr={x:p.x,y:p.y,vx:vb.x,vy:vb.y};pin=null}
- else if(ptr.size===0){dr=pin=null;
-  if(e.type==="pointerup"&&!moved&&!done){const i=pick(e.clientX,e.clientY);if(i>=0)select(i)}}};
+ else if(ptr.size===0){const hit=dr?dr.hit:-1;dr=pin=null;
+  if(e.type==="pointerup"&&!moved&&!done){const i=hit>=0?hit:pick(e.clientX,e.clientY);if(i>=0)select(i)}}};
 mp.onpointerup=mp.onpointercancel=endPtr;
 mp.addEventListener("wheel",e=>{e.preventDefault();if(!P.length)return;zoomAt(Math.exp(Math.max(-100,Math.min(100,e.deltaY))*(e.deltaMode===1?.05:.0015)),e.clientX,e.clientY)},{passive:false});
  $("#go").onclick=guess;
