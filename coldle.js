@@ -192,15 +192,16 @@ const linkToTarget = gi => gi === target
 // ── Chart: one bar per guess ─────────────────────────────────────────────────
 function drawChart() {
   const chart = $("#ch");
-  const pxW = chart.clientWidth || 360;           // element size in CSS px
-  const pxH = chart.clientHeight || 500;
-  const viewW = Math.max(360, 236 * pxW / pxH);   // widen on wide screens so bars spread out
-  const scale = Math.min(pxW / viewW, pxH / 236) || 1;
+  const pxW = chart.clientWidth;           // element size in CSS px
+  const pxH = chart.clientHeight;
+  const viewW = 236 * pxW / pxH;   // widen on wide screens so bars spread out
+  const scale = pxH / 236;
   const fontUnits = bodyFontSize() / scale;       // body font size in viewBox units
 
   const slotW = (viewW - 36) / 9;                 // 9 slots: up to 8 guesses + the answer
   const slotX = i => 36 + slotW * (i + 0.5);
-  const barW = Math.min(28, slotW * 0.9);
+  const barW = slotW * 0.9;
+  const MIN_BAR_H = 2;
   const yFor = alt => 178 - alt / 9000 * 168;     // altitude 0…9000 m → y 178…10
 
   chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
@@ -219,12 +220,12 @@ function drawChart() {
   // Solid bar up to the col; the grey "ghost" above it shows the hidden part of the peak.
   const bar = (x, peak, cls, colAlt) => {
     const baseY = yFor(0);
-    const colY = yFor(colAlt);
     const peakY = yFor(peak.height);
+    const topY = Math.min(yFor(colAlt), baseY - MIN_BAR_H);   // never thinner than MIN_BAR_H
     const ghost = colAlt < peak.height
       ? `<rect class="ghost" x="${(x - barW / 2).toFixed(1)}" y="${peakY}" width="${barW.toFixed(1)}" height="${baseY - peakY}"/>`
       : "";
-    const solid = `<rect class="${cls}" x="${(x - barW / 2).toFixed(1)}" y="${colY}" width="${barW.toFixed(1)}" height="${baseY - colY}"/>`;
+    const solid = `<rect class="${cls}" x="${(x - barW / 2).toFixed(1)}" y="${topY}" width="${barW.toFixed(1)}" height="${baseY - topY}"/>`;
     return ghost + solid;
   };
 
@@ -241,7 +242,7 @@ function drawChart() {
   });
   if (roundOver && !guesses.includes(target)) {
     const answer = peaks[target];
-    entries.push({ x: slotX(8), peak: answer, cls: "f-tgt", colAlt: answer.colAlt, showCol: false });
+    entries.push({ x: slotX(8), peak: answer, cls: "f-tgt", colAlt: answer.height, showCol: false });
   }
 
   for (const { x, peak, cls, colAlt, showCol } of entries) {
@@ -462,7 +463,7 @@ const LABELS_GUESSED = 0.56;  // zoomed in ~1.8×: also label peaks already gues
 function drawMap() {
   clampView();
 
-  const unitsPerPx = view.w / (mapSvg.clientWidth || 640);
+  const unitsPerPx = view.w / (mapSvg.clientWidth);
   const labelFont = bodyFontSize() * unitsPerPx;   // labels stay body-sized on screen at any zoom
   const zoomFrac = view.w / world.W;
 
