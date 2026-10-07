@@ -39,6 +39,7 @@ th,td{padding:4px 6px;text-align:left}
 #pk text{fill:#000;stroke:var(--card);stroke-width:.22em;paint-order:stroke;pointer-events:none}
 
 /* chart layer */
+#ch{height:500px}
 #ch line{stroke:var(--bd);stroke-width:.5}
 #ch text{fill:currentColor;text-anchor:middle}
 #ch text.start{text-anchor:start}
