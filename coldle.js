@@ -98,7 +98,7 @@ function renderHint(){
 function renderEndBanner(){
   if(!roundOver){$("#end").innerHTML="";return}
   const won=guesses.includes(target),t=peaks[target];
-  $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${guesses.length}!`:"Out of guesses."}</b> The peak was <b>${t.name}</b> (${t.range}, ${t.country}), ${t.height.toLocaleString()} m high with ${t.prominence.toLocaleString()} m of prominence.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;
+  $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${guesses.length}!`:"Out of guesses."}</b> The peak was <b>${t.name}</b> in ${t.range}, ${t.country}.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;
   $("#sh").onclick=shareResult;
 }
 
@@ -133,7 +133,7 @@ function link(guessIdx,targetIdx){
 function drawChart(){
   const chart=$("#ch"),
         pxW=chart.clientWidth||360,pxH=chart.clientHeight||500,  // element size in CSS px
-        viewW=Math.max(360,360*pxW/pxH),   // widen the viewBox on wide screens so bars spread out
+        viewW=Math.max(360,236*pxW/pxH),   // widen the viewBox on wide screens so bars spread out
         scale=Math.min(pxW/viewW,pxH/236)||1,                    // how far the viewBox shrinks to fit
         fontUnits=bodyFontSize()/scale,    // body font size in viewBox units → body-sized text on screen
         slotW=(viewW-36)/9,                // 9 slots: up to 8 guesses + the answer

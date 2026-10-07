@@ -27,19 +27,28 @@
   </nav>
 <main>
 <h1>Coldle</h1>
-<p class="sub">Guess the mystery peak from the top 50 most prominent summits: each guess tells you the altitude of the peak and the lowest col on the path between two peaks, i.e. how far you must descend to walk from one to the other.</p>
-<p><label><input type="radio" name="mode" value="daily" checked>daily</label> <label><input type="radio" name="mode" value="random">random</label></p>
-<p><button id="go">Guess</button></p>
-<svg id="mp" class="box" viewBox="0 0 40030 12742"><g id="bg"></g><g id="pk"></g></svg>
-<p>
-  <button onclick="zoom(.5)">＋</button><button onclick="zoom(2)">－</button><button onclick="resetMap()">reset zoom</button>
+<p class="sub">
+  Guess the mystery peak from the top 50 most prominent summits: each guess tells you the altitude of the peak and the lowest col on the path between two peaks, i.e. how far you must descend to walk from one to the other.
 </p>
 <p>
   <span id="sel" class="hint"> Tap a peak on the map, then press Guess.</span>
 </p>
 <div id="hint" class="hint"></div>
+<div id="end"></div>
+<p>
+  <label><input type="radio" name="mode" value="daily" checked>daily</label> 
+  <label><input type="radio" name="mode" value="random">random</label>
+  <button id="go">Guess</button>
+  <button onclick="zoom(.5)">＋</button>
+  <button onclick="zoom(2)">－</button>
+  <button onclick="resetMap()">reset zoom</button>
+</p>
+<svg id="mp" class="box" viewBox="0 0 40030 12742">
+  <g id="bg"></g>
+  <g id="pk"></g>
+</svg>
 <svg id="ch" viewBox="0 0 360 236"></svg>
-<div id="end"></div><div id="rows"></div>
+<div id="rows"></div>
 </main>
 <script defer src="coldle.js"></script>
   <svg class="banner peaks"></svg>
