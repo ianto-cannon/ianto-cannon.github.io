@@ -9,6 +9,7 @@ function parseCSV(t){const rows=[];let r=[],f="",q=false;
   else f+=c}
  if(f||r.length){r.push(f);rows.push(r)}return rows}
 const $=s=>document.querySelector(s),MAX=8,AR="↑↗→↘↓↙←↖";
+const bodyFS=()=>parseFloat(getComputedStyle(document.body).fontSize);
 const par=i=>P[i].par?ix[P[i].par]:-1;
 const chain=i=>{const a=[i];while(par(a[a.length-1])>=0)a.push(par(a[a.length-1]));return a};
 function link(g,t){const a=chain(g),b=chain(t),l=a.find(x=>b.includes(x));
@@ -48,18 +49,22 @@ function render(){
  const n=G.length;let h=`Guess ${Math.min(n+1,MAX)} of ${MAX}`;
  if(!done){if(n>=3)h+=` · Hint: its elevation is ${t.h.toLocaleString()} m`;if(n>=5)h+=` · its parent starts with “${(t.par||"—")[0]}”`}
  $("#hint").textContent=done?"":h;
- const s=v=>178-v/9000*168;let m="";
- [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}" stroke="var(--bd)" stroke-width=".5"/><text x="2" y="${s(v)+3}" fill="currentcolor" font-size="8">${v}</text>`);
- const nm=n=>n.length>17?n.slice(0,16)+"…":n,
-  name=(x,n)=>`<text transform="translate(${x+3} 184) rotate(-45)" text-anchor="end" font-size="7.5" fill="currentColor">${nm(n)}</text>`,
-  bar=(x,p,f,b)=>{const y0=s(0),yb=s(b),yh=s(p.h);return(b<p.h?`<rect x="${x-7}" y="${yh}" width="14" height="${y0-yh}" rx="2" fill="var(--mut)" opacity=".5"/>`:"")+`<rect x="${x-7}" y="${yb}" width="14" height="${y0-yb}" fill="${f}" opacity=".9"/>`};
- G.forEach((gi,i)=>{const x=48+i*38,g=P[gi],w=gi===T,m0=w?g.h:link(gi,T).m,top=s(g.h),yb=s(m0);
-  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${top-3}" font-size="7.5" text-anchor="middle" fill="currentColor">${g.h.toLocaleString()}</text>`+(w?"":`<text x="${x}" y="${yb-top>10?yb-2:yb+9}" font-size="7.5" font-weight="bold" text-anchor="middle" fill="currentColor">${m0.toLocaleString()}</text>`)+name(x,g.n)});
- if(done&&!won)m+=bar(345,t,"currentColor",t.col)+`<text x="345" y="${s(t.h)-3}" font-size="9" text-anchor="middle">⭐</text>`+name(345,t.n);
- $("#ch").innerHTML=m;drawMap();if(done)$("#sel").textContent="Round over. Pick Random for another peak.";
+ drawChart();drawMap();
+ if(done)$("#sel").textContent="Round over. Pick Random for another peak.";
  if(done){const c=chain(T);
   $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${G.length}!`:"Out of guesses."}</b> The peak was <b>${t.n}</b> (${t.r}, ${t.c}), ${t.h.toLocaleString()} m high with ${t.p.toLocaleString()} m of prominence.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;$("#sh").onclick=share}else $("#end").innerHTML="";
 }
+function drawChart(){
+ const fs=(bodyFS()*360/($("#ch").clientWidth||360)).toFixed(2),won=G.includes(T),t=P[T],
+  s=v=>178-v/9000*168;let m="";
+ [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}" stroke="var(--bd)" stroke-width=".5"/><text x="2" y="${s(v)+3}" font-size="${fs}" fill="currentcolor">${v}</text>`);
+ const nm=n=>n.length>17?n.slice(0,16)+"…":n,
+  name=(x,n)=>`<text transform="translate(${x+3} 184) rotate(-45)" text-anchor="end" font-size="${fs}" fill="currentColor">${nm(n)}</text>`,
+  bar=(x,p,fill,b)=>{const y0=s(0),yb=s(b),yh=s(p.h);return(b<p.h?`<rect x="${x-7}" y="${yh}" width="14" height="${y0-yh}" rx="2" fill="var(--mut)" opacity=".5"/>`:"")+`<rect x="${x-7}" y="${yb}" width="14" height="${y0-yb}" fill="${fill}" opacity=".9"/>`};
+ G.forEach((gi,i)=>{const x=48+i*38,g=P[gi],w=gi===T,m0=w?g.h:link(gi,T).m,top=s(g.h),yb=s(m0);
+  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${top-3}" text-anchor="middle" font-size="${fs}" fill="currentColor">${g.h.toLocaleString()}</text>`+(w?"":`<text x="${x}" y="${yb-top>10?yb-2:yb+9}" font-weight="bold" text-anchor="middle" font-size="${fs}" fill="currentColor">${m0.toLocaleString()}</text>`)+name(x,g.n)});
+ if(done&&!won)m+=bar(345,t,"currentColor",t.col)+`<text x="345" y="${s(t.h)-3}" text-anchor="middle" font-size="${fs}">⭐</text>`+name(345,t.n);
+ $("#ch").innerHTML=m}
 // Map: Lambert cylindrical equal-area (x = lon, y = sin lat), geometry from map.svg (1 unit = 1 km at the equator)
 let MV={W:40030,H:12742,R:6371,lon0:0},vb={x:0,y:0,w:40030,h:12742},sel=null,moved=false,dr=null,pin=null;
 const MAXZ=150,ptr=new Map(),mp=$("#mp"),pk=$("#pk"),bg=$("#bg");
@@ -81,15 +86,15 @@ function zoomAt(f,cx,cy){const r=mp.getBoundingClientRect(),[mx,my]=at(cx,cy),nw
  vb.x=mx-(cx-r.left)/r.width*nw;vb.y=my-(cy-r.top)/r.height*nh;vb.w=nw;drawMap()}
 function zoom(f){if(!P.length)return;const r=mp.getBoundingClientRect();zoomAt(f,r.left+r.width/2,r.top+r.height/2)}
 function resetMap(){home();drawMap()}
-addEventListener("resize",()=>{if(P.length)drawMap()});
-function drawMap(){clampV();const u=vb.w/(mp.clientWidth||640),fr=vb.w/MV.W;
+addEventListener("resize",()=>{if(!P.length)return;drawMap();drawChart()});
+function drawMap(){clampV();const u=vb.w/(mp.clientWidth||640),fs=bodyFS()*u,fr=vb.w/MV.W; // fs: body font size in user units, so labels stay at body size on screen at any zoom
  mp.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
  let s="";
  P.forEach((p,i)=>{const gi=G.indexOf(i);let f="var(--mut)";
   if(gi>=0)f=i===T?"var(--ok)":colr(link(i,T).pct);else if(done&&i===T)f="currentColor";
   const on=i===sel,x=p.x.toFixed(1),y=p.y.toFixed(1);
   s+=`<circle cx="${x}" cy="${y}" r="${((on?6.5:5)*u).toFixed(1)}" fill="${f}" stroke="${on?"currentColor":"var(--card)"}" stroke-width="${((on?2.2:1)*u).toFixed(1)}"/>`;
-  if(fr<=.28||on||(gi>=0&&fr<=.56))s+=`<text x="${(p.x+8*u).toFixed(1)}" y="${(p.y+4*u).toFixed(1)}" font-size="${(12*u).toFixed(1)}" fill="black" stroke="var(--card)" stroke-width="${(3.5*u).toFixed(1)}" paint-order="stroke" style="pointer-events:none">${p.n}</text>`});
+  if(fr<=.28||on||(gi>=0&&fr<=.56))s+=`<text x="${(p.x+8*u).toFixed(1)}" y="${(p.y+4*u).toFixed(1)}" font-size="${fs.toFixed(1)}" fill="black" stroke="var(--card)" stroke-width="${(fs*.22).toFixed(1)}" paint-order="stroke" style="pointer-events:none">${p.n}</text>`});
  pk.innerHTML=s}
 function pick(cx,cy){const[mx,my]=at(cx,cy),k=vb.w/mp.getBoundingClientRect().width;let b=-1,bd=(20*k)**2;
  P.forEach((p,i)=>{const d=(p.x-mx)**2+(p.y-my)**2;if(d<bd){bd=d;b=i}});return b}
@@ -115,7 +120,7 @@ const endPtr=e=>{if(!ptr.delete(e.pointerId))return;
   if(e.type==="pointerup"&&!moved&&!done){const i=pick(e.clientX,e.clientY);if(i>=0)select(i)}}};
 mp.onpointerup=mp.onpointercancel=endPtr;
 mp.addEventListener("wheel",e=>{e.preventDefault();if(!P.length)return;zoomAt(Math.exp(Math.max(-100,Math.min(100,e.deltaY))*(e.deltaMode===1?.05:.0015)),e.clientX,e.clientY)},{passive:false});
-$("#go").onclick=guess;
+ $("#go").onclick=guess;
 document.querySelectorAll("input[name=mode]").forEach(r=>r.onchange=()=>{mode=r.value;start()});
 function share(){const won=G.includes(T),hi=Math.max(...P.map(p=>p.h)),
   sq=G.map(g=>"▁▂▃▄▅▆▇█"[Math.round((g===T?P[g].h:link(g,T).m)/hi*7)]).join("")+(won?"🎯":"");

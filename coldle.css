@@ -17,11 +17,8 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
-}
-#mp {
   aspect-ratio: 40030 / 12742;
-}
-@media (max-width: 640px) {
+} @media (max-width: 640px) {
   #mp {
     aspect-ratio: 1;
   }
