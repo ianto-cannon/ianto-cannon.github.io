@@ -149,7 +149,7 @@ function drawChart(){
         // The grey "ghost" bar shows the part of the peak hidden by the col.
         bar=(x,peak,cls,colAlt)=>{
           const y0=yFor(0),colY=yFor(colAlt),peakY=yFor(peak.height);
-          return(colAlt<peak.height?`<rect class="ghost" x="${(x-barW/2).toFixed(1)}" y="${peakY}" width="${barW.toFixed(1)}" height="${y0-peakY}" rx="2"/>`:"")
+          return(colAlt<peak.height?`<rect class="ghost" x="${(x-barW/2).toFixed(1)}" y="${peakY}" width="${barW.toFixed(1)}" height="${y0-peakY}"/>`:"")
                +`<rect class="${cls}" x="${(x-barW/2).toFixed(1)}" y="${colY}" width="${barW.toFixed(1)}" height="${y0-colY}"/>`;
         };
   guesses.forEach((gi,i)=>{
@@ -164,7 +164,7 @@ function drawChart(){
   // After a loss, show the answer in slot 9.
   if(roundOver&&!guesses.includes(target)){
     const t=peaks[target],x=slotX(8);
-    out+=bar(x,t,"f-tgt",t.colAlt)+`<text x="${x.toFixed(1)}" y="${yFor(t.height)-3}">${peak.height.toLocaleString()}</text>`+nameLabel(x,t.name);
+    out+=bar(x,t,"f-tgt",t.colAlt)+`<text x="${x.toFixed(1)}" y="${yFor(t.height)-3}">${peaks[target].height.toLocaleString()}</text>`+nameLabel(x,t.name);
   }
   chart.setAttribute("font-size",fontUnits.toFixed(2));
   chart.innerHTML=out;
