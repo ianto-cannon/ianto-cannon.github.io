@@ -7,9 +7,8 @@
   --far:#c0609a;
 }
 body{max-width:1200px}
-svg,table{width:100%;height:auto}
+svg,table{width:100%;}
 th,td{padding:4px 6px;text-align:left}
-
 /* accuracy colours for text (results table) */
 .ok{color:var(--ok)}
 .near{color:var(--near)}
