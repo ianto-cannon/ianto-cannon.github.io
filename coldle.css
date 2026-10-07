@@ -5,21 +5,50 @@
   --ok:#0072b2;
   --near:#d08200;
   --far:#c0609a;
-} body {
-  max-width:1200px;
-} svg, table {
-  width:100%;
-  height:auto;
-} th,td {
-  padding:4px 6px;
-  text-align:left
-} #mp {
-  touch-action: none;
-  user-select: none;
-  -webkit-user-select: none;
-  aspect-ratio: 40030 / 12742;
-} @media (max-width: 640px) {
-  #mp {
-    aspect-ratio: 1;
-  }
 }
+body{max-width:1200px}
+svg,table{width:100%;height:auto}
+th,td{padding:4px 6px;text-align:left}
+
+/* accuracy colours for text (results table) */
+.ok{color:var(--ok)}
+.near{color:var(--near)}
+.far{color:var(--far)}
+/* the same accuracies as fills for SVG shapes (chart bars, map markers) */
+#ch .f-ok,#pk .f-ok{fill:var(--ok)}
+#ch .f-near,#pk .f-near{fill:var(--near)}
+#ch .f-far,#pk .f-far{fill:var(--far)}
+#ch .f-tgt,#pk .f-tgt{fill:currentColor}
+
+#mp{
+  touch-action:none;
+  user-select:none;
+  -webkit-user-select:none;
+  aspect-ratio:40030/12742;
+  cursor:grab;
+}
+#mp.pick{cursor:pointer}
+@media (max-width:640px){
+  #mp{aspect-ratio:1}
+}
+
+/* map layer: JS writes geometry + one font-size on the group; all paint is here.
+   non-scaling-stroke keeps marker outlines at fixed CSS px regardless of zoom. */
+#pk circle{fill:var(--mut);stroke:var(--card);stroke-width:1px;vector-effect:non-scaling-stroke}
+#pk circle.sel{stroke:currentColor;stroke-width:2.2px}
+#pk text{fill:#000;stroke:var(--card);stroke-width:.22em;paint-order:stroke;pointer-events:none}
+
+/* chart layer */
+#ch line{stroke:var(--bd);stroke-width:.5}
+#ch text{fill:currentColor;text-anchor:middle}
+#ch text.start{text-anchor:start}
+#ch text.end{text-anchor:end}
+#ch text.b{font-weight:bold}
+#ch rect{fill:currentColor;opacity:.9}
+#ch rect.ghost{fill:var(--mut);opacity:.5}
+
+/* confetti overlay */
+canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}
+
+/* clipboard fallback in the share message */
+#shm textarea{width:100%}

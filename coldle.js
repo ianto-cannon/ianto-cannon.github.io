@@ -16,7 +16,7 @@ function link(g,t){const a=chain(g),b=chain(t),l=a.find(x=>b.includes(x));
  const up=[...a.slice(0,a.indexOf(l)),...b.slice(0,b.indexOf(l))];
  const m=up.length?Math.min(...up.map(x=>P[x].col)):P[g].h;
  return{m,l,hops:up.length,pct:Math.round(100*m/Math.min(P[g].h,P[t].h))}}
-const colr=p=>p>=50?"var(--ok)":p>=15?"var(--near)":"var(--far)";
+const ccls=p=>p>=50?"ok":p>=15?"near":"far",fcls=p=>"f-"+ccls(p); // text colour class / SVG fill class
 const rad=x=>x*Math.PI/180;
 function geo(a,b){const dl=rad(b.lo-a.lo),p1=rad(a.la),p2=rad(b.la);
  const h=Math.sin((p2-p1)/2)**2+Math.cos(p1)*Math.cos(p2)*Math.sin(dl/2)**2;
@@ -31,7 +31,7 @@ function guess(){const g=sel;if(done||g===null||G.includes(g))return;G.push(g);s
 function confetti(){
  if(matchMedia("(prefers-reduced-motion: reduce)").matches)return;
  const cv=document.createElement("canvas"),x=cv.getContext("2d"),dpr=devicePixelRatio||1;
- cv.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99";
+ cv.className="confetti"; // overlay styling lives in coldle.css
  const w=cv.width=innerWidth*dpr,h=cv.height=innerHeight*dpr;document.body.appendChild(cv);
  const b=$("#go").getBoundingClientRect(),ox=(b.left+b.width/2)*dpr,oy=(b.top+b.height/2)*dpr;
  const cols=["#0072b2","#e69f00","#cc79a7","#56b4e9","#009e73","#f0e442"];
@@ -45,7 +45,7 @@ function confetti(){
 }
 function render(){
  const won=G.includes(T),t=P[T];
- $("#rows").innerHTML=G.length?`<table><tr><th>#</th><th>Peak</th><th>Linking col</th><th>Linked</th></tr>${G.map((gi,i)=>{if(gi===T)return`<tr><td>${i+1}</td><td>${P[gi].n}</td><td>🎯 Correct</td><td style="color:var(--ok)">100%</td></tr>`;const k=link(gi,T);return`<tr><td>${i+1}</td><td>${P[gi].n}</td><td>${mm(k.m)}</td><td style="color:${colr(k.pct)}">${k.pct}%</td></tr>`}).join("")}</table>`:"";
+ $("#rows").innerHTML=G.length?`<table><tr><th>#</th><th>Peak</th><th>Linking col</th><th>Linked</th></tr>${G.map((gi,i)=>{if(gi===T)return`<tr><td>${i+1}</td><td>${P[gi].n}</td><td>🎯 Correct</td><td class="ok">100%</td></tr>`;const k=link(gi,T);return`<tr><td>${i+1}</td><td>${P[gi].n}</td><td>${mm(k.m)}</td><td class="${ccls(k.pct)}">${k.pct}%</td></tr>`}).join("")}</table>`:"";
  const n=G.length;let h=`Guess ${Math.min(n+1,MAX)} of ${MAX}`;
  if(!done){if(n>=3)h+=` · Hint: its elevation is ${t.h.toLocaleString()} m`;if(n>=5)h+=` · its parent starts with “${(t.par||"—")[0]}”`}
  $("#hint").textContent=done?"":h;
@@ -55,16 +55,17 @@ function render(){
   $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${G.length}!`:"Out of guesses."}</b> The peak was <b>${t.n}</b> (${t.r}, ${t.c}), ${t.h.toLocaleString()} m high with ${t.p.toLocaleString()} m of prominence.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;$("#sh").onclick=share}else $("#end").innerHTML="";
 }
 function drawChart(){
- const fs=(bodyFS()*360/($("#ch").clientWidth||360)).toFixed(2),won=G.includes(T),t=P[T],
+ // fs = body font size in user units for this 360-unit-wide viewBox; set once on the root, paint comes from coldle.css
+ const ch=$("#ch"),fs=(bodyFS()*360/(ch.clientWidth||360)).toFixed(2),won=G.includes(T),t=P[T],
   s=v=>178-v/9000*168;let m="";
- [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}" stroke="var(--bd)" stroke-width=".5"/><text x="2" y="${s(v)+3}" font-size="${fs}" fill="currentcolor">${v}</text>`);
+ [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}"/><text class="start" x="2" y="${s(v)+3}">${v}</text>`);
  const nm=n=>n.length>17?n.slice(0,16)+"…":n,
-  name=(x,n)=>`<text transform="translate(${x+3} 184) rotate(-45)" text-anchor="end" font-size="${fs}" fill="currentColor">${nm(n)}</text>`,
-  bar=(x,p,fill,b)=>{const y0=s(0),yb=s(b),yh=s(p.h);return(b<p.h?`<rect x="${x-7}" y="${yh}" width="14" height="${y0-yh}" rx="2" fill="var(--mut)" opacity=".5"/>`:"")+`<rect x="${x-7}" y="${yb}" width="14" height="${y0-yb}" fill="${fill}" opacity=".9"/>`};
+  name=(x,n)=>`<text class="end" transform="translate(${x+3} 184) rotate(-45)">${nm(n)}</text>`,
+  bar=(x,p,c,b)=>{const y0=s(0),yb=s(b),yh=s(p.h);return(b<p.h?`<rect class="ghost" x="${x-7}" y="${yh}" width="14" height="${y0-yh}" rx="2"/>`:"")+`<rect class="${c}" x="${x-7}" y="${yb}" width="14" height="${y0-yb}"/>`};
  G.forEach((gi,i)=>{const x=48+i*38,g=P[gi],w=gi===T,m0=w?g.h:link(gi,T).m,top=s(g.h),yb=s(m0);
-  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${top-3}" text-anchor="middle" font-size="${fs}" fill="currentColor">${g.h.toLocaleString()}</text>`+(w?"":`<text x="${x}" y="${yb-top>10?yb-2:yb+9}" font-weight="bold" text-anchor="middle" font-size="${fs}" fill="currentColor">${m0.toLocaleString()}</text>`)+name(x,g.n)});
- if(done&&!won)m+=bar(345,t,"currentColor",t.col)+`<text x="345" y="${s(t.h)-3}" text-anchor="middle" font-size="${fs}">⭐</text>`+name(345,t.n);
- $("#ch").innerHTML=m}
+  m+=bar(x,g,w?"f-ok":fcls(link(gi,T).pct),m0)+`<text x="${x}" y="${top-3}">${g.h.toLocaleString()}</text>`+(w?"":`<text x="${x}" y="${yb-top>10?yb-2:yb+9}" class="b">${m0.toLocaleString()}</text>`)+name(x,g.n)});
+ if(done&&!won)m+=bar(345,t,"f-tgt",t.col)+`<text x="345" y="${s(t.h)-3}">⭐</text>`+name(345,t.n);
+ ch.setAttribute("font-size",fs);ch.innerHTML=m}
 // Map: Lambert cylindrical equal-area (x = lon, y = sin lat), geometry from map.svg (1 unit = 1 km at the equator)
 let MV={W:40030,H:12742,R:6371,lon0:0},vb={x:0,y:0,w:40030,h:12742},sel=null,moved=false,dr=null,pin=null;
 const MAXZ=150,ptr=new Map(),mp=$("#mp"),pk=$("#pk"),bg=$("#bg");
@@ -87,15 +88,13 @@ function zoomAt(f,cx,cy){const r=mp.getBoundingClientRect(),[mx,my]=at(cx,cy),nw
 function zoom(f){if(!P.length)return;const r=mp.getBoundingClientRect();zoomAt(f,r.left+r.width/2,r.top+r.height/2)}
 function resetMap(){home();drawMap()}
 addEventListener("resize",()=>{if(!P.length)return;drawMap();drawChart()});
-function drawMap(){clampV();const u=vb.w/(mp.clientWidth||640),fs=bodyFS()*u,fr=vb.w/MV.W; // fs: body font size in user units, so labels stay at body size on screen at any zoom
+function drawMap(){clampV();const u=vb.w/(mp.clientWidth||640),fs=bodyFS()*u,fr=vb.w/MV.W; // fs = body font size in user units, set on the group so labels stay body-sized on screen at any zoom
  mp.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
  let s="";
- P.forEach((p,i)=>{const gi=G.indexOf(i);let f="var(--mut)";
-  if(gi>=0)f=i===T?"var(--ok)":colr(link(i,T).pct);else if(done&&i===T)f="currentColor";
-  const on=i===sel,x=p.x.toFixed(1),y=p.y.toFixed(1);
-  s+=`<circle cx="${x}" cy="${y}" r="${((on?6.5:5)*u).toFixed(1)}" fill="${f}" stroke="${on?"currentColor":"var(--card)"}" stroke-width="${((on?2.2:1)*u).toFixed(1)}"/>`;
-  if(fr<=.28||on||(gi>=0&&fr<=.56))s+=`<text x="${(p.x+8*u).toFixed(1)}" y="${(p.y+4*u).toFixed(1)}" font-size="${fs.toFixed(1)}" fill="black" stroke="var(--card)" stroke-width="${(fs*.22).toFixed(1)}" paint-order="stroke" style="pointer-events:none">${p.n}</text>`});
- pk.innerHTML=s}
+ P.forEach((p,i)=>{const gi=G.indexOf(i),cls=gi>=0?(i===T?"f-ok":fcls(link(i,T).pct)):(done&&i===T?"f-tgt":""),on=i===sel,x=p.x.toFixed(1),y=p.y.toFixed(1);
+  s+=`<circle class="${cls}${on?" sel":""}" cx="${x}" cy="${y}" r="${((on?6.5:5)*u).toFixed(1)}"/>`;
+  if(fr<=.28||on||(gi>=0&&fr<=.56))s+=`<text x="${(p.x+8*u).toFixed(1)}" y="${(p.y+4*u).toFixed(1)}">${p.n}</text>`});
+ pk.setAttribute("font-size",fs.toFixed(2));pk.innerHTML=s}
 function pick(cx,cy){const[mx,my]=at(cx,cy),k=vb.w/mp.getBoundingClientRect().width;let b=-1,bd=(20*k)**2;
  P.forEach((p,i)=>{const d=(p.x-mx)**2+(p.y-my)**2;if(d<bd){bd=d;b=i}});return b}
 function select(i){sel=i;$("#sel").textContent=`Selected: ${P[i].n}. Press Guess to confirm.`;drawMap()}
@@ -106,7 +105,7 @@ mp.onpointerdown=e=>{if(!P.length)return;mp.setPointerCapture(e.pointerId);ptr.s
  if(ptr.size===1){moved=false;dr={x:e.clientX,y:e.clientY,vx:vb.x,vy:vb.y}}
  else if(ptr.size===2){moved=true;dr=null;startPin()}};
 mp.onpointermove=e=>{if(!ptr.has(e.pointerId)){ // hover: pointer cursor over a selectable peak
-  if(e.pointerType==="mouse"&&P.length)mp.style.cursor=!done&&pick(e.clientX,e.clientY)>=0?"pointer":"grab";return}
+  if(e.pointerType==="mouse"&&P.length)mp.classList.toggle("pick",!done&&pick(e.clientX,e.clientY)>=0);return}
  ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
  const r=mp.getBoundingClientRect();
  if(ptr.size>=2&&pin){const m=mid(),nw=Math.max(minW(),Math.min(maxW(),pin.w*pin.d/m.d)),nh=nw/asp();
@@ -125,6 +124,6 @@ document.querySelectorAll("input[name=mode]").forEach(r=>r.onchange=()=>{mode=r.
 function share(){const won=G.includes(T),hi=Math.max(...P.map(p=>p.h)),
   sq=G.map(g=>"▁▂▃▄▅▆▇█"[Math.round((g===T?P[g].h:link(g,T).m)/hi*7)]).join("")+(won?"🎯":"");
  const txt=`Coldle ${mode==="daily"?new Date().toISOString().slice(0,10):"(random)"} ${won?G.length:"X"}/${MAX}\n${sq}\nhttps://ianto-cannon.github.io/coldle.html`;
- const fb=()=>{const m=$("#shm");m.textContent="";const ta=document.createElement("textarea");ta.value=txt;ta.readOnly=true;ta.rows=8;ta.style.width="100%";m.appendChild(ta);ta.select()};
+ const fb=()=>{const m=$("#shm");m.textContent="";const ta=document.createElement("textarea");ta.value=txt;ta.readOnly=true;ta.rows=8;m.appendChild(ta);ta.select()};
  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>{$("#shm").textContent="Copied to clipboard"},fb);else fb()}
 load().then(start).catch(e=>{$("#sel").textContent="Could not load map data: "+e.message});
