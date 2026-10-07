@@ -27,7 +27,6 @@ th,td{padding:4px 6px;text-align:left}
   aspect-ratio:40030/12742;
   cursor:grab;
 }
-#mp.pick{cursor:pointer}
 @media (max-width:640px){
   #mp{aspect-ratio:1}
 }
@@ -36,7 +35,8 @@ th,td{padding:4px 6px;text-align:left}
    non-scaling-stroke keeps marker outlines at fixed CSS px regardless of zoom. */
 #pk circle{fill:var(--mut);stroke:var(--card);stroke-width:1px;vector-effect:non-scaling-stroke}
 #pk circle.sel{stroke:currentColor;stroke-width:2.2px}
-#pk text{fill:#000;stroke:var(--card);stroke-width:.22em;paint-order:stroke;pointer-events:none}
+#pk [data-i]{cursor:pointer}
+#pk text{fill:#000;stroke:var(--card);stroke-width:.22em;paint-order:stroke}
 
 /* chart layer */
 #ch{height:500px}
