@@ -33,7 +33,7 @@ function confetti(){
  cv.style.cssText="position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99";
  const w=cv.width=innerWidth*dpr,h=cv.height=innerHeight*dpr;document.body.appendChild(cv);
  const b=$("#go").getBoundingClientRect(),ox=(b.left+b.width/2)*dpr,oy=(b.top+b.height/2)*dpr;
- const cols=["#2f8f5b","#c78f10","#c8553d","#3b82c4","#a855c7","#e8b923"];
+ const cols=["#0072b2","#e69f00","#cc79a7","#56b4e9","#009e73","#f0e442"];
  const ps=Array.from({length:160},()=>{const a=-Math.PI/2+(Math.random()-.5)*Math.PI*1.2,v=(6+Math.random()*11)*dpr;
   return{x:ox,y:oy,vx:Math.cos(a)*v,vy:Math.sin(a)*v,s:(6+Math.random()*6)*dpr,r:Math.random()*6,vr:(Math.random()-.5)*.4,c:cols[Math.random()*cols.length|0],life:0}});
  let t0=performance.now();
@@ -46,14 +46,16 @@ function render(){
  const won=G.includes(T),t=P[T];
  $("#rows").innerHTML=G.length?`<table><tr><th>#</th><th>Peak</th><th>Linking col</th><th>Linked</th></tr>${G.map((gi,i)=>{if(gi===T)return`<tr><td>${i+1}</td><td>${P[gi].n}</td><td>🎯 Correct</td><td style="color:var(--ok)">100%</td></tr>`;const k=link(gi,T);return`<tr><td>${i+1}</td><td>${P[gi].n}</td><td>${mm(k.m)}</td><td style="color:${colr(k.pct)}">${k.pct}%</td></tr>`}).join("")}</table>`:"";
  const n=G.length;let h=`Guess ${Math.min(n+1,MAX)} of ${MAX}`;
- if(!done){if(n>=3)h+=` · Hint: its key col is at ${mm(t.col)}`;if(n>=5)h+=` · its parent starts with “${(t.par||"—")[0]}”`}
+ if(!done){if(n>=3)h+=` · Hint: its elevation is ${t.h.toLocaleString()} m`;if(n>=5)h+=` · its parent starts with “${(t.par||"—")[0]}”`}
  $("#hint").textContent=done?"":h;
  const s=v=>178-v/9000*168;let m="";
  [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}" stroke="var(--bd)" stroke-width=".5"/><text x="2" y="${s(v)+3}" fill="currentcolor" font-size="8">${v}</text>`);
- const bar=(x,p,f,b)=>`<rect x="${x-7}" y="${s(p.h)}" width="14" height="${s(b)-s(p.h)}" rx="2" fill="${f}" opacity=".85"/>`;
- G.forEach((gi,i)=>{const x=48+i*38,g=P[gi],w=gi===T,m0=w?g.col:link(gi,T).m;
-  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${s(g.h)-3}" font-size="8" text-anchor="middle">${i+1}</text><text x="${x}" y="${s(m0)+9}" font-size="7.5" font-weight="bold" text-anchor="middle" fill="currentColor">${w?"":m0.toLocaleString()}</text>`});
- if(done&&!won)m+=bar(345,t,"currentColor",t.col)+`<text x="345" y="${s(t.col)+10}" font-size="9" text-anchor="middle">⭐</text>`;
+ const nm=n=>n.length>17?n.slice(0,16)+"…":n,
+  name=(x,n)=>`<text transform="translate(${x+3} 184) rotate(-45)" text-anchor="end" font-size="7.5" fill="currentColor">${nm(n)}</text>`,
+  bar=(x,p,f,b)=>{const y0=s(0),yb=s(b),yh=s(p.h);return(b<p.h?`<rect x="${x-7}" y="${yh}" width="14" height="${y0-yh}" rx="2" fill="var(--mut)" opacity=".5"/>`:"")+`<rect x="${x-7}" y="${yb}" width="14" height="${y0-yb}" fill="${f}" opacity=".9"/>`};
+ G.forEach((gi,i)=>{const x=48+i*38,g=P[gi],w=gi===T,m0=w?g.h:link(gi,T).m,top=s(g.h),yb=s(m0);
+  m+=bar(x,g,w?"var(--ok)":colr(link(gi,T).pct),m0)+`<text x="${x}" y="${top-3}" font-size="7.5" text-anchor="middle" fill="currentColor">${g.h.toLocaleString()}</text>`+(w?"":`<text x="${x}" y="${yb-top>10?yb-2:yb+9}" font-size="7.5" font-weight="bold" text-anchor="middle" fill="currentColor">${m0.toLocaleString()}</text>`)+name(x,g.n)});
+ if(done&&!won)m+=bar(345,t,"currentColor",t.col)+`<text x="345" y="${s(t.h)-3}" font-size="9" text-anchor="middle">⭐</text>`+name(345,t.n);
  $("#ch").innerHTML=m;drawMap();if(done)$("#sel").textContent="Round over. Pick Random for another peak.";
  if(done){const c=chain(T);
   $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${G.length}!`:"Out of guesses."}</b> The peak was <b>${t.n}</b> (${t.r}, ${t.c}), ${t.h.toLocaleString()} m high with ${t.p.toLocaleString()} m of prominence.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;$("#sh").onclick=share}else $("#end").innerHTML="";
@@ -70,14 +72,16 @@ async function load(){
  MV={W:svg.viewBox.baseVal.width,H:svg.viewBox.baseVal.height,R:g("r"),lon0:g("lon0")};
  bg.replaceChildren(...[...svg.childNodes].map(n=>document.importNode(n,true)));
  P.forEach(p=>{[p.x,p.y]=proj(p.la,p.lo)});
- vb={x:0,y:0,w:MV.W,h:MV.H}}
-const asp=()=>MV.W/MV.H,minW=()=>MV.W/MAXZ;
-function clampV(){vb.w=Math.max(minW(),Math.min(MV.W,vb.w));vb.h=vb.w/asp();vb.x=Math.max(0,Math.min(MV.W-vb.w,vb.x));vb.y=Math.max(0,Math.min(MV.H-vb.h,vb.y))}
+ home()}
+const asp=()=>{const r=mp.getBoundingClientRect();return r.height?r.width/r.height:MV.W/MV.H},minW=()=>MV.W/MAXZ,maxW=()=>Math.min(MV.W,MV.H*asp());
+function home(){const w=maxW(),h=w/asp(),cx=proj(0,60)[0];vb={x:cx-w/2,y:(MV.H-h)/2,w,h}}
+function clampV(){vb.w=Math.max(minW(),Math.min(maxW(),vb.w));vb.h=vb.w/asp();vb.x=Math.max(0,Math.min(MV.W-vb.w,vb.x));vb.y=Math.max(0,Math.min(MV.H-vb.h,vb.y))}
 const at=(cx,cy)=>{const r=mp.getBoundingClientRect();return[vb.x+(cx-r.left)/r.width*vb.w,vb.y+(cy-r.top)/r.height*vb.h]};
-function zoomAt(f,cx,cy){const r=mp.getBoundingClientRect(),[mx,my]=at(cx,cy),nw=Math.max(minW(),Math.min(MV.W,vb.w*f)),nh=nw/asp();
+function zoomAt(f,cx,cy){const r=mp.getBoundingClientRect(),[mx,my]=at(cx,cy),nw=Math.max(minW(),Math.min(maxW(),vb.w*f)),nh=nw/asp();
  vb.x=mx-(cx-r.left)/r.width*nw;vb.y=my-(cy-r.top)/r.height*nh;vb.w=nw;drawMap()}
 function zoom(f){if(!P.length)return;const r=mp.getBoundingClientRect();zoomAt(f,r.left+r.width/2,r.top+r.height/2)}
-function resetMap(){vb={x:0,y:0,w:MV.W,h:MV.H};drawMap()}
+function resetMap(){home();drawMap()}
+addEventListener("resize",()=>{if(P.length)drawMap()});
 function drawMap(){clampV();const u=vb.w/(mp.clientWidth||640),fr=vb.w/MV.W;
  mp.setAttribute("viewBox",`${vb.x} ${vb.y} ${vb.w} ${vb.h}`);
  let s="";
@@ -100,7 +104,7 @@ mp.onpointermove=e=>{if(!ptr.has(e.pointerId)){ // hover: pointer cursor over a 
   if(e.pointerType==="mouse"&&P.length)mp.style.cursor=!done&&pick(e.clientX,e.clientY)>=0?"pointer":"grab";return}
  ptr.set(e.pointerId,{x:e.clientX,y:e.clientY});
  const r=mp.getBoundingClientRect();
- if(ptr.size>=2&&pin){const m=mid(),nw=Math.max(minW(),Math.min(MV.W,pin.w*pin.d/m.d)),nh=nw/asp();
+ if(ptr.size>=2&&pin){const m=mid(),nw=Math.max(minW(),Math.min(maxW(),pin.w*pin.d/m.d)),nh=nw/asp();
   vb.w=nw;vb.x=pin.at[0]-(m.x-r.left)/r.width*nw;vb.y=pin.at[1]-(m.y-r.top)/r.height*nh;drawMap()}
  else if(dr){const dx=e.clientX-dr.x,dy=e.clientY-dr.y;if(Math.abs(dx)+Math.abs(dy)>5)moved=true;
   if(moved){const k=vb.w/r.width;vb.x=dr.vx-dx*k;vb.y=dr.vy-dy*k;drawMap()}}};
@@ -113,8 +117,9 @@ mp.onpointerup=mp.onpointercancel=endPtr;
 mp.addEventListener("wheel",e=>{e.preventDefault();if(!P.length)return;zoomAt(Math.exp(Math.max(-100,Math.min(100,e.deltaY))*(e.deltaMode===1?.05:.0015)),e.clientX,e.clientY)},{passive:false});
 $("#go").onclick=guess;
 document.querySelectorAll("input[name=mode]").forEach(r=>r.onchange=()=>{mode=r.value;start()});
-function share(){const won=G.includes(T),pc=g=>link(g,T).pct,sq=G.map(g=>g===T?"🎯":pc(g)>=50?"🟩":pc(g)>=15?"🟨":"🟥").join("");
+function share(){const won=G.includes(T),hi=Math.max(...P.map(p=>p.h)),
+  sq=G.map(g=>"▁▂▃▄▅▆▇█"[Math.round((g===T?P[g].h:link(g,T).m)/hi*7)]).join("")+(won?"🎯":"");
  const txt=`Coldle ${mode==="daily"?new Date().toISOString().slice(0,10):"(random)"} ${won?G.length:"X"}/${MAX}\n${sq}\nhttps://ianto-cannon.github.io/coldle.html`;
- const fb=()=>{const m=$("#shm");m.textContent="";const ta=document.createElement("textarea");ta.value=txt;ta.readOnly=true;ta.rows=4;ta.style.width="100%";m.appendChild(ta);ta.select()};
+ const fb=()=>{const m=$("#shm");m.textContent="";const ta=document.createElement("textarea");ta.value=txt;ta.readOnly=true;ta.rows=8;ta.style.width="100%";m.appendChild(ta);ta.select()};
  if(navigator.clipboard)navigator.clipboard.writeText(txt).then(()=>{$("#shm").textContent="Copied to clipboard"},fb);else fb()}
 load().then(start).catch(e=>{$("#sel").textContent="Could not load map data: "+e.message});
