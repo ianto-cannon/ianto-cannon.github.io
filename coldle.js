@@ -183,6 +183,12 @@ function link(guessIdx, targetIdx) {
   return { colAlt, pct: Math.round(100 * colAlt / peaks[targetIdx].height) };
 }
 
+// How a guess relates to the target: its linking col and score. The target
+// itself scores its own summit, i.e. 100%.
+const linkToTarget = gi => gi === target
+  ? { colAlt: peaks[gi].height, pct: 100 }
+  : link(gi, target);
+
 // ── Chart: one bar per guess ─────────────────────────────────────────────────
 function drawChart() {
   const chart = $("#ch");
@@ -222,30 +228,31 @@ function drawChart() {
     return ghost + solid;
   };
 
-  guesses.forEach((gi, i) => {
-    const peak = peaks[gi];
-    const isTarget = gi === target;
-    const x = slotX(i);
-    const info = isTarget ? { colAlt: peak.height } : link(gi, target);
-
-    const colY = yFor(info.colAlt);
-    const colLabelY = colY - yFor(peak.height) > 10 ? colY - 2 : colY + 9;
-
-    out += bar(x, peak, isTarget ? "f-ok" : "f-" + accuracyClass(info.pct), info.colAlt);
-    out += `<text x="${x.toFixed(1)}" y="${yFor(peak.height) - 3}">${peak.height.toLocaleString()}</text>`;
-    if (!isTarget) {
-      out += `<text x="${x.toFixed(1)}" y="${colLabelY}" class="b">${info.colAlt.toLocaleString()}</text>`;
-    }
-    out += nameLabel(x, peak.name);
+  // One entry per bar: each guess, plus the answer in slot 9 after a loss.
+  const entries = guesses.map((gi, i) => {
+    const info = linkToTarget(gi);
+    return {
+      x: slotX(i),
+      peak: peaks[gi],
+      cls: "f-" + accuracyClass(info.pct),
+      colAlt: info.colAlt,
+      showCol: gi !== target,
+    };
   });
-
-  // After a loss, show the answer in slot 9.
   if (roundOver && !guesses.includes(target)) {
     const answer = peaks[target];
-    const x = slotX(8);
-    out += bar(x, answer, "f-tgt", answer.colAlt);
-    out += `<text x="${x.toFixed(1)}" y="${yFor(answer.height) - 3}">${answer.height.toLocaleString()}</text>`;
-    out += nameLabel(x, answer.name);
+    entries.push({ x: slotX(8), peak: answer, cls: "f-tgt", colAlt: answer.colAlt, showCol: false });
+  }
+
+  for (const { x, peak, cls, colAlt, showCol } of entries) {
+    out += bar(x, peak, cls, colAlt);
+    out += `<text x="${x.toFixed(1)}" y="${yFor(peak.height) - 3}">${peak.height.toLocaleString()}</text>`;
+    if (showCol) {
+      const colY = yFor(colAlt);
+      const labelY = colY - yFor(peak.height) > 10 ? colY - 2 : colY + 9;
+      out += `<text x="${x.toFixed(1)}" y="${labelY}" class="b">${colAlt.toLocaleString()}</text>`;
+    }
+    out += nameLabel(x, peak.name);
   }
 
   chart.setAttribute("font-size", fontUnits.toFixed(2));
@@ -353,21 +360,14 @@ async function load() {
   peaks = parseCSV(csv)
     .slice(1)
     .filter(fields => fields.length >= 8)
-    .map(fields => ({
-      name: fields[0],
-      height: +fields[1],
-      prominence: +fields[2],
-      parent: fields[3],
-      lat: +fields[4],
-      lon: +fields[5],
-      range: fields[6],
-      country: fields[7],
+    .map(([name, height, prominence, parent, lat, lon, range, country]) => ({
+      name, parent, range, country,
+      height: +height,
+      colAlt: +height - +prominence,   // key col altitude
+      lat: +lat,
+      lon: +lon,
     }));
-
-  peaks.forEach((p, i) => {
-    p.colAlt = p.height - p.prominence;   // key col altitude
-    byName[p.name] = i;
-  });
+  peaks.forEach((p, i) => { byName[p.name] = i; });
 
   const svg = new DOMParser().parseFromString(svgText, "image/svg+xml").documentElement;
   const dataAttr = name => +svg.getAttribute("data-" + name);
@@ -418,17 +418,21 @@ function clientToWorld(cx, cy) {
   ];
 }
 
+// Resize the view to width w (clamped), keeping world point (wx,wy) under
+// screen point (cx,cy). Shared by wheel-zoom and pinch.
+function zoomTo(w, wx, wy, cx, cy) {
+  const rect = mapSvg.getBoundingClientRect();
+  view.w = Math.max(minViewW(), Math.min(maxViewW(), w));
+  view.h = view.w / mapAspect();
+  view.x = wx - (cx - rect.left) / rect.width * view.w;
+  view.y = wy - (cy - rect.top) / rect.height * view.h;
+  drawMap();
+}
+
 // Zoom by factor, keeping the world point under (cx, cy) fixed on screen.
 function zoomAt(factor, cx, cy) {
-  const rect = mapSvg.getBoundingClientRect();
   const [wx, wy] = clientToWorld(cx, cy);
-  const w = Math.max(minViewW(), Math.min(maxViewW(), view.w * factor));
-  const h = w / mapAspect();
-
-  view.x = wx - (cx - rect.left) / rect.width * w;
-  view.y = wy - (cy - rect.top) / rect.height * h;
-  view.w = w;
-  drawMap();
+  zoomTo(view.w * factor, wx, wy, cx, cy);
 }
 
 // Used by the ＋ / － buttons.
@@ -472,7 +476,7 @@ function drawMap() {
     const tapAttr = roundOver ? "" : ` data-i="${i}"`;   // only clickable while the round is live
 
     let cls = "";
-    if (guessIdx >= 0) cls = i === target ? "f-ok" : "f-" + accuracyClass(link(i, target).pct);
+    if (guessIdx >= 0) cls = "f-" + accuracyClass(linkToTarget(i).pct);
     else if (roundOver && i === target) cls = "f-tgt";
 
     const radius = (isSelected ? 6.5 : 5) * unitsPerPx;
@@ -567,19 +571,13 @@ mapSvg.onpointermove = e => {
   if (!pointers.has(e.pointerId)) return;   // pure hover — cursor styling handled by CSS
   pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
 
-  const rect = mapSvg.getBoundingClientRect();
-
   if (pointers.size >= 2 && pinch) {
     // Pinch: scale the view around the world point where the pinch started.
     const m = pinchMidpoint();
-    const w = Math.max(minViewW(), Math.min(maxViewW(), pinch.viewW * pinch.dist / m.dist));
-    const h = w / mapAspect();
-    view.w = w;
-    view.x = pinch.worldX - (m.x - rect.left) / rect.width * w;
-    view.y = pinch.worldY - (m.y - rect.top) / rect.height * h;
-    drawMap();
+    zoomTo(pinch.viewW * pinch.dist / m.dist, pinch.worldX, pinch.worldY, m.x, m.y);
   } else if (drag) {
     // Pan (only once the pointer moves more than 5 px).
+    const rect = mapSvg.getBoundingClientRect();
     const dx = e.clientX - drag.x;
     const dy = e.clientY - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true;
@@ -641,10 +639,7 @@ function shareResult() {
 
   // One block per guess, sized by the col height relative to the highest peak.
   const blocks = guesses
-    .map(g => {
-      const alt = g === target ? peaks[g].height : link(g, target).colAlt;
-      return "▁▂▃▄▅▆▇█"[Math.round(alt / highest * 7)];
-    })
+    .map(g => "▁▂▃▄▅▆▇█"[Math.round(linkToTarget(g).colAlt / highest * 7)])
     .join("") + (won ? "🎯" : "");
 
   const title = mode === "daily" ? new Date().toISOString().slice(0, 10) : "(random)";
