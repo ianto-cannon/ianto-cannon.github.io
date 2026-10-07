@@ -2,11 +2,11 @@
   --card:Canvas;
   --mut:GrayText;
   --bd:#8886;
-  --ok:#2f8f5b;
-  --near:#c78f10;
-  --far:#c8553d;
+  --ok:#0072b2;
+  --near:#d08200;
+  --far:#c0609a;
 } body {
-  max-width:800px;
+  max-width:1200px;
 } svg, table {
   width:100%;
   height:auto;
@@ -17,4 +17,12 @@
   touch-action: none;
   user-select: none;
   -webkit-user-select: none;
+}
+#mp {
+  aspect-ratio: 40030 / 12742;
+}
+@media (max-width: 640px) {
+  #mp {
+    aspect-ratio: 1;
+  }
 }
