@@ -55,17 +55,21 @@ function render(){
   $("#end").innerHTML=`<div class="msg"><b>${won?`Got it in ${G.length}!`:"Out of guesses."}</b> The peak was <b>${t.n}</b> (${t.r}, ${t.c}), ${t.h.toLocaleString()} m high with ${t.p.toLocaleString()} m of prominence.<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;$("#sh").onclick=share}else $("#end").innerHTML="";
 }
 function drawChart(){
- // fs = body font size in user units for this 360-unit-wide viewBox; set once on the root, paint comes from coldle.css
- const ch=$("#ch"),fs=(bodyFS()*360/(ch.clientWidth||360)).toFixed(2),won=G.includes(T),t=P[T],
-  s=v=>178-v/9000*168;let m="";
- [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="360" y1="${s(v)}" y2="${s(v)}"/><text class="start" x="2" y="${s(v)+3}">${v}</text>`);
+ const ch=$("#ch"),cw=ch.clientWidth||360,chh=ch.clientHeight||300,
+  W=Math.max(360,360*cw/chh),sc=Math.min(cw/W,chh/236)||1,fs=(bodyFS()/sc).toFixed(2),
+  won=G.includes(T),t=P[T],s=v=>178-v/9000*168,
+  slot=(W-36)/9,x0=i=>36+slot*(i+.5),bw=Math.min(14,slot*.45);
+ ch.setAttribute("viewBox",`0 0 ${W.toFixed(1)} 236`);
+ let m="";
+ [0,2000,4000,6000,8000].forEach(v=>m+=`<line x1="28" x2="${(W-4).toFixed(1)}" y1="${s(v)}" y2="${s(v)}"/><text class="start" x="2" y="${s(v)+3}">${v}</text>`);
  const nm=n=>n.length>17?n.slice(0,16)+"…":n,
   name=(x,n)=>`<text class="end" transform="translate(${x+3} 184) rotate(-45)">${nm(n)}</text>`,
-  bar=(x,p,c,b)=>{const y0=s(0),yb=s(b),yh=s(p.h);return(b<p.h?`<rect class="ghost" x="${x-7}" y="${yh}" width="14" height="${y0-yh}" rx="2"/>`:"")+`<rect class="${c}" x="${x-7}" y="${yb}" width="14" height="${y0-yb}"/>`};
- G.forEach((gi,i)=>{const x=48+i*38,g=P[gi],w=gi===T,m0=w?g.h:link(gi,T).m,top=s(g.h),yb=s(m0);
-  m+=bar(x,g,w?"f-ok":fcls(link(gi,T).pct),m0)+`<text x="${x}" y="${top-3}">${g.h.toLocaleString()}</text>`+(w?"":`<text x="${x}" y="${yb-top>10?yb-2:yb+9}" class="b">${m0.toLocaleString()}</text>`)+name(x,g.n)});
- if(done&&!won)m+=bar(345,t,"f-tgt",t.col)+`<text x="345" y="${s(t.h)-3}">⭐</text>`+name(345,t.n);
+  bar=(x,p,c,b)=>{const y0=s(0),yb=s(b),yh=s(p.h);return(b<p.h?`<rect class="ghost" x="${(x-bw/2).toFixed(1)}" y="${yh}" width="${bw.toFixed(1)}" height="${y0-yh}" rx="2"/>`:"")+`<rect class="${c}" x="${(x-bw/2).toFixed(1)}" y="${yb}" width="${bw.toFixed(1)}" height="${y0-yb}"/>`};
+ G.forEach((gi,i)=>{const x=x0(i),g=P[gi],w=gi===T,m0=w?g.h:link(gi,T).m,top=s(g.h),yb=s(m0);
+  m+=bar(x,g,w?"f-ok":fcls(link(gi,T).pct),m0)+`<text x="${x.toFixed(1)}" y="${top-3}">${g.h.toLocaleString()}</text>`+(w?"":`<text x="${x.toFixed(1)}" y="${yb-top>10?yb-2:yb+9}" class="b">${m0.toLocaleString()}</text>`)+name(x,g.n)});
+ if(done&&!won)m+=bar(x0(8),t,"f-tgt",t.col)+`<text x="${x0(8).toFixed(1)}" y="${s(t.h)-3}">⭐</text>`+name(x0(8),t.n);
  ch.setAttribute("font-size",fs);ch.innerHTML=m}
+
 // Map: Lambert cylindrical equal-area (x = lon, y = sin lat), geometry from map.svg (1 unit = 1 km at the equator)
 let MV={W:40030,H:12742,R:6371,lon0:0},vb={x:0,y:0,w:40030,h:12742},sel=null,moved=false,dr=null,pin=null;
 const MAXZ=150,ptr=new Map(),mp=$("#mp"),pk=$("#pk"),bg=$("#bg");
