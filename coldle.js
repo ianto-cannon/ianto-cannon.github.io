@@ -138,7 +138,7 @@ function drawChart(){
         fontUnits=bodyFontSize()/scale,    // body font size in viewBox units → body-sized text on screen
         slotW=(viewW-36)/9,                // 9 slots: up to 8 guesses + the answer
         slotX=i=>36+slotW*(i+.5),
-        barW=Math.min(14,slotW*.45),
+        barW=Math.min(28,slotW*.9),
         yFor=alt=>178-alt/9000*168;        // altitude 0…9000 m → y 178…10
   chart.setAttribute("viewBox",`0 0 ${viewW.toFixed(1)} 236`);
   let out="";
@@ -388,7 +388,7 @@ mapSvg.onpointerup=mapSvg.onpointercancel=endPtr;
 mapSvg.addEventListener("wheel",e=>{
   e.preventDefault();
   if(!peaks.length)return;
-  const step=e.deltaMode===1?.05:.0015;   // line-mode deltas are much larger than pixel ones
+  const step=e.deltaMode===1?.4:.012;   // line-mode deltas are much larger than pixel ones
   zoomAt(Math.exp(Math.max(-100,Math.min(100,e.deltaY))*step),e.clientX,e.clientY);
 },{passive:false});
 
