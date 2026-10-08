@@ -10,8 +10,6 @@ const MAX_GUESSES = 8;
 const bodyFontSize = () => parseFloat(getComputedStyle(document.body).fontSize);
 const toRad = deg => deg * Math.PI / 180;
 
-// Colour bucket for a guess's "linked %" score (table text and SVG fills).
-const accuracyClass = pct => (pct >= 50 ? "ok" : pct >= 15 ? "near" : "far");
 const colLabel = m => (m ? m.toLocaleString() + " m" : "sea level");
 
 // ── CSV parsing ──────────────────────────────────────────────────────────────
@@ -109,14 +107,11 @@ function render() {
 function renderTable() {
   const rows = guesses.map((peakIdx, i) => {
     const peak = peaks[peakIdx];
-    if (peakIdx === target) {
-      return `<tr><td>${i + 1}</td><td>${peak.name}</td><td>🎯 Correct</td><td class="ok">100%</td></tr>`;
-    }
-    const info = link(peakIdx, target);
-    console.log(`<tr><td>${i + 1}</td><td>${peak.name}</td><td>${colLabel(info.colAlt)}</td>`
-         + `<td color="${colGuess(info.pct)}">${info.pct}%</td></tr>`);
-    return `<tr><td>${i + 1}</td><td>${peak.name}</td><td>${colLabel(info.colAlt)}</td>`
-         + `<td color="${colGuess(info.pct)}">${info.pct}%</td></tr>`;
+    const info = linkToTarget(peakIdx);
+    const colour = colGuess(info.pct);
+    const col = peakIdx === target ? "🎯 Correct" : colLabel(info.colAlt);
+    return `<tr><td>${i + 1}</td><td>${peak.name}</td><td>${col}</td>`
+         + `<td style="color:${colour}">${info.pct}%</td></tr>`;
   });
 
   $("#rows").innerHTML = rows.length
@@ -192,8 +187,9 @@ const linkToTarget = gi => gi === target
   : link(gi, target);
 
 function colGuess(linked) {
-  var l = 50+.3*linked;
-  return "hsl(" + hue + ", 30%, " + l + "%)";
+  //const l = 50 + .3 * linked;
+  const l = 20 + .7 * linked;
+  return `hsl(${hue}, 30%, ${l}%)`;
 }
 
 // ── Chart: one bar per guess ─────────────────────────────────────────────────
@@ -232,7 +228,6 @@ function drawChart() {
     const ghost = colAlt < peak.height
       ? `<rect class="ghost" x="${(x - barW / 2).toFixed(1)}" y="${peakY}" width="${barW.toFixed(1)}" height="${baseY - peakY}"/>`
       : "";
-    console.log('colo',colo)
     const solid = `<rect fill="${colo}" x="${(x - barW / 2).toFixed(1)}" y="${topY}" width="${barW.toFixed(1)}" height="${baseY - topY}"/>`;
     return ghost + solid;
   };
@@ -485,14 +480,11 @@ function drawMap() {
     const tapAttr = roundOver ? "" : ` data-i="${i}"`;   // only clickable while the round is live
 
     const radius = (isSelected ? 6.5 : 5) * unitsPerPx;
-    let cls = "";
-    if (guessIdx >= 0) cls = "f-" + accuracyClass(linkToTarget(i).pct);
-    else if (roundOver && i === target) cls = "f-tgt";
-    out += `<circle class="${cls}${isSelected ? " sel" : ""}"${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`;
-    //console.log(`<circle fill="${colGuess(linkToTarget(i).pct)}${isSelected ? " sel" : ""}"${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`);
-    //out += `<circle fill="${colGuess(linkToTarget(i).pct)}${isSelected ? " sel" : ""}"${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`;
-    //colo = "gray" ToDo
-    //out += `<circle fill="${colo}${isSelected ? " sel" : ""}"${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`;
+    let fill = "";
+    if (guessIdx >= 0) fill = colGuess(linkToTarget(i).pct);
+    else if (roundOver && i === target) fill = colGuess(100);
+    const fillAttr = fill ? ` style="fill:${fill}"` : "";
+    out += `<circle class="${isSelected ? "sel" : ""}"${fillAttr}${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`;
 
     const showLabel = zoomFrac <= LABELS_ALL || isSelected
       || (guessIdx >= 0 && zoomFrac <= LABELS_GUESSED);

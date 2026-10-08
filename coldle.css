@@ -2,18 +2,10 @@
   --card:Canvas;
   --mut:GrayText;
   --bd:#8886;
-  --ok:#0072b2;
-  --near:#d08200;
-  --far:#c0609a;
 }
 body{max-width:1200px}
 svg,table{width:100%;}
 th,td{padding:4px 6px;text-align:left}
-/* accuracy colours for text (results table) */
-.ok{color:var(--ok)}
-.near{color:var(--near)}
-.far{color:var(--far)}
-/* the same accuracies as fills for SVG shapes (chart bars, map markers) */
 
 #mp{
   touch-action:none;
