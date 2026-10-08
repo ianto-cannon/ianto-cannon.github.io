@@ -72,7 +72,7 @@ function renderStatus() {
   $("#sel").innerHTML = over()
     ? `<b>${won() ? `Got it in ${made}!` : "Out of guesses."}</b> The peak was <b>${p.name}</b> in ${p.range}, ${p.country}. `
       + `Pick Random for another peak. <span id="shm"></span>`
-    : `The mystery peak has altitude ${metres(p.height)} and its key col is at ${colLabel(p.colAlt)}.`
+    : `The mystery peak has altitude <b>${metres(p.height)}</b> and its key col is at <b>${colLabel(p.colAlt)}</b>.`
       + (made >= 3 ? ` Its range is ${p.range}.` : "")
       + (made >= 5 ? ` Its country is ${p.country}.` : "")
       + ` Guess ${made + 1} of ${MAX_GUESSES}. `
@@ -91,8 +91,10 @@ function drawChart() {
   const T = peaks[target];
   const targetColor = over() ? colGuess(100) : "currentColor";
 
+  const font = fontPx() * 236 / chart.clientHeight;   // body font size in chart units
+  const labels = [];   // [x, name]: laid out in rows below the baseline once all peaks are drawn
+  const addName = (x, t) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t]);
   const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
-  const name = (x, t) => `<text class="end" transform="translate(${x + 3} 184) rotate(-45)">${t.length > 17 ? t.slice(0, 16) + "…" : t}</text>`;
   const altitude = (x, p) => text(x, chartY(p.height) - 3, metres(p.height));
 
   // Solid up to `col`, grey above it.
@@ -113,7 +115,8 @@ function drawChart() {
     const cx = 36 + slotW * (i + .5);
     const G = peaks[g];
     if (g === target) {   // the target alone, or a correct guess (not drawn twice)
-      out += triangle(cx, T, targetColor, T.height) + altitude(cx, T) + name(cx, over() ? T.name : "?");
+      out += triangle(cx, T, targetColor, T.height) + altitude(cx, T);
+      addName(cx, over() ? T.name : "?");
       return;
     }
     // The pair's sloping sides cross at the linking col, which sets the gap between the two summits.
@@ -124,12 +127,30 @@ function drawChart() {
     const colY = chartY(colAlt);
     out += triangle(x1, T, targetColor, colAlt) + triangle(x2, G, colGuess(pct), G.height)
       + text(x1, colY - chartY(T.height) > 10 ? colY - 2 : colY + 9, metres(colAlt), "b")
-      + altitude(x1, T) + name(x1, over() ? T.name : "?")
-      + altitude(x2, G) + name(x2, G.name);
+      + altitude(x1, T) + altitude(x2, G);
+    addName(x1, over() ? T.name : "?");
+    addName(x2, G.name);
+  });
+
+  // Each name goes in the first row where it doesn't overlap the previous name there.
+  const rowEnds = [];
+  const placed = labels.sort((a, b) => a[0] - b[0]).map(([x, t]) => {
+    const half = t.length * .3 * font;   // estimated half-width of the text
+    const cx = clamp(x, half, viewW - half);
+    let row = rowEnds.findIndex(end => cx - half > end + 3);
+    if (row < 0) row = rowEnds.length;
+    rowEnds[row] = cx + half;
+    return { x, cx, t, row };
+  });
+  const rowH = Math.min(1.2 * font, (233 - base - 1.1 * font) / Math.max(1, rowEnds.length - 1));   // squeeze rows to fit
+  placed.forEach(({ x, cx, t, row }) => {
+    const y = base + 1.1 * font + row * rowH;
+    if (row) out += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y - font).toFixed(1)}"/>`;   // leader to its peak
+    out += text(cx, y, t);
   });
 
   chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
-  chart.setAttribute("font-size", (fontPx() * 236 / chart.clientHeight).toFixed(2));
+  chart.setAttribute("font-size", font.toFixed(2));
   chart.innerHTML = out;
 }
 function confetti() {
@@ -258,6 +279,7 @@ const diamond = (x, y, r) => `${pt(x, y - r)} ${pt(x + r, y)} ${pt(x, y + r)} ${
 function drawMap() {
   clampView();
   mapSvg.setAttribute("viewBox", `${view.x} ${view.y} ${view.w} ${view.h}`);
+  mapSvg.style.touchAction = view.h < world.H - .5 ? "none" : "pan-y";   // fully zoomed out: vertical swipes scroll the page
   const px = view.w / mapSvg.clientWidth;
   const zoomFrac = view.w / world.W;
   const live = !over();
@@ -363,12 +385,14 @@ mapSvg.onpointerup = mapSvg.onpointercancel = e => {
   }
 };
 mapSvg.addEventListener("wheel", e => {
-  e.preventDefault();
   if (!peaks.length) return;
-  const [wx, wy] = toWorld(e.clientX, e.clientY);
   // line-mode deltas are much larger than pixel ones
   const step = e.deltaMode === 1 ? .4 : .012;
-  zoomTo(view.w * Math.exp(clamp(e.deltaY, -100, 100) * step), wx, wy, e.clientX, e.clientY);
+  const w = clamp(view.w * Math.exp(clamp(e.deltaY, -100, 100) * step), minW(), maxW());
+  if (Math.abs(w / view.w - 1) < 1e-9) return;   // at the zoom limit: let the page scroll
+  e.preventDefault();
+  const [wx, wy] = toWorld(e.clientX, e.clientY);
+  zoomTo(w, wx, wy, e.clientX, e.clientY);
 }, { passive: false });
 
 let toastTimer;
