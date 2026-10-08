@@ -136,9 +136,9 @@ function renderStatus() {
       ? "Tap another peak on the map, then press Guess."
       : "Tap a peak on the map, then press Guess.";
 
-  let hint = `Guess ${made + 1} of ${MAX_GUESSES}`;
-  if (made >= 3) hint += ` · Hint: its elevation is ${peak.height.toLocaleString()} m`;
-  if (made >= 5) hint += ` · its parent starts with “${(peak.parent || "—")[0]}”`;
+  let hint = `Guess ${made + 1} of ${MAX_GUESSES} · Target: altitude ${peak.height.toLocaleString()} m, key col ${colLabel(peak.colAlt)}`;
+  if (made >= 3) hint += ` · Range: ${peak.range}`;
+  if (made >= 5) hint += ` · Country: ${peak.country}`;
 
   $("#sel").textContent = `${instruction} ${hint}`;
 }
@@ -155,7 +155,7 @@ function parentChain(i) {
 }
 
 // Walking from one peak to the other: the lowest col you must cross, and how
-// high it is as a percentage of the target peak.
+// high it is as a percentage of the target's altitude.
 function link(guessIdx, targetIdx) {
   const chainA = parentChain(guessIdx);
   const chainB = parentChain(targetIdx);
@@ -168,7 +168,8 @@ function link(guessIdx, targetIdx) {
     ? Math.min(...crossed.map(i => peaks[i].colAlt))
     : peaks[guessIdx].height;   // nothing in the way: measured from the summit itself
 
-  return { colAlt, pct: Math.round(100 * colAlt / peaks[targetIdx].height) };
+  const pct = Math.round(100 * colAlt / peaks[targetIdx].height);
+  return { colAlt, pct };
 }
 
 // How a guess relates to the target: its linking col and score. The target
@@ -179,7 +180,7 @@ const linkToTarget = gi => gi === target
 
 function colGuess(linked) {
   //const l = 50 + .3 * linked;
-  const l = 20 + .7 * linked;
+  const l = 20 + 70 * (linked / 100) ** .25;   // quartic root spreads out the low scores
   return `hsl(${hue}, 30%, ${l}%)`;
 }
 
@@ -223,23 +224,26 @@ function drawChart() {
     return ghost + solid;
   };
 
-  // One entry per bar: each guess, plus the answer in slot 9 after a loss.
-  const entries = guesses.map((gi, i) => {
+  // One entry per bar: the mystery peak always in the leftmost slot, then each guess
+  // to its right. A correct guess isn't drawn again (the target is already there).
+  // The mystery peak's lower bar is its key col, black until the round ends.
+  const entries = [];
+  guesses.forEach((gi, i) => {
+    if (gi === target) return;
     const info = linkToTarget(gi);
-    return {
-      x: slotX(i),
-      peak: peaks[gi],
-      colo: colGuess(info.pct),
-      colAlt: info.colAlt,
-      showCol: gi !== target,
-    };
+    entries.push({ x: slotX(i + 1), peak: peaks[gi], colo: colGuess(info.pct), colAlt: info.colAlt, showCol: true });
   });
-  if (roundOver && !guesses.includes(target)) {
-    const answer = peaks[target];
-    entries.push({ x: slotX(8), peak: answer, colo: "currentColor", colAlt: answer.height, showCol: false });
-  }
+  const answer = peaks[target];
+  entries.unshift({
+    x: slotX(0),
+    peak: answer,
+    colo: roundOver ? colGuess(100) : "currentColor",
+    colAlt: answer.colAlt,
+    showCol: true,
+    secret: !roundOver,   // the name stays hidden until the end
+  });
 
-  for (const { x, peak, colo, colAlt, showCol } of entries) {
+  for (const { x, peak, colo, colAlt, showCol, secret } of entries) {
     out += bar(x, peak, colo, colAlt);
     out += `<text x="${x.toFixed(1)}" y="${yFor(peak.height) - 3}">${peak.height.toLocaleString()}</text>`;
     if (showCol) {
@@ -247,7 +251,7 @@ function drawChart() {
       const labelY = colY - yFor(peak.height) > 10 ? colY - 2 : colY + 9;
       out += `<text x="${x.toFixed(1)}" y="${labelY}" class="b">${colAlt.toLocaleString()}</text>`;
     }
-    out += nameLabel(x, peak.name);
+    out += nameLabel(x, secret ? "?" : peak.name);
   }
 
   chart.setAttribute("font-size", fontUnits.toFixed(2));
