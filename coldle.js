@@ -113,8 +113,10 @@ function renderTable() {
       return `<tr><td>${i + 1}</td><td>${peak.name}</td><td>🎯 Correct</td><td class="ok">100%</td></tr>`;
     }
     const info = link(peakIdx, target);
+    console.log(`<tr><td>${i + 1}</td><td>${peak.name}</td><td>${colLabel(info.colAlt)}</td>`
+         + `<td color="${colGuess(info.pct)}">${info.pct}%</td></tr>`);
     return `<tr><td>${i + 1}</td><td>${peak.name}</td><td>${colLabel(info.colAlt)}</td>`
-         + `<td class="${accuracyClass(info.pct)}">${info.pct}%</td></tr>`;
+         + `<td color="${colGuess(info.pct)}">${info.pct}%</td></tr>`;
   });
 
   $("#rows").innerHTML = rows.length
@@ -189,6 +191,11 @@ const linkToTarget = gi => gi === target
   ? { colAlt: peaks[gi].height, pct: 100 }
   : link(gi, target);
 
+function colGuess(linked) {
+  var l = 50+.3*linked;
+  return "hsl(" + hue + ", 30%, " + l + "%)";
+}
+
 // ── Chart: one bar per guess ─────────────────────────────────────────────────
 function drawChart() {
   const chart = $("#ch");
@@ -218,14 +225,15 @@ function drawChart() {
     `<text class="end" transform="translate(${x + 3} 184) rotate(-45)">${trimName(name)}</text>`;
 
   // Solid bar up to the col; the grey "ghost" above it shows the hidden part of the peak.
-  const bar = (x, peak, cls, colAlt) => {
+  const bar = (x, peak, colo, colAlt) => {
     const baseY = yFor(0);
     const peakY = yFor(peak.height);
     const topY = Math.min(yFor(colAlt), baseY - MIN_BAR_H);   // never thinner than MIN_BAR_H
     const ghost = colAlt < peak.height
       ? `<rect class="ghost" x="${(x - barW / 2).toFixed(1)}" y="${peakY}" width="${barW.toFixed(1)}" height="${baseY - peakY}"/>`
       : "";
-    const solid = `<rect class="${cls}" x="${(x - barW / 2).toFixed(1)}" y="${topY}" width="${barW.toFixed(1)}" height="${baseY - topY}"/>`;
+    console.log('colo',colo)
+    const solid = `<rect fill="${colo}" x="${(x - barW / 2).toFixed(1)}" y="${topY}" width="${barW.toFixed(1)}" height="${baseY - topY}"/>`;
     return ghost + solid;
   };
 
@@ -235,18 +243,18 @@ function drawChart() {
     return {
       x: slotX(i),
       peak: peaks[gi],
-      cls: "f-" + accuracyClass(info.pct),
+      colo: colGuess(info.pct),
       colAlt: info.colAlt,
       showCol: gi !== target,
     };
   });
   if (roundOver && !guesses.includes(target)) {
     const answer = peaks[target];
-    entries.push({ x: slotX(8), peak: answer, cls: "f-tgt", colAlt: answer.height, showCol: false });
+    entries.push({ x: slotX(8), peak: answer, colo: "currentColor", colAlt: answer.height, showCol: false });
   }
 
-  for (const { x, peak, cls, colAlt, showCol } of entries) {
-    out += bar(x, peak, cls, colAlt);
+  for (const { x, peak, colo, colAlt, showCol } of entries) {
+    out += bar(x, peak, colo, colAlt);
     out += `<text x="${x.toFixed(1)}" y="${yFor(peak.height) - 3}">${peak.height.toLocaleString()}</text>`;
     if (showCol) {
       const colY = yFor(colAlt);
@@ -476,12 +484,15 @@ function drawMap() {
     const isSelected = i === selected;
     const tapAttr = roundOver ? "" : ` data-i="${i}"`;   // only clickable while the round is live
 
+    const radius = (isSelected ? 6.5 : 5) * unitsPerPx;
     let cls = "";
     if (guessIdx >= 0) cls = "f-" + accuracyClass(linkToTarget(i).pct);
     else if (roundOver && i === target) cls = "f-tgt";
-
-    const radius = (isSelected ? 6.5 : 5) * unitsPerPx;
     out += `<circle class="${cls}${isSelected ? " sel" : ""}"${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`;
+    //console.log(`<circle fill="${colGuess(linkToTarget(i).pct)}${isSelected ? " sel" : ""}"${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`);
+    //out += `<circle fill="${colGuess(linkToTarget(i).pct)}${isSelected ? " sel" : ""}"${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`;
+    //colo = "gray" ToDo
+    //out += `<circle fill="${colo}${isSelected ? " sel" : ""}"${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`;
 
     const showLabel = zoomFrac <= LABELS_ALL || isSelected
       || (guessIdx >= 0 && zoomFrac <= LABELS_GUESSED);
