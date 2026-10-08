@@ -136,11 +136,12 @@ function renderStatus() {
       ? "Tap another peak on the map, then press Guess."
       : "Tap a peak on the map, then press Guess.";
 
-  let hint = `Guess ${made + 1} of ${MAX_GUESSES} · Target: altitude ${peak.height.toLocaleString()} m, key col ${colLabel(peak.colAlt)}`;
-  if (made >= 3) hint += ` · Range: ${peak.range}`;
-  if (made >= 5) hint += ` · Country: ${peak.country}`;
+  let hint = `The mystery peak has altitude ${peak.height.toLocaleString()} m and its key col is at ${colLabel(peak.colAlt)}.`;
+  if (made >= 3) hint += ` Its range is ${peak.range}.`;
+  if (made >= 5) hint += ` Its country is ${peak.country}.`;
+  hint += ` Guess ${made + 1} of ${MAX_GUESSES}.`;
 
-  $("#sel").textContent = `${instruction} ${hint}`;
+  $("#sel").textContent = `${hint} ${instruction}`;
 }
 
 // ── Peak relationships ───────────────────────────────────────────────────────
@@ -253,11 +254,11 @@ function drawChart() {
 
   for (const { x, peak, colo, colAlt, showCol, secret } of entries) {
     out += bar(x, peak, colo, colAlt);
-    out += `<text x="${x.toFixed(1)}" y="${yFor(peak.height) - 3}">${peak.height.toLocaleString()}</text>`;
+    out += `<text x="${x.toFixed(1)}" y="${yFor(peak.height) - 3}">${peak.height.toLocaleString()} m</text>`;
     if (showCol) {
       const colY = yFor(colAlt);
       const labelY = colY - yFor(peak.height) > 10 ? colY - 2 : colY + 9;
-      out += `<text x="${x.toFixed(1)}" y="${labelY}" class="b">${colAlt.toLocaleString()}</text>`;
+      out += `<text x="${x.toFixed(1)}" y="${labelY}" class="b">${colAlt.toLocaleString()} m</text>`;
     }
     out += nameLabel(x, secret ? "?" : peak.name);
   }
