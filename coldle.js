@@ -86,7 +86,7 @@ function drawChart() {
   const chart = $("#ch");
   const viewW = 236 * chart.clientWidth / chart.clientHeight;
   const slotW = (viewW - 36) / MAX_GUESSES;
-  const w = slotW * .24;   // triangle half-width: a target-guess pair is at most 4w wide
+  const w = slotW * .225;   // triangle half-width: a target-guess pair is at most 4w wide, leaving .05 slot of space each side
   const base = chartY(0);
   const T = peaks[target];
   const targetColor = over() ? colGuess(100) : "currentColor";
