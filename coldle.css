@@ -18,11 +18,14 @@ th,td{padding:4px 6px;text-align:left}
   #mp{aspect-ratio:1}
 }
 
+#go,#reset{font-size:1.2rem}
+div.foot label{font-size:1.2rem}
+div.foot input[type=radio]{height:1.4em;vertical-align:middle}
+
 /* map layer: JS writes geometry + one font-size on the group; all paint is here.
    non-scaling-stroke keeps marker outlines at fixed CSS px regardless of zoom. */
-#pk polygon{fill:var(--mut);stroke:CanvasText;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#pk polygon{fill:var(--mut);stroke:currentColor;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #pk polygon.sel{stroke-width:3px}
-#pk circle.ring{fill:currentColor;fill-opacity:.15;stroke:currentColor;stroke-width:1.5px;vector-effect:non-scaling-stroke;pointer-events:none}
 #pk [data-i]{cursor:pointer}
 #pk text{fill:CanvasText;stroke:var(--card);stroke-width:.22em;paint-order:stroke}
 

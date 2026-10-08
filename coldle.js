@@ -234,7 +234,7 @@ function drawChart() {
 
   // One entry per bar: the mystery peak always in the leftmost slot, then each guess
   // to its right. A correct guess isn't drawn again (the target is already there).
-  // The mystery peak's lower bar is its key col, black until the round ends.
+  // The mystery peak is one solid triangle, black until the round ends.
   const entries = [];
   guesses.forEach((gi, i) => {
     if (gi === target) return;
@@ -246,9 +246,9 @@ function drawChart() {
     x: slotX(0),
     peak: answer,
     colo: roundOver ? colGuess(100) : "currentColor",
-    colAlt: answer.colAlt,
-    showCol: true,
-    secret: !roundOver,   // the name stays hidden until the end
+    colAlt: answer.height,   // whole triangle in one colour, no key col shown
+    showCol: false,
+    secret: !roundOver,      // the name stays hidden until the end
   });
 
   for (const { x, peak, colo, colAlt, showCol, secret } of entries) {
@@ -442,14 +442,7 @@ function zoomAt(factor, cx, cy) {
   zoomTo(view.w * factor, wx, wy, cx, cy);
 }
 
-// Used by the ＋ / － buttons.
-function zoom(factor) {
-  if (!peaks.length) return;
-  const rect = mapSvg.getBoundingClientRect();
-  zoomAt(factor, rect.left + rect.width / 2, rect.top + rect.height / 2);
-}
-
-// Used by the Reset button.
+// Back to the full-world view.
 function resetMap() {
   resetView();
   drawMap();
@@ -495,14 +488,10 @@ function drawMap() {
     if (isGuessed) fill = colGuess(linkToTarget(i).pct);
     else if (isRevealed) fill = colGuess(100);
     const fillAttr = fill ? ` style="fill:${fill}"` : "";
-    const r = isSelected ? R * 1.3 : R;
+    const r = isSelected ? R * 1.8 : R;
     const shape = isGuessed || isRevealed ? diamond(p.x, p.y, r) : triangle(p.x, p.y, r);
 
     const tier = isSelected ? 3 : isRevealed ? 2 : isGuessed ? 1 : 0;
-    if (isSelected) {
-      // translucent ring so the selection stands out from neighbours
-      tiers[tier].push(`<circle class="ring" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(R * 2).toFixed(1)}"/>`);
-    }
     tiers[tier].push(`<polygon class="${isSelected ? "sel" : ""}"${fillAttr}${tapAttr} points="${shape}"/>`);
 
     const showLabel = zoomFrac <= LABELS_ALL || isSelected
@@ -651,6 +640,8 @@ mapSvg.addEventListener("wheel", e => {
 
 // ── Controls, share, boot ────────────────────────────────────────────────────
  $("#go").onclick = () => (roundOver ? shareResult() : guess());
+// Reset: start the round again (same peak in daily mode, new one in random) with the full map.
+$("#reset").onclick = () => { newRound(); resetMap(); };
 document.querySelectorAll("input[name=mode]").forEach(radio => {
   radio.onchange = () => {
     mode = radio.value;
