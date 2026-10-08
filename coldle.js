@@ -92,6 +92,7 @@ function drawChart() {
   const targetColor = over() ? colGuess(100) : "currentColor";
 
   const font = fontPx() * 236 / chart.clientHeight;   // body font size in chart units
+  const half = t => t.length * .3 * font;   // estimated half-width of a text
   const labels = [];   // [x, name]: laid out in rows below the baseline once all peaks are drawn
   const addName = (x, t) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t]);
   const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
@@ -122,24 +123,25 @@ function drawChart() {
     // The pair's sloping sides cross at the linking col, which sets the gap between the two summits.
     const { colAlt, pct } = linkToTarget(g);
     const gap = Math.max(0, w * (2 - colAlt / T.height - colAlt / G.height));
-    const x1 = cx - gap / 2;
-    const x2 = cx + gap / 2;
+    const xg = cx - gap / 2;   // guess on the left, target on the right
+    const xt = cx + gap / 2;
     const colY = chartY(colAlt);
-    out += triangle(x1, T, targetColor, colAlt) + triangle(x2, G, colGuess(pct), G.height)
-      + text(x1, colY - chartY(T.height) > 10 ? colY - 2 : colY + 9, metres(colAlt), "b")
-      + altitude(x1, T) + altitude(x2, G);
-    addName(x1, over() ? T.name : "?");
-    addName(x2, G.name);
+    const clash = gap < half(metres(T.height)) + half(metres(G.height)) && Math.abs(chartY(T.height) - chartY(G.height)) < font;
+    out += triangle(xt, T, targetColor, colAlt) + triangle(xg, G, colGuess(pct), G.height)
+      + text(xt, colY - chartY(T.height) > 10 ? colY - 2 : colY + 9, metres(colAlt), "b")
+      + altitude(xg, G) + (clash ? "" : altitude(xt, T));   // skip the target's altitude if the two texts collide
+    addName(xg, G.name);
+    addName(xt, over() ? T.name : "?");
   });
 
   // Each name goes in the first row where it doesn't overlap the previous name there.
   const rowEnds = [];
   const placed = labels.sort((a, b) => a[0] - b[0]).map(([x, t]) => {
-    const half = t.length * .3 * font;   // estimated half-width of the text
-    const cx = clamp(x, half, viewW - half);
-    let row = rowEnds.findIndex(end => cx - half > end + 3);
+    const h = half(t);
+    const cx = clamp(x, h, viewW - h);
+    let row = rowEnds.findIndex(end => cx - h > end + 3);
     if (row < 0) row = rowEnds.length;
-    rowEnds[row] = cx + half;
+    rowEnds[row] = cx + h;
     return { x, cx, t, row };
   });
   const rowH = Math.min(1.2 * font, (233 - base - 1.1 * font) / Math.max(1, rowEnds.length - 1));   // squeeze rows to fit
@@ -283,9 +285,10 @@ function drawMap() {
   const px = view.w / mapSvg.clientWidth;
   const zoomFrac = view.w / world.W;
   const live = !over();
-  // draw order: unguessed, guessed, revealed target, selected
-  const tiers = [[], [], [], []];
+  // draw order: unguessed, guessed, revealed target, all labels, then the selected marker and label
+  const tiers = [[], [], []];
   let labels = "";
+  let top = "";
   peaks.forEach((p, i) => {
     const guessed = guesses.includes(i);
     const isSel = i === selected;
@@ -294,16 +297,21 @@ function drawMap() {
     const fill = guessed ? colGuess(linkToTarget(i).pct) : revealed ? colGuess(100) : "";
     const shape = (guessed || revealed ? diamond : triangle)(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
-    tiers[isSel ? 3 : revealed ? 2 : guessed ? 1 : 0]
-      .push(`<polygon${isSel ? ' class="sel"' : ""}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`);
+    const marker = `<polygon${isSel ? ' class="sel"' : ""}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`;
     // label every peak when zoomed in ~3.6x, guessed ones from ~1.8x
-    if (zoomFrac <= .28 || isSel || (guessed && zoomFrac <= .56)) {
-      labels += `<text${tap} x="${(p.x + 9 * px).toFixed(1)}" y="${(p.y + 4 * px).toFixed(1)}">${p.name}</text>`;
+    const label = zoomFrac <= .28 || isSel || (guessed && zoomFrac <= .56)
+      ? `<text${tap} x="${(p.x + 9 * px).toFixed(1)}" y="${(p.y + 4 * px).toFixed(1)}">${p.name}</text>`
+      : "";
+    if (isSel) {
+      top = marker + label;
+    } else {
+      tiers[revealed ? 2 : guessed ? 1 : 0].push(marker);
+      labels += label;
     }
   });
   const layer = $("#pk");
   layer.setAttribute("font-size", (fontPx() * px).toFixed(2));
-  layer.innerHTML = tiers.flat().join("") + labels;
+  layer.innerHTML = tiers.flat().join("") + labels + top;
 }
 const pointers = new Map();
 let drag = null;
