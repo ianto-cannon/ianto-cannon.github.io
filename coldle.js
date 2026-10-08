@@ -9,8 +9,11 @@ const MAX_GUESSES = 8;
 
 const bodyFontSize = () => parseFloat(getComputedStyle(document.body).fontSize);
 const toRad = deg => deg * Math.PI / 180;
+const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
 
-const colLabel = m => (m ? m.toLocaleString() + " m" : "sea level");
+const metres = m => m.toLocaleString() + " m";
+const colLabel = m => (m ? metres(m) : "sea level");
+const pt = (x, y) => `${x.toFixed(1)},${y.toFixed(1)}`;   // one SVG polygon vertex
 
 // ── CSV parsing ──────────────────────────────────────────────────────────────
 function parseCSV(text) {
@@ -65,6 +68,8 @@ let target = null;        // index of the mystery peak
 let guesses = [];         // indices of guessed peaks, in order
 let selected = null;      // index of the peak currently picked on the map
 let roundOver = false;
+
+const hasWon = () => guesses.includes(target);
 
 // ── Rounds ───────────────────────────────────────────────────────────────────
 function newRound() {
@@ -121,8 +126,7 @@ function renderStatus() {
   const peak = peaks[target];
 
   if (roundOver) {
-    const won = guesses.includes(target);
-    const headline = won ? `Got it in ${guesses.length}!` : "Out of guesses.";
+    const headline = hasWon() ? `Got it in ${guesses.length}!` : "Out of guesses.";
     $("#sel").innerHTML =
       `<b>${headline}</b> The peak was <b>${peak.name}</b> in ${peak.range}, ${peak.country}.`
       + ` Pick Random for another peak. <span id="shm"></span>`;
@@ -136,7 +140,7 @@ function renderStatus() {
       ? "Tap another peak on the map, then press Guess."
       : "Tap a peak on the map, then press Guess.";
 
-  let hint = `The mystery peak has altitude ${peak.height.toLocaleString()} m and its key col is at ${colLabel(peak.colAlt)}.`;
+  let hint = `The mystery peak has altitude ${metres(peak.height)} and its key col is at ${colLabel(peak.colAlt)}.`;
   if (made >= 3) hint += ` Its range is ${peak.range}.`;
   if (made >= 5) hint += ` Its country is ${peak.country}.`;
   hint += ` Guess ${made + 1} of ${MAX_GUESSES}.`;
@@ -179,34 +183,40 @@ const linkToTarget = gi => gi === target
   ? { colAlt: peaks[gi].height, pct: 100 }
   : link(gi, target);
 
-function colGuess(linked) {
-  //const l = 50 + .3 * linked;
-  const l = 20 + 70 * (linked / 100) ** .25;   // quartic root spreads out the low scores
-  return `hsl(${hue}, 65%, ${l}%)`;
+// Colour for a score (0–100%); `hue` comes from the shared page scripts.
+function colGuess(pct) {
+  const lightness = 20 + 70 * (pct / 100) ** .25;   // quartic root spreads out the low scores
+  return `hsl(${hue}, 65%, ${lightness}%)`;
 }
 
-// ── Chart: one bar per guess ─────────────────────────────────────────────────
+// ── Chart: a triangle per peak ───────────────────────────────────────────────
+const CHART_H = 236;        // viewBox height; the width follows the element's aspect ratio
+const CHART_LEFT = 36;      // room for the altitude axis labels
+const CHART_BASE_Y = 178;   // y of altitude 0
+const CHART_SPAN_Y = 168;   // y distance covered by 0…CHART_MAX_ALT
+const CHART_MAX_ALT = 9000;
+const MIN_BAR_H = 2;        // solid part is never thinner than this
+
+const chartY = alt => CHART_BASE_Y - alt / CHART_MAX_ALT * CHART_SPAN_Y;
+
 function drawChart() {
   const chart = $("#ch");
   const pxW = chart.clientWidth;           // element size in CSS px
   const pxH = chart.clientHeight;
-  const viewW = 236 * pxW / pxH;   // widen on wide screens so bars spread out
-  const scale = pxH / 236;
-  const fontUnits = bodyFontSize() / scale;       // body font size in viewBox units
+  const viewW = CHART_H * pxW / pxH;   // widen on wide screens so bars spread out
+  const fontUnits = bodyFontSize() / (pxH / CHART_H);   // body font size in viewBox units
 
-  const slotW = (viewW - 36) / 9;                 // 9 slots: up to 8 guesses + the answer
-  const slotX = i => 36 + slotW * (i + 0.5);
+  const slotW = (viewW - CHART_LEFT) / (MAX_GUESSES + 1);   // the answer + every possible guess
+  const slotX = i => CHART_LEFT + slotW * (i + 0.5);
   const barW = slotW * 0.9;
-  const MIN_BAR_H = 2;
-  const yFor = alt => 178 - alt / 9000 * 168;     // altitude 0…9000 m → y 178…10
 
-  chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
+  chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} ${CHART_H}`);
 
   let out = "";
 
   [0, 2000, 4000, 6000, 8000].forEach(alt => {
-    out += `<line x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${yFor(alt)}" y2="${yFor(alt)}"/>`;
-    out += `<text class="start" x="2" y="${yFor(alt) + 3}">${alt}</text>`;
+    out += `<line x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${chartY(alt)}" y2="${chartY(alt)}"/>`;
+    out += `<text class="start" x="2" y="${chartY(alt) + 3}">${alt}</text>`;
   });
 
   const trimName = name => (name.length > 17 ? name.slice(0, 16) + "…" : name);
@@ -216,12 +226,11 @@ function drawChart() {
   // Each peak is a triangle: the solid part is the slice up to the col; the grey
   // "ghost" triangle behind it shows the hidden part up to the summit.
   const bar = (x, peak, colo, colAlt) => {
-    const baseY = yFor(0);
-    const peakY = yFor(peak.height);
-    const topY = Math.min(yFor(colAlt), baseY - MIN_BAR_H);   // never thinner than MIN_BAR_H
+    const baseY = chartY(0);
+    const peakY = chartY(peak.height);
+    const topY = Math.min(chartY(colAlt), baseY - MIN_BAR_H);
     const x0 = x - barW / 2;
     const x1 = x + barW / 2;
-    const pt = (px, py) => `${px.toFixed(1)},${py.toFixed(1)}`;
 
     const ghost = colAlt < peak.height
       ? `<polygon class="ghost" points="${pt(x0, baseY)} ${pt(x1, baseY)} ${pt(x, peakY)}"/>`
@@ -254,11 +263,11 @@ function drawChart() {
 
   for (const { x, peak, colo, colAlt, showCol, secret } of entries) {
     out += bar(x, peak, colo, colAlt);
-    out += `<text x="${x.toFixed(1)}" y="${yFor(peak.height) - 3}">${peak.height.toLocaleString()} m</text>`;
+    out += `<text x="${x.toFixed(1)}" y="${chartY(peak.height) - 3}">${metres(peak.height)}</text>`;
     if (showCol) {
-      const colY = yFor(colAlt);
-      const labelY = colY - yFor(peak.height) > 10 ? colY - 2 : colY + 9;
-      out += `<text x="${x.toFixed(1)}" y="${labelY}" class="b">${colAlt.toLocaleString()} m</text>`;
+      const colY = chartY(colAlt);
+      const labelY = colY - chartY(peak.height) > 10 ? colY - 2 : colY + 9;   // flip below the line if cramped
+      out += `<text x="${x.toFixed(1)}" y="${labelY}" class="b">${metres(colAlt)}</text>`;
     }
     out += nameLabel(x, secret ? "?" : peak.name);
   }
@@ -304,7 +313,7 @@ function confetti() {
   let last = performance.now();
 
   function tick(now) {
-    const dt = Math.max(0, Math.min(2, (now - last) / 16.7));   // clamp to 2 frames of motion
+    const dt = clamp((now - last) / 16.7, 0, 2);   // at most 2 frames of motion
     last = now;
 
     ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -411,10 +420,10 @@ function resetView() {
 }
 
 function clampView() {
-  view.w = Math.max(minViewW(), Math.min(maxViewW(), view.w));
+  view.w = clamp(view.w, minViewW(), maxViewW());
   view.h = view.w / mapAspect();
-  view.x = Math.max(0, Math.min(world.W - view.w, view.x));
-  view.y = Math.max(0, Math.min(world.H - view.h, view.y));
+  view.x = clamp(view.x, 0, world.W - view.w);
+  view.y = clamp(view.y, 0, world.H - view.h);
 }
 
 // Screen (client) coordinates → world units.
@@ -430,7 +439,7 @@ function clientToWorld(cx, cy) {
 // screen point (cx,cy). Shared by wheel-zoom and pinch.
 function zoomTo(w, wx, wy, cx, cy) {
   const rect = mapSvg.getBoundingClientRect();
-  view.w = Math.max(minViewW(), Math.min(maxViewW(), w));
+  view.w = clamp(w, minViewW(), maxViewW());
   view.h = view.w / mapAspect();
   view.x = wx - (cx - rect.left) / rect.width * view.w;
   view.y = wy - (cy - rect.top) / rect.height * view.h;
@@ -460,19 +469,20 @@ addEventListener("resize", () => {
 const LABELS_ALL = 0.28;      // zoomed in ~3.6×: label every peak
 const LABELS_GUESSED = 0.56;  // zoomed in ~1.8×: also label peaks already guessed
 
+// Marker outlines (vertices as "x,y" strings), centred on (x, y) with radius r.
+const triangle = (x, y, r) => `${pt(x, y - r)} ${pt(x + r * .87, y + r * .5)} ${pt(x - r * .87, y + r * .5)}`;
+const diamond = (x, y, r) => `${pt(x, y - r)} ${pt(x + r, y)} ${pt(x, y + r)} ${pt(x - r, y)}`;
+
 function drawMap() {
   clampView();
 
-  const unitsPerPx = view.w / (mapSvg.clientWidth);
+  const unitsPerPx = view.w / mapSvg.clientWidth;
   const labelFont = bodyFontSize() * unitsPerPx;   // labels stay body-sized on screen at any zoom
   const zoomFrac = view.w / world.W;
 
   mapSvg.setAttribute("viewBox", `${view.x} ${view.y} ${view.w} ${view.h}`);
 
   const R = 7 * unitsPerPx;   // marker radius: 7 px on screen at any zoom
-  const pt = (x, y) => `${x.toFixed(1)},${y.toFixed(1)}`;
-  const triangle = (x, y, r) => `${pt(x, y - r)} ${pt(x + r * .87, y + r * .5)} ${pt(x - r * .87, y + r * .5)}`;
-  const diamond = (x, y, r) => `${pt(x, y - r)} ${pt(x + r, y)} ${pt(x, y + r)} ${pt(x - r, y)}`;
 
   // Draw order (later = on top): unguessed, guessed, revealed target, selected, then labels.
   const tiers = [[], [], [], []];
@@ -635,21 +645,10 @@ mapSvg.addEventListener("wheel", e => {
   e.preventDefault();
   if (!peaks.length) return;
   const step = e.deltaMode === 1 ? 0.4 : 0.012;   // line-mode deltas are much larger than pixel ones
-  const clamped = Math.max(-100, Math.min(100, e.deltaY));
-  zoomAt(Math.exp(clamped * step), e.clientX, e.clientY);
+  zoomAt(Math.exp(clamp(e.deltaY, -100, 100) * step), e.clientX, e.clientY);
 }, { passive: false });
 
-// ── Controls, share, boot ────────────────────────────────────────────────────
- $("#go").onclick = () => (roundOver ? shareResult() : guess());
-// Reset: start the round again (same peak in daily mode, new one in random) with the full map.
-$("#reset").onclick = () => { newRound(); resetMap(); };
-document.querySelectorAll("input[name=mode]").forEach(radio => {
-  radio.onchange = () => {
-    mode = radio.value;
-    newRound();
-  };
-});
-
+// ── Share ────────────────────────────────────────────────────────────────────
 // Brief message that fades by itself, shown just above `anchor` (an element).
 let toastTimer = null;
 function toast(msg, anchor, ms = 2000) {
@@ -670,7 +669,7 @@ function toast(msg, anchor, ms = 2000) {
 }
 
 function shareResult() {
-  const won = guesses.includes(target);
+  const won = hasWon();
   const highest = Math.max(...peaks.map(p => p.height));
 
   // One block per guess, sized by the col height relative to the highest peak.
@@ -701,6 +700,19 @@ function shareResult() {
     showFallback();
   }
 }
+
+// ── Controls and boot ────────────────────────────────────────────────────────
+$("#go").onclick = () => (roundOver ? shareResult() : guess());
+
+// Reset: start the round again (same peak in daily mode, a new one in random) with the full map.
+$("#reset").onclick = () => { newRound(); resetMap(); };
+
+document.querySelectorAll("input[name=mode]").forEach(radio => {
+  radio.onchange = () => {
+    mode = radio.value;
+    newRound();
+  };
+});
 
 load()
   .then(newRound)
