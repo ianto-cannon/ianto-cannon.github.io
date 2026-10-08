@@ -20,10 +20,11 @@ th,td{padding:4px 6px;text-align:left}
 
 /* map layer: JS writes geometry + one font-size on the group; all paint is here.
    non-scaling-stroke keeps marker outlines at fixed CSS px regardless of zoom. */
-#pk circle{fill:var(--mut);stroke:var(--card);stroke-width:1px;vector-effect:non-scaling-stroke}
-#pk circle.sel{stroke:currentColor;stroke-width:2.2px}
+#pk polygon{fill:var(--mut);stroke:CanvasText;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#pk polygon.sel{stroke-width:3px}
+#pk circle.ring{fill:currentColor;fill-opacity:.15;stroke:currentColor;stroke-width:1.5px;vector-effect:non-scaling-stroke;pointer-events:none}
 #pk [data-i]{cursor:pointer}
-#pk text{fill:#000;stroke:var(--card);stroke-width:.22em;paint-order:stroke}
+#pk text{fill:CanvasText;stroke:var(--card);stroke-width:.22em;paint-order:stroke}
 
 /* chart layer */
 #ch{height:300px}
@@ -32,7 +33,7 @@ th,td{padding:4px 6px;text-align:left}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
 #ch text.b{font-weight:bold}
-#ch rect.ghost{fill:var(--mut);opacity:.5}
+#ch polygon.ghost{fill:var(--mut);opacity:.5}
 
 /* confetti overlay */
 canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}

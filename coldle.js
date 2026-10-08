@@ -181,7 +181,7 @@ const linkToTarget = gi => gi === target
 function colGuess(linked) {
   //const l = 50 + .3 * linked;
   const l = 20 + 70 * (linked / 100) ** .25;   // quartic root spreads out the low scores
-  return `hsl(${hue}, 30%, ${l}%)`;
+  return `hsl(${hue}, 65%, ${l}%)`;
 }
 
 // ── Chart: one bar per guess ─────────────────────────────────────────────────
@@ -212,15 +212,23 @@ function drawChart() {
   const nameLabel = (x, name) =>
     `<text class="end" transform="translate(${x + 3} 184) rotate(-45)">${trimName(name)}</text>`;
 
-  // Solid bar up to the col; the grey "ghost" above it shows the hidden part of the peak.
+  // Each peak is a triangle: the solid part is the slice up to the col; the grey
+  // "ghost" triangle behind it shows the hidden part up to the summit.
   const bar = (x, peak, colo, colAlt) => {
     const baseY = yFor(0);
     const peakY = yFor(peak.height);
     const topY = Math.min(yFor(colAlt), baseY - MIN_BAR_H);   // never thinner than MIN_BAR_H
+    const x0 = x - barW / 2;
+    const x1 = x + barW / 2;
+    const pt = (px, py) => `${px.toFixed(1)},${py.toFixed(1)}`;
+
     const ghost = colAlt < peak.height
-      ? `<rect class="ghost" x="${(x - barW / 2).toFixed(1)}" y="${peakY}" width="${barW.toFixed(1)}" height="${baseY - peakY}"/>`
+      ? `<polygon class="ghost" points="${pt(x0, baseY)} ${pt(x1, baseY)} ${pt(x, peakY)}"/>`
       : "";
-    const solid = `<rect fill="${colo}" x="${(x - barW / 2).toFixed(1)}" y="${topY}" width="${barW.toFixed(1)}" height="${baseY - topY}"/>`;
+    // width of the triangle at the col line shrinks linearly towards the summit
+    const frac = Math.min(1, (baseY - topY) / (baseY - peakY));
+    const half = barW / 2 * (1 - frac);
+    const solid = `<polygon fill="${colo}" points="${pt(x0, baseY)} ${pt(x1, baseY)} ${pt(x + half, topY)} ${pt(x - half, topY)}"/>`;
     return ghost + solid;
   };
 
@@ -467,26 +475,44 @@ function drawMap() {
 
   mapSvg.setAttribute("viewBox", `${view.x} ${view.y} ${view.w} ${view.h}`);
 
-  let out = "";
+  const R = 7 * unitsPerPx;   // marker radius: 7 px on screen at any zoom
+  const pt = (x, y) => `${x.toFixed(1)},${y.toFixed(1)}`;
+  const triangle = (x, y, r) => `${pt(x, y - r)} ${pt(x + r * .87, y + r * .5)} ${pt(x - r * .87, y + r * .5)}`;
+  const diamond = (x, y, r) => `${pt(x, y - r)} ${pt(x + r, y)} ${pt(x, y + r)} ${pt(x - r, y)}`;
+
+  // Draw order (later = on top): unguessed, guessed, revealed target, selected, then labels.
+  const tiers = [[], [], [], []];
+  let labels = "";
 
   peaks.forEach((p, i) => {
-    const guessIdx = guesses.indexOf(i);
+    const isGuessed = guesses.includes(i);
     const isSelected = i === selected;
+    const isRevealed = roundOver && i === target;
     const tapAttr = roundOver ? "" : ` data-i="${i}"`;   // only clickable while the round is live
 
-    const radius = (isSelected ? 6.5 : 5) * unitsPerPx;
+    // Unguessed peaks are triangles; guessed (and the revealed target) are diamonds.
     let fill = "";
-    if (guessIdx >= 0) fill = colGuess(linkToTarget(i).pct);
-    else if (roundOver && i === target) fill = colGuess(100);
+    if (isGuessed) fill = colGuess(linkToTarget(i).pct);
+    else if (isRevealed) fill = colGuess(100);
     const fillAttr = fill ? ` style="fill:${fill}"` : "";
-    out += `<circle class="${isSelected ? "sel" : ""}"${fillAttr}${tapAttr} cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${radius.toFixed(1)}"/>`;
+    const r = isSelected ? R * 1.3 : R;
+    const shape = isGuessed || isRevealed ? diamond(p.x, p.y, r) : triangle(p.x, p.y, r);
+
+    const tier = isSelected ? 3 : isRevealed ? 2 : isGuessed ? 1 : 0;
+    if (isSelected) {
+      // translucent ring so the selection stands out from neighbours
+      tiers[tier].push(`<circle class="ring" cx="${p.x.toFixed(1)}" cy="${p.y.toFixed(1)}" r="${(R * 2).toFixed(1)}"/>`);
+    }
+    tiers[tier].push(`<polygon class="${isSelected ? "sel" : ""}"${fillAttr}${tapAttr} points="${shape}"/>`);
 
     const showLabel = zoomFrac <= LABELS_ALL || isSelected
-      || (guessIdx >= 0 && zoomFrac <= LABELS_GUESSED);
+      || (isGuessed && zoomFrac <= LABELS_GUESSED);
     if (showLabel) {
-      out += `<text${tapAttr} x="${(p.x + 8 * unitsPerPx).toFixed(1)}" y="${(p.y + 4 * unitsPerPx).toFixed(1)}">${p.name}</text>`;
+      labels += `<text${tapAttr} x="${(p.x + R + 2 * unitsPerPx).toFixed(1)}" y="${(p.y + 4 * unitsPerPx).toFixed(1)}">${p.name}</text>`;
     }
   });
+
+  const out = tiers.flat().join("") + labels;
 
   markerLayer.setAttribute("font-size", labelFont.toFixed(2));
   markerLayer.innerHTML = out;
