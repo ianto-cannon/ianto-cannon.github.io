@@ -33,6 +33,11 @@
 <p>
   <span id="sel" class="hint"> Tap a peak on the map, then press guess.</span>
 </p>
+<svg id="ch" viewBox="0 0 360 236"></svg>
+<svg id="mp" class="box" viewBox="0 0 40030 12742">
+  <g id="bg"></g>
+  <g id="pk"></g>
+</svg>
 <div class='foot'>
   <span>
     <label><input type="radio" name="mode" value="daily" checked>daily</label> 
@@ -45,12 +50,7 @@
     <button id="reset">reset</button>
   </span>
 </div>
-<svg id="mp" class="box" viewBox="0 0 40030 12742">
-  <g id="bg"></g>
-  <g id="pk"></g>
-</svg>
-<svg id="ch" viewBox="0 0 360 236"></svg>
-<div id="rows"></div>
+<div id="rows" style="display: none;"></div>
 </main>
 <script defer src="coldle.js"></script>
   <svg class="banner peaks"></svg>
