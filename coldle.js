@@ -77,7 +77,6 @@ function newRound() {
   guesses = [];
   roundOver = false;
   selected = null;
-  $("#sel").textContent = "Tap a peak on the map, then press Guess.";
   render();
 }
 
@@ -89,7 +88,6 @@ function guess() {
   selected = null;
   roundOver = guessed === target || guesses.length >= MAX_GUESSES;
 
-  $("#sel").textContent = roundOver ? "" : "Tap another peak on the map, then press Guess.";
   render();
   if (guessed === target) confetti();
 }
@@ -97,11 +95,9 @@ function guess() {
 // ── Rendering ────────────────────────────────────────────────────────────────
 function render() {
   renderTable();
-  renderHint();
   drawChart();
   drawMap();
-  if (roundOver) $("#sel").textContent = "Round over. Pick Random for another peak.";
-  renderEndBanner();
+  renderStatus();
   $("#go").textContent = roundOver ? "share results" : "guess";
 }
 
@@ -120,36 +116,31 @@ function renderTable() {
     : "";
 }
 
-function renderHint() {
-  if (roundOver) {
-    $("#hint").textContent = "";
-    return;
-  }
-
-  const targetPeak = peaks[target];
-  const made = guesses.length;
-
-  let hint = `Guess ${Math.min(made + 1, MAX_GUESSES)} of ${MAX_GUESSES}`;
-  if (made >= 3) hint += ` · Hint: its elevation is ${targetPeak.height.toLocaleString()} m`;
-  if (made >= 5) hint += ` · its parent starts with “${(targetPeak.parent || "—")[0]}”`;
-
-  $("#hint").textContent = hint;
-}
-
-function renderEndBanner() {
-  if (!roundOver) {
-    $("#end").innerHTML = "";
-    return;
-  }
-
-  const won = guesses.includes(target);
+// One status field (#sel) for instructions, hints and the round-over summary.
+function renderStatus() {
   const peak = peaks[target];
-  const headline = won ? `Got it in ${guesses.length}!` : "Out of guesses.";
 
-  $("#end").innerHTML =
-    `<div class="msg"><b>${headline}</b> The peak was <b>${peak.name}</b> in ${peak.range}, ${peak.country}.`
-    + `<br><span id="shm" class="hint"></span></div>`;
+  if (roundOver) {
+    const won = guesses.includes(target);
+    const headline = won ? `Got it in ${guesses.length}!` : "Out of guesses.";
+    $("#sel").innerHTML =
+      `<b>${headline}</b> The peak was <b>${peak.name}</b> in ${peak.range}, ${peak.country}.`
+      + ` Pick Random for another peak. <span id="shm"></span>`;
+    return;
+  }
 
+  const made = guesses.length;
+  const instruction = selected !== null
+    ? `Selected: ${peaks[selected].name}. Press Guess to confirm.`
+    : made
+      ? "Tap another peak on the map, then press Guess."
+      : "Tap a peak on the map, then press Guess.";
+
+  let hint = `Guess ${made + 1} of ${MAX_GUESSES}`;
+  if (made >= 3) hint += ` · Hint: its elevation is ${peak.height.toLocaleString()} m`;
+  if (made >= 5) hint += ` · its parent starts with “${(peak.parent || "—")[0]}”`;
+
+  $("#sel").textContent = `${instruction} ${hint}`;
 }
 
 // ── Peak relationships ───────────────────────────────────────────────────────
@@ -521,7 +512,7 @@ function nearestPeak(cx, cy) {
 
 function selectPeak(i) {
   selected = i;
-  $("#sel").textContent = `Selected: ${peaks[i].name}. Press Guess to confirm.`;
+  renderStatus();
   drawMap();
 }
 
