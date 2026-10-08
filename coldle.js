@@ -63,7 +63,7 @@ function renderTable() {
       + `<td style="color:${colGuess(pct)}">${pct}%</td></tr>`;
   });
   $("#rows").innerHTML = rows.length
-    ? `<table><tr><th>#</th><th>Peak</th><th>Linking col</th><th>Linked</th></tr>${rows.join("")}</table>`
+    ? `<table><tr><th>#</th><th>Peak</th><th>Lowest pass</th><th>Closeness</th></tr>${rows.join("")}</table>`
     : "";
 }
 function renderStatus() {
@@ -71,10 +71,10 @@ function renderStatus() {
   const made = guesses.length;
   $("#sel").innerHTML = over()
     ? `<b>${won() ? `Got it in ${made}!` : "Out of guesses."}</b> The peak was <b>${p.name}</b> in ${p.range}, ${p.country}. `
-      + `Pick Random for another peak. <span id="shm"></span>`
-    : `The mystery peak has altitude <b>${metres(p.height)}</b> and its key col is at <b>${colLabel(p.colAlt)}</b>.`
-      + (made >= 3 ? ` Its range is ${p.range}.` : "")
-      + (made >= 5 ? ` Its country is ${p.country}.` : "")
+      + `Pick random for another peak. <span id="shm"></span>`
+    : `Mystery peak: <b>${metres(p.height)}</b> high, key col <b>${colLabel(p.colAlt)}</b> (the lowest pass to any higher peak).`
+      + (made >= 3 ? ` Hint: it is in the ${p.range} range.` : "")
+      + (made >= 5 ? ` Hint: it is in ${p.country}.` : "")
       + ` Guess ${made + 1} of ${MAX_GUESSES}. `
       + (selected === null
         ? `Tap ${made ? "another" : "a"} peak on the map, then press Guess.`
