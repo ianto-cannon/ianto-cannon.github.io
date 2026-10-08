@@ -36,6 +36,14 @@ function guess() {
   selected = null;
   render();
   if (won()) confetti();
+  else if (over()) shake($("#go"));   // out of guesses
+}
+function shake(el) {
+  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  el.classList.remove("shake");
+  void el.offsetWidth;   // restart the animation if it is already running
+  el.classList.add("shake");
+  el.addEventListener("animationend", () => el.classList.remove("shake"), { once: true });
 }
 const chain = i => (i < 0 ? [] : [i, ...chain(peaks[i].parent)]);   // a peak and its ancestors
 
@@ -420,10 +428,14 @@ function toast(msg, anchor) {
   toastTimer = setTimeout(() => el.classList.remove("show"), 2000);
 }
 function shareResult() {
-  const highest = Math.max(...peaks.map(p => p.height));
-  const blocks = guesses.map(g => "▁▂▃▄▅▆▇█"[Math.round(linkToTarget(g).colAlt / highest * 7)]).join("") + (won() ? "🎯" : "");
+  // one block per guess, as tall as its closeness to the mystery peak (a correct guess is a full block)
+  const blocks = guesses.map(g => "▁▂▃▄▅▆▇█"[Math.round(linkToTarget(g).pct / 100 * 7)]).join("") + (won() ? "🎯" : "");
   const title = mode === "daily" ? new Date().toISOString().slice(0, 10) : "(random)";
-  const text = `Coldle ${title} ${won() ? guesses.length : "X"}/${MAX_GUESSES}\n${blocks}\nhttps://ianto-cannon.github.io/coldle.html`;
+  const n = guesses.length;
+  const summary = won()
+    ? `I guessed the correct peak in ${n} ${n === 1 ? "try" : "tries"}!`
+    : `I didn't find the mystery peak in ${MAX_GUESSES} tries.`;
+  const text = `Coldle ${title} ${won() ? n : "X"}/${MAX_GUESSES}\n${summary}\n${blocks}\nhttps://ianto-cannon.github.io/coldle.html`;
 
   const showText = () => {
     const area = Object.assign(document.createElement("textarea"), { value: text, readOnly: true, rows: 8 });
