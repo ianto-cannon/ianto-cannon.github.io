@@ -85,7 +85,6 @@ const chartY = alt => 178 - alt / 9000 * 168;   // altitude 0…9000 m → y 178
 function drawChart() {
   const chart = $("#ch");
   const viewW = 236 * chart.clientWidth / chart.clientHeight;
-  const fontUnits = fontPx() * 236 / chart.clientHeight;
   const slotW = (viewW - 36) / MAX_GUESSES;
   const w = slotW * .24;   // triangle half-width: a target-guess pair is at most 4w wide
   const base = chartY(0);
@@ -96,7 +95,7 @@ function drawChart() {
   const name = (x, t) => `<text class="end" transform="translate(${x + 3} 184) rotate(-45)">${t.length > 17 ? t.slice(0, 16) + "…" : t}</text>`;
   const altitude = (x, p) => text(x, chartY(p.height) - 3, metres(p.height));
 
-  // Solid up to the col, grey "ghost" triangle behind it up to the summit.
+  // Solid up to `col`, grey above it.
   const triangle = (x, p, color, col) => {
     const peakY = chartY(p.height);
     const topY = Math.min(chartY(col), base - 2);
@@ -123,14 +122,14 @@ function drawChart() {
     const x1 = cx - gap / 2;
     const x2 = cx + gap / 2;
     const colY = chartY(colAlt);
-    out += triangle(x1, T, targetColor, T.height) + triangle(x2, G, colGuess(pct), colAlt)
+    out += triangle(x1, T, targetColor, colAlt) + triangle(x2, G, colGuess(pct), G.height)
       + text(x1, colY - chartY(T.height) > 10 ? colY - 2 : colY + 9, metres(colAlt), "b")
+      + altitude(x1, T) + name(x1, over() ? T.name : "?")
       + altitude(x2, G) + name(x2, G.name);
-    if (i === 0 && gap > 1.5 * fontUnits) out += altitude(x1, T) + name(x1, over() ? T.name : "?");   // only if there is room
   });
 
   chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
-  chart.setAttribute("font-size", fontUnits.toFixed(2));
+  chart.setAttribute("font-size", (fontPx() * 236 / chart.clientHeight).toFixed(2));
   chart.innerHTML = out;
 }
 function confetti() {
