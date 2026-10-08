@@ -102,6 +102,7 @@ function render() {
   drawMap();
   if (roundOver) $("#sel").textContent = "Round over. Pick Random for another peak.";
   renderEndBanner();
+  $("#go").textContent = roundOver ? "share results" : "guess";
 }
 
 function renderTable() {
@@ -147,9 +148,8 @@ function renderEndBanner() {
 
   $("#end").innerHTML =
     `<div class="msg"><b>${headline}</b> The peak was <b>${peak.name}</b> in ${peak.range}, ${peak.country}.`
-    + `<br><p><button id="sh">Share results</button> <span id="shm" class="hint"></span></p></div>`;
+    + `<br><span id="shm" class="hint"></span></div>`;
 
-  $("#sh").onclick = shareResult;
 }
 
 // ── Peak relationships ───────────────────────────────────────────────────────
@@ -629,13 +629,32 @@ mapSvg.addEventListener("wheel", e => {
 }, { passive: false });
 
 // ── Controls, share, boot ────────────────────────────────────────────────────
- $("#go").onclick = guess;
+ $("#go").onclick = () => (roundOver ? shareResult() : guess());
 document.querySelectorAll("input[name=mode]").forEach(radio => {
   radio.onchange = () => {
     mode = radio.value;
     newRound();
   };
 });
+
+// Brief message that fades by itself, shown just above `anchor` (an element).
+let toastTimer = null;
+function toast(msg, anchor, ms = 2000) {
+  let el = $("#toast");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "toast";
+    el.setAttribute("role", "status");
+    document.body.appendChild(el);
+  }
+  const r = anchor.getBoundingClientRect();
+  el.textContent = msg;
+  el.style.left = (r.left + r.width / 2) + "px";
+  el.style.top = r.top + "px";
+  el.classList.add("show");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove("show"), ms);
+}
 
 function shareResult() {
   const won = guesses.includes(target);
@@ -662,9 +681,9 @@ function shareResult() {
   };
 
   if (navigator.clipboard) {
-    navigator.clipboard.writeText(text).then(() => {
-      $("#shm").textContent = "Copied to clipboard";
-    }, showFallback);
+    navigator.clipboard.writeText(text).then(
+      () => toast("Copied to clipboard", $("#go")),
+      showFallback);
   } else {
     showFallback();
   }
