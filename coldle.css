@@ -19,6 +19,14 @@ th,td{padding:4px 6px;text-align:left}
 }
 
 #go,#reset{font-size:1.2rem}
+/* the guess button shakes when the player runs out of guesses */
+#go.shake{animation:shake .5s}
+@keyframes shake{
+  10%,90%{transform:translateX(-2px)}
+  20%,80%{transform:translateX(4px)}
+  30%,50%,70%{transform:translateX(-8px)}
+  40%,60%{transform:translateX(8px)}
+}
 div.foot label{font-size:1.2rem}
 div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 
