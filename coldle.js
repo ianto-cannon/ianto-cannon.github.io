@@ -85,34 +85,52 @@ const chartY = alt => 178 - alt / 9000 * 168;   // altitude 0…9000 m → y 178
 function drawChart() {
   const chart = $("#ch");
   const viewW = 236 * chart.clientWidth / chart.clientHeight;
-  const slotW = (viewW - 36) / (MAX_GUESSES + 1);   // the answer + every possible guess
-  const slotX = i => 36 + slotW * (i + .5);
+  const fontUnits = fontPx() * 236 / chart.clientHeight;
+  const slotW = (viewW - 36) / MAX_GUESSES;
+  const w = slotW * .24;   // triangle half-width: a target-guess pair is at most 4w wide
   const base = chartY(0);
+  const T = peaks[target];
+  const targetColor = over() ? colGuess(100) : "currentColor";
+
+  const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
+  const name = (x, t) => `<text class="end" transform="translate(${x + 3} 184) rotate(-45)">${t.length > 17 ? t.slice(0, 16) + "…" : t}</text>`;
+  const altitude = (x, p) => text(x, chartY(p.height) - 3, metres(p.height));
+
+  // Solid up to the col, grey "ghost" triangle behind it up to the summit.
+  const triangle = (x, p, color, col) => {
+    const peakY = chartY(p.height);
+    const topY = Math.min(chartY(col), base - 2);
+    const inset = w * Math.min(1, (base - topY) / (base - peakY));
+    return (col < p.height ? `<polygon class="ghost" points="${pt(x - w, base)} ${pt(x + w, base)} ${pt(x, peakY)}"/>` : "")
+      + `<polygon fill="${color}" points="${pt(x - w, base)} ${pt(x + w, base)} ${pt(x + w - inset, topY)} ${pt(x - w + inset, topY)}"/>`;
+  };
 
   let out = [0, 2000, 4000, 6000, 8000].map(alt =>
     `<line x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${chartY(alt)}" y2="${chartY(alt)}"/>`
-    + `<text class="start" x="2" y="${chartY(alt) + 3}">${alt}</text>`).join("");
+    + text(2, chartY(alt) + 3, alt, "start")).join("");
 
-  const bars = [[slotX(0), peaks[target], over() ? colGuess(100) : "currentColor", peaks[target].height]];
-  guesses.forEach((g, i) => {
+  // One slot per guess, with the target drawn to its left; the target alone before the first guess.
+  (guesses.length ? guesses : [target]).forEach((g, i) => {
+    const cx = 36 + slotW * (i + .5);
+    const G = peaks[g];
+    if (g === target) {   // the target alone, or a correct guess (not drawn twice)
+      out += triangle(cx, T, targetColor, T.height) + altitude(cx, T) + name(cx, over() ? T.name : "?");
+      return;
+    }
+    // The pair's sloping sides cross at the linking col, which sets the gap between the two summits.
     const { colAlt, pct } = linkToTarget(g);
-    if (g !== target) bars.push([slotX(i + 1), peaks[g], colGuess(pct), colAlt]);
+    const gap = Math.max(0, w * (2 - colAlt / T.height - colAlt / G.height));
+    const x1 = cx - gap / 2;
+    const x2 = cx + gap / 2;
+    const colY = chartY(colAlt);
+    out += triangle(x1, T, targetColor, T.height) + triangle(x2, G, colGuess(pct), colAlt)
+      + text(x1, colY - chartY(T.height) > 10 ? colY - 2 : colY + 9, metres(colAlt), "b")
+      + altitude(x2, G) + name(x2, G.name);
+    if (i === 0 && gap > 1.5 * fontUnits) out += altitude(x1, T) + name(x1, over() ? T.name : "?");   // only if there is room
   });
-  bars.forEach(([x, p, color, col], k) => {
-    const half = slotW * .45;
-    const peakY = chartY(p.height);
-    const topY = Math.min(chartY(col), base - 2);
-    const inset = half * Math.min(1, (base - topY) / (base - peakY));
-    const colY = chartY(col);
-    const name = k || over() ? p.name : "?";
-    if (col < p.height) out += `<polygon class="ghost" points="${pt(x - half, base)} ${pt(x + half, base)} ${pt(x, peakY)}"/>`;
-    out += `<polygon fill="${color}" points="${pt(x - half, base)} ${pt(x + half, base)} ${pt(x + half - inset, topY)} ${pt(x - half + inset, topY)}"/>`
-      + `<text x="${x.toFixed(1)}" y="${peakY - 3}">${metres(p.height)}</text>`
-      + (k ? `<text class="b" x="${x.toFixed(1)}" y="${colY - peakY > 10 ? colY - 2 : colY + 9}">${metres(col)}</text>` : "")
-      + `<text class="end" transform="translate(${x + 3} 184) rotate(-45)">${name.length > 17 ? name.slice(0, 16) + "…" : name}</text>`;
-  });
+
   chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
-  chart.setAttribute("font-size", (fontPx() * 236 / chart.clientHeight).toFixed(2));
+  chart.setAttribute("font-size", fontUnits.toFixed(2));
   chart.innerHTML = out;
 }
 function confetti() {
