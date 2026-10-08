@@ -111,12 +111,17 @@ function drawChart() {
     `<line x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${chartY(alt)}" y2="${chartY(alt)}"/>`
     + text(2, chartY(alt) + 3, alt, "start")).join("");
 
+  // The target's altitude: a dashed line across the chart, labelled at its right end.
+  const ty = chartY(T.height);
+  out += `<line class="target-alt" style="stroke-dasharray:4 3" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`
+    + `<text style="text-anchor:end" x="${(viewW - 4).toFixed(1)}" y="${(ty - 3).toFixed(1)}">${metres(T.height)}</text>`;
+
   // One slot per guess, with the target drawn to its left; the target alone before the first guess.
   (guesses.length ? guesses : [target]).forEach((g, i) => {
     const cx = 36 + slotW * (i + .5);
     const G = peaks[g];
     if (g === target) {   // the target alone, or a correct guess (not drawn twice)
-      out += triangle(cx, T, targetColor, T.height) + altitude(cx, T);
+      out += triangle(cx, T, targetColor, T.height);
       addName(cx, over() ? T.name : "?");
       return;
     }
@@ -126,10 +131,9 @@ function drawChart() {
     const xg = cx - gap / 2;   // guess on the left, target on the right
     const xt = cx + gap / 2;
     const colY = chartY(colAlt);
-    const clash = gap < half(metres(T.height)) + half(metres(G.height)) && Math.abs(chartY(T.height) - chartY(G.height)) < font;
     out += triangle(xt, T, targetColor, colAlt) + triangle(xg, G, colGuess(pct), G.height)
       + text(xt, colY - chartY(T.height) > 10 ? colY - 2 : colY + 9, metres(colAlt), "b")
-      + altitude(xg, G) + (clash ? "" : altitude(xt, T));   // skip the target's altitude if the two texts collide
+      + altitude(xg, G);
     addName(xg, G.name);
     addName(xt, over() ? T.name : "?");
   });

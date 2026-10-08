@@ -37,6 +37,7 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 #ch text.end{text-anchor:end}
 #ch text.b{font-weight:bold}
 #ch polygon.ghost{fill:var(--mut);opacity:.5}
+#ch .target-alt { stroke-width: 2px; }
 
 /* confetti overlay */
 canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}
