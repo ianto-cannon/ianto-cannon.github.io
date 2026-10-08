@@ -14,10 +14,6 @@ th,td{padding:4px 6px;text-align:left}
 .near{color:var(--near)}
 .far{color:var(--far)}
 /* the same accuracies as fills for SVG shapes (chart bars, map markers) */
-#ch .f-ok,#pk .f-ok{fill:var(--ok)}
-#ch .f-near,#pk .f-near{fill:var(--near)}
-#ch .f-far,#pk .f-far{fill:var(--far)}
-#ch .f-tgt,#pk .f-tgt{fill:currentColor}
 
 #mp{
   touch-action:none;
@@ -44,7 +40,6 @@ th,td{padding:4px 6px;text-align:left}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
 #ch text.b{font-weight:bold}
-#ch rect{fill:currentColor;opacity:.9}
 #ch rect.ghost{fill:var(--mut);opacity:.5}
 
 /* confetti overlay */
