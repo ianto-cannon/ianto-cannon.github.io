@@ -79,7 +79,7 @@ function renderStatus() {
   const made = guesses.length;
   $("#sel").innerHTML = over()
     ? `<b>${won() ? `Got it in ${made}!` : "Out of guesses."}</b> The peak was <b>${p.name}</b> in ${p.range}, ${p.country}. `
-      + `Pick random for another peak. <span id="shm"></span>`
+      + `Pick Random for another peak. <span id="shm"></span>`
     : `Mystery peak: <b>${metres(p.height)}</b> high, key col <b>${colLabel(p.colAlt)}</b> (the lowest pass to any higher peak).`
       + (made >= 3 ? ` Hint: it is in the ${p.range} range.` : "")
       + (made >= 5 ? ` Hint: it is in ${p.country}.` : "")
@@ -222,7 +222,7 @@ function confetti() {
     else canvas.remove();
   })(last);
 }
-let world = { W: 40030, H: 12742, R: 6371, lon0: 0 };
+let world = { W: 40030, H: 12742, R: 6371, lon0: 0 };   // must match map.svg: viewBox, data-r, data-lon0
 let view = { x: 0, y: 0, w: 40030, h: 12742 };
 const mapSvg = $("#mp");
 
@@ -231,12 +231,8 @@ const project = (lat, lon) => [
   world.H / 2 - world.R * Math.sin(lat * RAD),
 ];
 async function load() {
-  const [csv, svgText] = await Promise.all(["peaks.csv", "map.svg"].map(async url => {
-    const r = await fetch(url);
-    if (!r.ok) throw new Error(`${url} ${r.status}`);
-    return r.text();
-  }));
-  peaks = parseCSV(csv).slice(1).filter(f => f.length >= 8)
+  // PEAKS_CSV comes from peaks.js; the map is an <image> in coldle.html (fetch() fails on file://)
+  peaks = parseCSV(PEAKS_CSV).slice(1).filter(f => f.length >= 8)
     .map(([name, height, prominence, parent, lat, lon, range, country]) => ({
       name, parent, range, country, lat: +lat, lon: +lon,
       height: +height,
@@ -244,10 +240,6 @@ async function load() {
     }));
   peaks.forEach(p => { p.parent = peaks.findIndex(q => q.name === p.parent); });
 
-  const svg = new DOMParser().parseFromString(svgText, "image/svg+xml").documentElement;
-  const data = k => +svg.getAttribute("data-" + k);
-  world = { W: svg.viewBox.baseVal.width, H: svg.viewBox.baseVal.height, R: data("r"), lon0: data("lon0") };
-  $("#bg").replaceChildren(...[...svg.childNodes].map(n => document.importNode(n, true)));
   peaks.forEach(p => { [p.x, p.y] = project(p.lat, p.lon); });
   resetView();
 }

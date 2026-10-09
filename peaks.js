@@ -1,4 +1,4 @@
-name,height,prominence,parent,lat,lon,range,country
+const PEAKS_CSV = String.raw`name,height,prominence,parent,lat,lon,range,country
 Everest,8849,8849,,27.99,86.93,Himalayas,China/Nepal
 Aconcagua,6961,6961,Everest,-32.65,-70.01,Andes,Argentina
 Denali,6190,6155,Aconcagua,63.07,-151.01,Alaska Range,USA
@@ -49,3 +49,4 @@ Mount Gongga,7556,3642,K2,29.6,101.88,Daxue Shan,China
 Mount Ararat,5137,3611,Damavand,39.7,44.3,Armenian Highlands,Turkey
 Kongur Tagh,7649,3585,K2,38.59,75.31,Kongur Shan,China
 Mount Blackburn,4996,3535,Mount Logan,61.73,-143.44,Wrangell Mtns,USA
+`;
