@@ -11,8 +11,6 @@
   <link rel="stylesheet" href="dark.css" media="not (prefers-color-scheme: light)" data-theme="dark">
   <link rel="stylesheet" href="common.css">
   <link rel="stylesheet" href="coldle.css">
-  <link rel="preload" href="peaks.csv" as="fetch" crossorigin>
-  <link rel="preload" href="map.svg" as="fetch" crossorigin>
   <link rel="icon" href="favicon.svg" type="image/svg+xml" />
   <link rel="icon" href="/favicon.png"  type="image/png" sizes="192x192" />
   <link rel="icon" href="/favicon512.png"  type="image/png" sizes="512x512" />
@@ -36,7 +34,7 @@
 </p>
 <svg id="ch" viewBox="0 0 360 236"></svg>
 <svg id="mp" viewBox="0 0 40030 12742">
-  <g id="bg"></g>
+  <g id="bg"><image href="map.svg" width="40030" height="12742"/></g>
   <g id="pk"></g>
 </svg>
 <div class='foot'>
@@ -53,6 +51,7 @@
 </div>
 <div id="rows"></div>
 </main>
+<script defer src="peaks.js"></script>
 <script defer src="coldle.js"></script>
   <svg class="banner peaks"></svg>
   <p class="foot">
