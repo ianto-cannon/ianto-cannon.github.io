@@ -122,7 +122,8 @@ function updatePeaks(peaksSVG) {
   while (peaksSVG.firstChild) peaksSVG.removeChild(peaksSVG.firstChild);
   var width = 1000; getTime();
   for (var i = 0; i <= 4; i++) {
-    var lightness = darkMode ? (20 + i*10) : (100 - 20 - i*10);
+    //var lightness = darkMode ? (20 + i*10) : (100 - 20 - i*10);
+    var lightness = 100 - 20 - i*10;
     createTriangle(timeFracs[i]%1, width, 10-i*1.5, lightness, peaksSVG);
   }
   scheduleFrame(function() { updatePeaks(peaksSVG); });

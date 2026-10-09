@@ -399,7 +399,7 @@ mapSvg.onpointerup = mapSvg.onpointercancel = e => {
 mapSvg.addEventListener("wheel", e => {
   if (!peaks.length) return;
   // line-mode deltas are much larger than pixel ones
-  const step = e.deltaMode === 1 ? .4 : .012;
+  const step = e.deltaMode === 1 ? .05 : .0015;
   const w = clamp(view.w * Math.exp(clamp(e.deltaY, -100, 100) * step), minW(), maxW());
   if (Math.abs(w / view.w - 1) < 1e-9) return;   // at the zoom limit: let the page scroll
   e.preventDefault();
