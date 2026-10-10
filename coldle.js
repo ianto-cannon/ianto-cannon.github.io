@@ -120,21 +120,26 @@ function drawChart() {
   const plotL = 36;
   const plotR = viewW - 4;
   const cx = (plotL + plotR) / 2;   // the single target sits in the middle
-  const w = Math.min((plotR - plotL) / 6.5, 40);   // triangle half-width: the farthest guess is 2w from the target, so 3w each way
+  const wgMax = (plotR - plotL) / 20;   // half-width of the widest guessed peak
+  const W = (plotR - plotL) / 2 - 2 * wgMax;   // the mystery peak's half-width: wide, leaving room at each end for guesses low on its slopes
   const base = chartY(0);
   const T = peaks[target];
   const targetColor = over() ? colGuess(100) : "currentColor";
 
   const font = fontPx() * 236 / chart.clientHeight;   // body font size in chart units
+  const half = t => t.length * .3 * font;   // estimated half-width of a text
+  const labels = [];   // [x, name]: laid out in rows below the baseline once all peaks are drawn
+  const addName = (x, t) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t]);
   const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
+  const altitude = (x, p) => text(x, chartY(p.height) - 3, metres(p.height));
 
   // Solid up to `col`, grey above it.
   const triangle = (x, p, color, col) => {
     const peakY = chartY(p.height);
     const topY = Math.min(chartY(col), base - 2);
-    const inset = w * Math.min(1, (base - topY) / (base - peakY));
-    return (col < p.height ? `<polygon class="ghost" points="${pt(x - w, base)} ${pt(x + w, base)} ${pt(x, peakY)}"/>` : "")
-      + `<polygon fill="${color}" points="${pt(x - w, base)} ${pt(x + w, base)} ${pt(x + w - inset, topY)} ${pt(x - w + inset, topY)}"/>`;
+    const inset = W * Math.min(1, (base - topY) / (base - peakY));
+    return (col < p.height ? `<polygon class="ghost" points="${pt(x - W, base)} ${pt(x + W, base)} ${pt(x, peakY)}"/>` : "")
+      + `<polygon fill="${color}" points="${pt(x - W, base)} ${pt(x + W, base)} ${pt(x + W - inset, topY)} ${pt(x - W + inset, topY)}"/>`;
   };
 
   let out = [0, 2000, 4000, 6000, 8000].map(alt =>
@@ -146,25 +151,48 @@ function drawChart() {
   out += `<line class="target-alt" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`
     + text(viewW - 4, ty - 3, metres(T.height), "end");
 
-  // The target is drawn once, in the middle. Each guess is placed so that its sloping side crosses the
-  // target's at the col linking them: the better connected the guess, the more it overlaps the target.
-  // Guesses alternate left and right; the dot marks the col, and the number matches the table row.
+  // The target is drawn once, as a wide peak. Each guess stands on the target's slope where the slope is as
+  // high as the col linking them (the dot): the higher the col, the nearer the target's summit. The guess's
+  // inner side runs down to that point. All guesses stand on the left slope. Each has its altitude above,
+  // its name below, and a line across it at the col altitude, labelled with that number.
   const others = guesses.filter(g => g !== target);
   const bestCol = others.length ? Math.min(T.height, Math.max(...others.map(g => linkToTarget(g).colAlt))) : T.height;
   out += triangle(cx, T, targetColor, bestCol);   // solid up to the best col so far, grey above
   let marks = "";
-  others.forEach((g, i) => {
+  others.forEach(g => {
     const G = peaks[g];
     const { colAlt, pct } = linkToTarget(g);
-    const side = i % 2 ? 1 : -1;   // -1: left of the target
-    const xg = cx + side * Math.max(0, w * (2 - colAlt / T.height - colAlt / G.height));
-    const xc = cx + side * w * (1 - colAlt / T.height);   // where the two sloping sides cross
-    const color = colGuess(pct);
-    out += `<polygon class="guess" fill="${color}" points="${pt(xg - w, base)} ${pt(xg + w, base)} ${pt(xg, chartY(G.height))}"/>`;
-    marks += text(xg, chartY(G.height) - 3, guesses.indexOf(g) + 1, "b")
-      + `<circle fill="${color}" cx="${xc.toFixed(1)}" cy="${chartY(colAlt).toFixed(1)}" r="2.5"/>`;
+    const col = Math.min(colAlt, T.height, G.height);
+    const wg = wgMax * Math.min(1, G.height / T.height);   // lower peaks are narrower
+    const xc = cx - W * (1 - col / T.height);   // the col: the point on the target's left slope at that altitude
+    const reach = wg * (1 - col / G.height);   // half-width of the guess at the col altitude
+    const xg = xc - reach;   // the guess's right side passes through the col
+    const colY = chartY(col);
+    out += `<polygon class="guess" fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
+    marks += `<line class="col" x1="${(xg - Math.max(reach, 3)).toFixed(1)}" x2="${(xg + Math.max(reach, 3)).toFixed(1)}" y1="${colY.toFixed(1)}" y2="${colY.toFixed(1)}"/>`
+      + text(xg, colY - chartY(G.height) > 10 ? colY - 2 : colY + 9, metres(col), "b")
+      + altitude(xg, G);
+    addName(xg, G.name);
   });
-  out += marks + text(cx, base + 1.1 * font, over() ? T.name : "?");
+  out += marks;
+  addName(cx, over() ? T.name : "?");
+
+  // Each name goes in the first row where it doesn't overlap the previous name there.
+  const rowEnds = [];
+  const placed = labels.sort((a, b) => a[0] - b[0]).map(([x, t]) => {
+    const h = half(t);
+    const lx = clamp(x, h, viewW - h);
+    let row = rowEnds.findIndex(end => lx - h > end + 3);
+    if (row < 0) row = rowEnds.length;
+    rowEnds[row] = lx + h;
+    return { x, lx, t, row };
+  });
+  const rowH = Math.min(1.2 * font, (233 - base - 1.1 * font) / Math.max(1, rowEnds.length - 1));   // squeeze rows to fit
+  placed.forEach(({ x, lx, t, row }) => {
+    const y = base + 1.1 * font + row * rowH;
+    if (row) out += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y - font).toFixed(1)}"/>`;   // leader to its peak
+    out += text(lx, y, t);
+  });
 
   chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
   chart.setAttribute("font-size", font.toFixed(2));
