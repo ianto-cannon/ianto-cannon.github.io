@@ -127,7 +127,7 @@ function drawChart() {
   const plotR = viewW - 4;
   const cx = plotL + .88 * (plotR - plotL);   // the mystery peak's summit sits towards the right; its right slope runs off the chart edge
   const wgMax = (plotR - plotL) / 40;   // half-width of the widest guessed peak
-  const W = cx - plotL - 2 * wgMax;   // half-width: the left slope fills the chart, leaving room at its foot for the lowest guesses
+  const W = cx - plotL - .15 * (plotR - plotL);   // half-width: the left slope fills the chart, leaving a wide space at its foot for guesses linked at sea level
   const base = chartY(0);
   const T = peaks[target];
   const targetColor = over() ? colGuess(100) : "currentColor";
@@ -179,7 +179,7 @@ function drawChart() {
     out += `<polygon class="guess${isSel ? " sel" : ""}" fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
     if (isSel) {
       marks += `<line class="col" x1="${(xg - Math.max(reach, 3)).toFixed(1)}" x2="${(xg + Math.max(reach, 3)).toFixed(1)}" y1="${colY.toFixed(1)}" y2="${colY.toFixed(1)}"/>`
-        + text(xg, colY - chartY(G.height) > 10 ? colY - 2 : colY + 9, metres(col), "b")
+        + text(xc + 2, colY - 2, metres(col), "start b")   // just right of the peak, left-aligned, over the col itself
         + altitude(xg, G);
     }
     addName(xg, G.name, g);
@@ -321,7 +321,6 @@ addEventListener("resize", () => {
   }
 });
 const triangle = (x, y, r) => `${pt(x, y - r)} ${pt(x + r * .87, y + r * .5)} ${pt(x - r * .87, y + r * .5)}`;
-const diamond = (x, y, r) => `${pt(x, y - r)} ${pt(x + r, y)} ${pt(x, y + r)} ${pt(x - r, y)}`;
 
 function drawMap() {
   clampView();
@@ -340,7 +339,7 @@ function drawMap() {
     const revealed = !live && i === target;
     const tap = live ? ` data-i="${i}"` : "";
     const fill = guessed ? colGuess(linkToTarget(i).pct) : revealed ? colGuess(100) : "";
-    const shape = (guessed || revealed ? diamond : triangle)(p.x, p.y, isSel ? 12.6 * px : 7 * px);
+    const shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
     const marker = `<polygon${isSel ? ' class="sel"' : ""}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`;
     // label every peak when zoomed in ~3.6x, guessed ones from ~1.8x
