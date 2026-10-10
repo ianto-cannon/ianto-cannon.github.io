@@ -78,15 +78,17 @@ function renderStatus() {
   const p = peaks[target];
   const made = guesses.length;
   const html = over()
-    ? `<b>${won() ? `Got it in ${made}!` : "Out of guesses."}</b> The peak was <b>${p.name}</b> in ${p.range}, ${p.country}. `
-      + `Pick Random for another peak. <span id="shm"></span>`
-    : `Mystery peak: <b>${metres(p.height)}</b> high, key col <b>${colLabel(p.colAlt)}</b> (the lowest pass to any higher peak).`
-      + (made >= 3 ? `<span class="newhint">💡 It is in the ${p.range} range.</span>` : "")
-      + (made >= 5 ? `<span class="newhint">💡 It is in ${p.country}.</span>` : "")
-      + ` Guess ${made + 1} of ${MAX_GUESSES}. `
+    ? `<span class="line">Select random and click reset for another peak.</span>`
+      + `<span class="line"><b>${won() ? `Got it in ${made}!` : "Out of guesses."}</b></span>`
+      + `<span class="line">The peak was <b>${p.name}</b> in ${p.range}, ${p.country}. <span id="shm"></span></span>`
+    : `<span class="line">Mystery peak: <b>${metres(p.height)}</b> high, key col <b>${colLabel(p.colAlt)}</b> (the lowest pass to any higher peak).</span>`
+      + `<span class="line">Guess ${made + 1} of ${MAX_GUESSES}. `
       + (selected === null
         ? `Tap ${made ? "another" : "a"} peak on the map, then press Guess.`
-        : `Selected: ${peaks[selected].name}. Press Guess to confirm.`);
+        : `Selected: ${peaks[selected].name}. Press Guess to confirm.`)
+      + `</span>`
+      + (made >= 3 ? `<span class="newhint">💡 It is in the ${p.range} range.</span>` : "")
+      + (made >= 5 ? `<span class="newhint">💡 It is in ${p.country}.</span>` : "");
   const box = $("#status");
   const sel = $("#sel");
   box.querySelector(".tag").textContent = over() ? "Result" : "Hint";
