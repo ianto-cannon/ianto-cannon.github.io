@@ -60,7 +60,12 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 #ch text.b{font-weight:bold}
 #ch polygon.ghost{fill:var(--mut);opacity:.5}
 #ch polygon.guess{fill-opacity:.6;stroke:currentColor;stroke-width:.5}
+#ch polygon.guess.sel{stroke-width:1.5}
 #ch line.col{stroke:currentColor;stroke-width:1}
+/* peak names in the chart and the list are links that select the peak */
+#ch a{cursor:pointer}
+#ch a text{text-decoration:underline}
+#rows tr.sel{font-weight:bold}
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
 
 /* confetti overlay */
