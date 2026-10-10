@@ -119,9 +119,9 @@ function drawChart() {
   const viewW = 236 * chart.clientWidth / chart.clientHeight;
   const plotL = 36;
   const plotR = viewW - 4;
-  const cx = (plotL + plotR) / 2;   // the single target sits in the middle
-  const wgMax = (plotR - plotL) / 20;   // half-width of the widest guessed peak
-  const W = (plotR - plotL) / 2 - 2 * wgMax;   // the mystery peak's half-width: wide, leaving room at each end for guesses low on its slopes
+  const cx = plotL + .88 * (plotR - plotL);   // the mystery peak's summit sits towards the right; its right slope runs off the chart edge
+  const wgMax = (plotR - plotL) / 40;   // half-width of the widest guessed peak
+  const W = cx - plotL - 2 * wgMax;   // half-width: the left slope fills the chart, leaving room at its foot for the lowest guesses
   const base = chartY(0);
   const T = peaks[target];
   const targetColor = over() ? colGuess(100) : "currentColor";
