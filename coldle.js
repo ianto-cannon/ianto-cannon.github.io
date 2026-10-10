@@ -74,27 +74,39 @@ function renderTable() {
     ? `<table><tr><th>#</th><th>Peak</th><th>Lowest pass</th><th>Connectedness</th></tr>${rows.join("")}</table>`
     : "";
 }
+let lastStatus = "";
 function renderStatus() {
   const p = peaks[target];
   const made = guesses.length;
-  const html = over()
-    ? `<span class="line">Select random and click reset for another peak.</span>`
-      + `<span class="line"><b>${won() ? `Got it in ${made}!` : "Out of guesses."}</b></span>`
-      + `<span class="line">The peak was <b>${p.name}</b> in ${p.range}, ${p.country}. <span id="shm"></span></span>`
-    : `<span class="line">Mystery peak: <b>${metres(p.height)}</b> high, key col <b>${colLabel(p.colAlt)}</b> (the lowest pass to any higher peak).</span>`
-      + `<span class="line">Guess ${made + 1} of ${MAX_GUESSES}. `
-      + (selected === null
-        ? `Tap ${made ? "another" : "a"} peak on the map, then press Guess.`
-        : `Selected: ${peaks[selected].name}. Press Guess to confirm.`)
-      + `</span>`
-      + (made >= 3 ? `<span class="newhint">💡 It is in the ${p.range} range.</span>` : "")
-      + (made >= 5 ? `<span class="newhint">💡 It is in ${p.country}.</span>` : "");
+  const end = over();
   const box = $("#status");
-  const sel = $("#sel");
-  box.querySelector(".tag").textContent = over() ? "Result" : "Hint";
-  if (sel.innerHTML === html) return;
-  sel.innerHTML = html;
-  // flash the box whenever its text changes, so it is clear this line is live
+  // the markup lives in coldle.html; this only fills in values and shows or hides items.
+  // Values that would give the answer away are kept out of the page until they are revealed.
+  const set = (id, text) => { $(id).textContent = text; };
+  const show = (id, on) => { $(id).hidden = !on; };
+  box.hidden = false;
+  show("#hints", !end);
+  show("#results", end);
+  set("#m-height", metres(p.height));
+  set("#m-col", colLabel(p.colAlt));
+  set("#m-n", made + 1);
+  set("#m-max", MAX_GUESSES);
+  set("#m-tap", selected === null
+    ? `Tap ${made ? "another" : "a"} peak on the map, then press Guess.`
+    : `Selected: ${peaks[selected].name}. Press Guess to confirm.`);
+  show("#h-range", !end && made >= 3);
+  show("#h-country", !end && made >= 5);
+  set("#m-range", !end && made >= 3 ? p.range : "");
+  set("#m-country", !end && made >= 5 ? p.country : "");
+  set("#r-result", end ? (won() ? `Got it in ${made}!` : "Out of guesses.") : "");
+  set("#r-name", end ? p.name : "");
+  set("#r-range", end ? p.range : "");
+  set("#r-country", end ? p.country : "");
+  if (!end) $("#shm").replaceChildren();   // clear a share fallback left from the last game
+  const state = box.textContent + [end, made >= 3, made >= 5];
+  if (state === lastStatus) return;
+  lastStatus = state;
+  // flash the box whenever its text changes, so it is clear this is live
   if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
     box.classList.remove("flash");
     void box.offsetWidth;   // restart the animation if it is already running
@@ -461,4 +473,7 @@ document.querySelectorAll("input[name=mode]").forEach(radio => {
     newRound();
   };
 });
-load().then(newRound).catch(e => { $("#sel").textContent = "Could not load map data: " + e.message; });
+load().then(newRound).catch(e => {
+  $("#status").hidden = false;
+  $("#status").textContent = "Could not load map data: " + e.message;
+});
