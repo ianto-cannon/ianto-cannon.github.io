@@ -71,7 +71,7 @@ function renderTable() {
       + `<td style="color:${colGuess(pct)}">${pct}%</td></tr>`;
   });
   $("#rows").innerHTML = rows.length
-    ? `<table><tr><th>#</th><th>Peak</th><th>Lowest pass</th><th>Closeness</th></tr>${rows.join("")}</table>`
+    ? `<table><tr><th>#</th><th>Peak</th><th>Lowest pass</th><th>Connectedness</th></tr>${rows.join("")}</table>`
     : "";
 }
 function renderStatus() {
