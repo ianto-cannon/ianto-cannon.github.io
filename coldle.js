@@ -32,8 +32,7 @@ function newRound() {
 }
 function guess() {
   if (over() || selected === null || guesses.includes(selected)) return;
-  guesses.push(selected);
-  selected = null;
+  guesses.push(selected);   // the guessed peak stays selected, so the chart shows its height and col
   render();
   if (won()) confetti();
   else if (over()) shake($("#go"));   // out of guesses
@@ -57,6 +56,11 @@ function linkToTarget(g) {
   const colAlt = crossed.length ? Math.min(...crossed.map(i => peaks[i].colAlt)) : peaks[g].height;
   return { colAlt, pct: Math.round(100 * colAlt / peaks[target].height) };
 }
+// Selecting a peak (from the map, the chart or the list) updates all three.
+function selectPeak(i) {
+  selected = i;
+  render();
+}
 function render() {
   renderTable();
   drawChart();
@@ -67,7 +71,8 @@ function render() {
 function renderTable() {
   const rows = guesses.map((g, i) => {
     const { colAlt, pct } = linkToTarget(g);
-    return `<tr><td>${i + 1}</td><td>${peaks[g].name}</td><td>${g === target ? "🎯 Correct" : colLabel(colAlt)}</td>`
+    return `<tr${g === selected ? ' class="sel"' : ""}><td>${i + 1}</td><td><a href="#" data-i="${g}">${peaks[g].name}</a></td>`
+      + `<td>${g === target ? "🎯 Correct" : colLabel(colAlt)}</td>`
       + `<td style="color:${colGuess(pct)}">${pct}%</td></tr>`;
   });
   $("#rows").innerHTML = rows.length
@@ -85,7 +90,8 @@ function renderStatus() {
   const states = {
     play: !end, over: end, won: won(), lost: end && !won(),
     first: made === 0, more: made > 0,
-    picked: selected !== null, unpicked: selected === null,
+    picked: selected !== null && !guesses.includes(selected),   // a new peak waiting to be confirmed
+    unpicked: selected === null || guesses.includes(selected),
     g3: made >= 3, g5: made >= 5,
   };
   const values = {
@@ -128,8 +134,8 @@ function drawChart() {
 
   const font = fontPx() * 236 / chart.clientHeight;   // body font size in chart units
   const half = t => t.length * .3 * font;   // estimated half-width of a text
-  const labels = [];   // [x, name]: laid out in rows below the baseline once all peaks are drawn
-  const addName = (x, t) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t]);
+  const labels = [];   // [x, name, peak index]: laid out in rows below the baseline once all peaks are drawn
+  const addName = (x, t, i) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t, i]);
   const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
   const altitude = (x, p) => text(x, chartY(p.height) - 3, metres(p.height));
 
@@ -153,8 +159,9 @@ function drawChart() {
 
   // The target is drawn once, as a wide peak. Each guess stands on the target's slope where the slope is as
   // high as the col linking them (the dot): the higher the col, the nearer the target's summit. The guess's
-  // inner side runs down to that point. All guesses stand on the left slope. Each has its altitude above,
-  // its name below, and a line across it at the col altitude, labelled with that number.
+  // inner side runs down to that point. All guesses stand on the left slope. Each has its name below, as a
+  // link that selects it; only the selected one shows its altitude above and a line at the col altitude,
+  // labelled with that number.
   const others = guesses.filter(g => g !== target);
   const bestCol = others.length ? Math.min(T.height, Math.max(...others.map(g => linkToTarget(g).colAlt))) : T.height;
   out += triangle(cx, T, targetColor, bestCol);   // solid up to the best col so far, grey above
@@ -168,30 +175,33 @@ function drawChart() {
     const reach = wg * (1 - col / G.height);   // half-width of the guess at the col altitude
     const xg = xc - reach;   // the guess's right side passes through the col
     const colY = chartY(col);
-    out += `<polygon class="guess" fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
-    marks += `<line class="col" x1="${(xg - Math.max(reach, 3)).toFixed(1)}" x2="${(xg + Math.max(reach, 3)).toFixed(1)}" y1="${colY.toFixed(1)}" y2="${colY.toFixed(1)}"/>`
-      + text(xg, colY - chartY(G.height) > 10 ? colY - 2 : colY + 9, metres(col), "b")
-      + altitude(xg, G);
-    addName(xg, G.name);
+    const isSel = g === selected;
+    out += `<polygon class="guess${isSel ? " sel" : ""}" fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
+    if (isSel) {
+      marks += `<line class="col" x1="${(xg - Math.max(reach, 3)).toFixed(1)}" x2="${(xg + Math.max(reach, 3)).toFixed(1)}" y1="${colY.toFixed(1)}" y2="${colY.toFixed(1)}"/>`
+        + text(xg, colY - chartY(G.height) > 10 ? colY - 2 : colY + 9, metres(col), "b")
+        + altitude(xg, G);
+    }
+    addName(xg, G.name, g);
   });
   out += marks;
-  addName(cx, over() ? T.name : "?");
+  addName(cx, over() ? T.name : "?", over() ? target : undefined);
 
   // Each name goes in the first row where it doesn't overlap the previous name there.
   const rowEnds = [];
-  const placed = labels.sort((a, b) => a[0] - b[0]).map(([x, t]) => {
+  const placed = labels.sort((a, b) => a[0] - b[0]).map(([x, t, i]) => {
     const h = half(t);
     const lx = clamp(x, h, viewW - h);
     let row = rowEnds.findIndex(end => lx - h > end + 3);
     if (row < 0) row = rowEnds.length;
     rowEnds[row] = lx + h;
-    return { x, lx, t, row };
+    return { x, lx, t, i, row };
   });
   const rowH = Math.min(1.2 * font, (233 - base - 1.1 * font) / Math.max(1, rowEnds.length - 1));   // squeeze rows to fit
-  placed.forEach(({ x, lx, t, row }) => {
+  placed.forEach(({ x, lx, t, i, row }) => {
     const y = base + 1.1 * font + row * rowH;
     if (row) out += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y - font).toFixed(1)}"/>`;   // leader to its peak
-    out += text(lx, y, t);
+    out += i === undefined ? text(lx, y, t) : `<a href="#" data-i="${i}">${text(lx, y, t)}</a>`;
   });
 
   chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
@@ -417,13 +427,9 @@ mapSvg.onpointerup = mapSvg.onpointercancel = e => {
   } else {
     const hit = drag ? drag.hit : -1;
     drag = pinch = null;
-    if (e.type === "pointerup" && !dragged && !over()) {
+    if (e.type === "pointerup" && !dragged) {
       const i = hit >= 0 ? hit : nearestPeak(e.clientX, e.clientY);
-      if (i >= 0) {
-        selected = i;
-        renderStatus();
-        drawMap();
-      }
+      if (i >= 0) selectPeak(i);
     }
   }
 };
@@ -468,6 +474,15 @@ function shareResult() {
   Promise.resolve().then(() => navigator.clipboard.writeText(text))
     .then(() => toast("Copied to clipboard", $("#go")), showText);
 }
+// names in the chart and the list are links that select their peak
+const pickFromLink = e => {
+  const link = e.target.closest("[data-i]");
+  if (!link) return;
+  e.preventDefault();
+  selectPeak(+link.dataset.i);
+};
+$("#ch").addEventListener("click", pickFromLink);
+$("#rows").addEventListener("click", pickFromLink);
 $("#go").onclick = () => (over() ? shareResult() : guess());
 $("#reset").onclick = () => {
   resetView();
