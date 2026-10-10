@@ -117,18 +117,16 @@ const chartY = alt => 178 - alt / 9000 * 168;   // altitude 0…9000 m → y 178
 function drawChart() {
   const chart = $("#ch");
   const viewW = 236 * chart.clientWidth / chart.clientHeight;
-  const slotW = (viewW - 36) / MAX_GUESSES;
-  const w = slotW * .225;   // triangle half-width: a target-guess pair is at most 4w wide, leaving .05 slot of space each side
+  const plotL = 36;
+  const plotR = viewW - 4;
+  const cx = (plotL + plotR) / 2;   // the single target sits in the middle
+  const w = Math.min((plotR - plotL) / 6.5, 40);   // triangle half-width: the farthest guess is 2w from the target, so 3w each way
   const base = chartY(0);
   const T = peaks[target];
   const targetColor = over() ? colGuess(100) : "currentColor";
 
   const font = fontPx() * 236 / chart.clientHeight;   // body font size in chart units
-  const half = t => t.length * .3 * font;   // estimated half-width of a text
-  const labels = [];   // [x, name]: laid out in rows below the baseline once all peaks are drawn
-  const addName = (x, t) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t]);
   const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
-  const altitude = (x, p) => text(x, chartY(p.height) - 3, metres(p.height));
 
   // Solid up to `col`, grey above it.
   const triangle = (x, p, color, col) => {
@@ -148,44 +146,25 @@ function drawChart() {
   out += `<line class="target-alt" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`
     + text(viewW - 4, ty - 3, metres(T.height), "end");
 
-  // One slot per guess, with the target drawn to its left; the target alone before the first guess.
-  (guesses.length ? guesses : [target]).forEach((g, i) => {
-    const cx = 36 + slotW * (i + .5);
+  // The target is drawn once, in the middle. Each guess is placed so that its sloping side crosses the
+  // target's at the col linking them: the better connected the guess, the more it overlaps the target.
+  // Guesses alternate left and right; the dot marks the col, and the number matches the table row.
+  const others = guesses.filter(g => g !== target);
+  const bestCol = others.length ? Math.min(T.height, Math.max(...others.map(g => linkToTarget(g).colAlt))) : T.height;
+  out += triangle(cx, T, targetColor, bestCol);   // solid up to the best col so far, grey above
+  let marks = "";
+  others.forEach((g, i) => {
     const G = peaks[g];
-    if (g === target) {   // the target alone, or a correct guess (not drawn twice)
-      out += triangle(cx, T, targetColor, T.height);
-      addName(cx, over() ? T.name : "?");
-      return;
-    }
-    // The pair's sloping sides cross at the linking col, which sets the gap between the two summits.
     const { colAlt, pct } = linkToTarget(g);
-    const gap = Math.max(0, w * (2 - colAlt / T.height - colAlt / G.height));
-    const xg = cx - gap / 2;   // guess on the left, target on the right
-    const xt = cx + gap / 2;
-    const colY = chartY(colAlt);
-    out += triangle(xt, T, targetColor, colAlt) + triangle(xg, G, colGuess(pct), G.height)
-      + text(xt, colY - chartY(T.height) > 10 ? colY - 2 : colY + 9, metres(colAlt), "b")
-      + altitude(xg, G);
-    addName(xg, G.name);
-    addName(xt, over() ? T.name : "?");
+    const side = i % 2 ? 1 : -1;   // -1: left of the target
+    const xg = cx + side * Math.max(0, w * (2 - colAlt / T.height - colAlt / G.height));
+    const xc = cx + side * w * (1 - colAlt / T.height);   // where the two sloping sides cross
+    const color = colGuess(pct);
+    out += `<polygon class="guess" fill="${color}" points="${pt(xg - w, base)} ${pt(xg + w, base)} ${pt(xg, chartY(G.height))}"/>`;
+    marks += text(xg, chartY(G.height) - 3, guesses.indexOf(g) + 1, "b")
+      + `<circle fill="${color}" cx="${xc.toFixed(1)}" cy="${chartY(colAlt).toFixed(1)}" r="2.5"/>`;
   });
-
-  // Each name goes in the first row where it doesn't overlap the previous name there.
-  const rowEnds = [];
-  const placed = labels.sort((a, b) => a[0] - b[0]).map(([x, t]) => {
-    const h = half(t);
-    const cx = clamp(x, h, viewW - h);
-    let row = rowEnds.findIndex(end => cx - h > end + 3);
-    if (row < 0) row = rowEnds.length;
-    rowEnds[row] = cx + h;
-    return { x, cx, t, row };
-  });
-  const rowH = Math.min(1.2 * font, (233 - base - 1.1 * font) / Math.max(1, rowEnds.length - 1));   // squeeze rows to fit
-  placed.forEach(({ x, cx, t, row }) => {
-    const y = base + 1.1 * font + row * rowH;
-    if (row) out += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y - font).toFixed(1)}"/>`;   // leader to its peak
-    out += text(cx, y, t);
-  });
+  out += marks + text(cx, base + 1.1 * font, over() ? T.name : "?");
 
   chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
   chart.setAttribute("font-size", font.toFixed(2));

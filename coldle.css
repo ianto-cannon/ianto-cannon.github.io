@@ -59,6 +59,8 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 #ch text.end{text-anchor:end}
 #ch text.b{font-weight:bold}
 #ch polygon.ghost{fill:var(--mut);opacity:.5}
+#ch polygon.guess{fill-opacity:.6;stroke:currentColor;stroke-width:.5}
+#ch circle{stroke:currentColor;stroke-width:.75}
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
 
 /* confetti overlay */
