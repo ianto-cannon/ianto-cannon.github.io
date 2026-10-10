@@ -93,7 +93,7 @@ function renderStatus() {
   set("#m-max", MAX_GUESSES);
   set("#m-tap", selected === null
     ? `Tap ${made ? "another" : "a"} peak on the map, then press Guess.`
-    : `Selected: ${peaks[selected].name}. Press Guess to confirm.`);
+    : `Selected ${peaks[selected].name}. Press Guess to confirm.`);
   show("#h-range", !end && made >= 3);
   show("#h-country", !end && made >= 5);
   set("#m-range", !end && made >= 3 ? p.range : "");
