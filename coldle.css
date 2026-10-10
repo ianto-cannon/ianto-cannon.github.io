@@ -21,14 +21,11 @@ th,td{padding:4px 6px;text-align:left}
 
 /* live status box: a plain left rule, flashing when its text changes */
 #status{
-  display:flex;
-  gap:.6em;
   border-left:3px solid var(--bd);
   padding-left:.6em;
 }
-#status .tag{color:var(--mut);flex:none}
-#sel{flex:1;min-width:0}
-#status .line,#status .newhint{display:block}
+#status .tag{color:var(--mut)}
+#status ol{margin:0;padding-left:1.5em}
 #status.flash{animation:flash .8s}
 @keyframes flash{
   from{background:color-mix(in srgb, var(--mut) 30%, transparent)}

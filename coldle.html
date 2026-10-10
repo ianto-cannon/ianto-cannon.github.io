@@ -27,10 +27,25 @@
 <p class="sub">
   Guess the mystery peak among the 50 most prominent summits. Each guess shows the lowest pass you would cross walking from it to the mystery peak: the higher that pass, the closer you are.
 </p>
-<p id="status" role="status" aria-live="polite">
-  <span class="tag">Hint</span>
-  <span id="sel">Tap a peak on the map, then press guess.</span>
-</p>
+<div id="status" role="status" aria-live="polite" hidden>
+  <section id="hints">
+    <b class="tag">Hints</b>
+    <ol>
+      <li>Mystery peak: <b id="m-height"></b> high, key col <b id="m-col"></b> (the lowest pass to any higher peak).</li>
+      <li>Guess <span id="m-n"></span> of <span id="m-max"></span>. <span id="m-tap"></span></li>
+      <li id="h-range" hidden>💡 It is in the <span id="m-range"></span> range.</li>
+      <li id="h-country" hidden>💡 It is in <span id="m-country"></span>.</li>
+    </ol>
+  </section>
+  <section id="results" hidden>
+    <b class="tag">Results</b>
+    <ol>
+      <li>Select random and click reset for another peak.</li>
+      <li><b id="r-result"></b></li>
+      <li>The peak was <b id="r-name"></b> in <span id="r-range"></span>, <span id="r-country"></span>. <span id="shm"></span></li>
+    </ol>
+  </section>
+</div>
 <svg id="ch" viewBox="0 0 360 236"></svg>
 <svg id="mp" viewBox="0 0 40030 12742">
   <g id="bg"><image href="map.svg" width="40030" height="12742"/></g>
