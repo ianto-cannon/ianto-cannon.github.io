@@ -80,30 +80,29 @@ function renderStatus() {
   const made = guesses.length;
   const end = over();
   const box = $("#status");
-  // the markup lives in coldle.html; this only fills in values and shows or hides items.
-  // Values that would give the answer away are kept out of the page until they are revealed.
-  const set = (id, text) => { $(id).textContent = text; };
-  const show = (id, on) => { $(id).hidden = !on; };
+  // The wording lives in coldle.html. An element with data-when is shown while all the listed states
+  // are true; an element with data-v gets that value as its text.
+  const states = {
+    play: !end, over: end, won: won(), lost: end && !won(),
+    first: made === 0, more: made > 0,
+    picked: selected !== null, unpicked: selected === null,
+    g3: made >= 3, g5: made >= 5,
+  };
+  const values = {
+    height: metres(p.height), col: colLabel(p.colAlt), n: made + 1, max: MAX_GUESSES, made,
+    sel: selected === null ? "" : peaks[selected].name,
+    range: p.range, country: p.country, name: p.name,
+  };
   box.hidden = false;
-  show("#hints", !end);
-  show("#results", end);
-  set("#m-height", metres(p.height));
-  set("#m-col", colLabel(p.colAlt));
-  set("#m-n", made + 1);
-  set("#m-max", MAX_GUESSES);
-  set("#m-tap", selected === null
-    ? `Tap ${made ? "another" : "a"} peak on the map, then press Guess.`
-    : `Selected ${peaks[selected].name}. Press Guess to confirm.`);
-  show("#h-range", !end && made >= 3);
-  show("#h-country", !end && made >= 5);
-  set("#m-range", !end && made >= 3 ? p.range : "");
-  set("#m-country", !end && made >= 5 ? p.country : "");
-  set("#r-result", end ? (won() ? `Got it in ${made}!` : "Out of guesses.") : "");
-  set("#r-name", end ? p.name : "");
-  set("#r-range", end ? p.range : "");
-  set("#r-country", end ? p.country : "");
+  box.querySelectorAll("[data-when]").forEach(el => {
+    el.hidden = !el.dataset.when.split(" ").every(s => states[s]);
+  });
+  // text that would give the answer away is only filled in once its item is shown
+  box.querySelectorAll("[data-v]").forEach(el => {
+    el.textContent = el.closest("[hidden]") ? "" : values[el.dataset.v];
+  });
   if (!end) $("#shm").replaceChildren();   // clear a share fallback left from the last game
-  const state = box.textContent + [end, made >= 3, made >= 5];
+  const state = JSON.stringify(states) + box.textContent;
   if (state === lastStatus) return;
   lastStatus = state;
   // flash the box whenever its text changes, so it is clear this is live
@@ -146,8 +145,8 @@ function drawChart() {
 
   // The target's altitude: a dashed line across the chart, labelled at its right end.
   const ty = chartY(T.height);
-  out += `<line class="target-alt" style="stroke-dasharray:4 3" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`
-    + `<text style="text-anchor:end" x="${(viewW - 4).toFixed(1)}" y="${(ty - 3).toFixed(1)}">${metres(T.height)}</text>`;
+  out += `<line class="target-alt" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`
+    + text(viewW - 4, ty - 3, metres(T.height), "end");
 
   // One slot per guess, with the target drawn to its left; the target alone before the first guess.
   (guesses.length ? guesses : [target]).forEach((g, i) => {

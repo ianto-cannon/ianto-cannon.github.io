@@ -28,24 +28,27 @@
   Guess the mystery peak among the 50 most prominent summits. Each guess shows the lowest pass you would cross walking from it to the mystery peak: the higher that pass, the closer you are.
 </p>
 <div id="status" role="status" aria-live="polite" hidden>
-  <section id="hints">
-    <b class="tag">Hints</b>
+  <!-- data-when: shown only while all the listed states are true (see renderStatus in coldle.js):
+       play over won lost first more picked unpicked g3 g5.  data-v: filled in with that value. -->
+  <section data-when="play">
+    <span class="tag">Hints</span>
     <ol>
-      <li>The mystery peak is <b id="m-height"></b> high.</li>
-      <li>The mystery peak has a key col at <b id="m-col"></b> (the lowest pass to any higher peak).</li>
-      <li id="h-range" hidden>The mystery peak is in the <b id="m-range"></b> range.</li>
-      <li id="h-country" hidden>The mystery peak is in <b id="m-country"></b>.</li>
-      <li>Guess <span id="m-n"></span> of <span id="m-max"></span>.</li>
-      <li id="m-tap"></li>
+      <li>The mystery peak is <b data-v="height"></b> high.</li>
+      <li>The mystery peak has a key col at <b data-v="col"></b> (the lowest pass to any higher peak).</li>
+      <li data-when="g3">The mystery peak is in the <b data-v="range"></b> range.</li>
+      <li data-when="g5">The mystery peak is in <b data-v="country"></b>.</li>
     </ol>
+    <p>Guess <span data-v="n"></span> of <span data-v="max"></span>.</p>
+    <p data-when="unpicked first">Tap a peak on the map, then press Guess.</p>
+    <p data-when="unpicked more">Tap another peak on the map, then press Guess.</p>
+    <p data-when="picked">Selected <b data-v="sel"></b>. Press Guess to confirm.</p>
   </section>
-  <section id="results" hidden>
-    <b class="tag">Results</b>
-    <ol>
-      <li>Select random and click reset for another peak.</li>
-      <li><b id="r-result"></b></li>
-      <li>The peak was <b id="r-name"></b> in <span id="r-range"></span>, <span id="r-country"></span>. <span id="shm"></span></li>
-    </ol>
+  <section data-when="over">
+    <span class="tag">Results</span>
+    <p>Select random and click reset for another peak.</p>
+    <p data-when="won"><b>Got it in <span data-v="made"></span>!</b></p>
+    <p data-when="lost"><b>Out of guesses.</b></p>
+    <p>The peak was <b data-v="name"></b> in <span data-v="range"></span>, <span data-v="country"></span>. <span id="shm"></span></p>
   </section>
 </div>
 <svg id="ch" viewBox="0 0 360 236"></svg>
@@ -72,7 +75,7 @@
   <svg class="banner peaks"></svg>
   <p class="foot">
   <span>
-    <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="cc.svg" alt="CC " class="license" loading="lazy"><img src="by.svg" alt="BY-" class="license" loading="lazy"><img src="sa.svg" alt="SA" class="license" loading="lazy"></a> Ianto Cannon 2026 Oct 10
+    <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="cc.svg" alt="CC " class="license" loading="lazy"><img src="by.svg" alt="BY-" class="license" loading="lazy"><img src="sa.svg" alt="SA" class="license" loading="lazy"></a> Ianto Cannon 2026 Oct 8
   </span>
   <span class='theme-toggle'>
     <label><input type="radio" name="theme" value="light">light</label>
