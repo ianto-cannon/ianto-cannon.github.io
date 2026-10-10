@@ -77,16 +77,27 @@ function renderTable() {
 function renderStatus() {
   const p = peaks[target];
   const made = guesses.length;
-  $("#sel").innerHTML = over()
+  const html = over()
     ? `<b>${won() ? `Got it in ${made}!` : "Out of guesses."}</b> The peak was <b>${p.name}</b> in ${p.range}, ${p.country}. `
       + `Pick Random for another peak. <span id="shm"></span>`
     : `Mystery peak: <b>${metres(p.height)}</b> high, key col <b>${colLabel(p.colAlt)}</b> (the lowest pass to any higher peak).`
-      + (made >= 3 ? ` Hint: it is in the ${p.range} range.` : "")
-      + (made >= 5 ? ` Hint: it is in ${p.country}.` : "")
+      + (made >= 3 ? `<span class="newhint">💡 It is in the ${p.range} range.</span>` : "")
+      + (made >= 5 ? `<span class="newhint">💡 It is in ${p.country}.</span>` : "")
       + ` Guess ${made + 1} of ${MAX_GUESSES}. `
       + (selected === null
         ? `Tap ${made ? "another" : "a"} peak on the map, then press Guess.`
         : `Selected: ${peaks[selected].name}. Press Guess to confirm.`);
+  const box = $("#status");
+  const sel = $("#sel");
+  box.querySelector(".tag").textContent = over() ? "Result" : "Hint";
+  if (sel.innerHTML === html) return;
+  sel.innerHTML = html;
+  // flash the box whenever its text changes, so it is clear this line is live
+  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+    box.classList.remove("flash");
+    void box.offsetWidth;   // restart the animation if it is already running
+    box.classList.add("flash");
+  }
 }
 const chartY = alt => 178 - alt / 9000 * 168;   // altitude 0…9000 m → y 178…10 (viewBox height 236)
 
