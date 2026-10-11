@@ -1,4 +1,35 @@
-const API = location.hostname.endsWith('.onion')
+function endsWith(str, suffix) {
+  return str.indexOf(suffix, str.length - suffix.length) !== -1;
+}
+
+function addClass(el, className) {
+  if (el.classList) {
+    el.classList.add(className);
+  } else {
+    var classes = el.className.split(' ');
+    if (classes.indexOf(className) === -1) {
+      classes.push(className);
+      el.className = classes.join(' ').replace(/^\s+|\s+$/g, '');
+    }
+  }
+}
+
+function removeClass(el, className) {
+  if (el.classList) {
+    el.classList.remove(className);
+  } else {
+    var classes = el.className.split(' ');
+    var newClasses = [];
+    for (var i = 0; i < classes.length; i++) {
+      if (classes[i] !== className) {
+        newClasses.push(classes[i]);
+      }
+    }
+    el.className = newClasses.join(' ').replace(/^\s+|\s+$/g, '');
+  }
+}
+
+var API = endsWith(location.hostname, '.onion')
     ? '/api.php'
     : 'https://guestbook.maricakes.de/api.php';
 var timeline, t0, t1, guestbookData = [];
@@ -18,10 +49,10 @@ function escapeHTML(str) {
 function guestbookUnreachable(isUnreachable) {
   var status = document.getElementById("status");
   if (isUnreachable) {
-    document.body.classList.add("down");
+    addClass(document.body, "down");
     status.textContent = "Guestbook server is unreachable";
   } else {
-    document.body.classList.remove("down");
+    removeClass(document.body, "down");
     status.textContent = "Guestbook server is connected";
   }
 }
