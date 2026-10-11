@@ -44,6 +44,9 @@ th,td{padding:4px 6px;text-align:left}
 div.foot label{font-size:1.2rem}
 div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 
+/* blue in light mode; dark.css overrides */
+:where(svg) a,:where(svg) a:visited{color:blue}
+
 #pk polygon{fill:var(--mut);stroke:currentColor;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #pk polygon.sel{stroke-width:3px}
 #pk [data-i]{cursor:pointer}

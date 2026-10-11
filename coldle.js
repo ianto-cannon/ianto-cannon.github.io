@@ -125,18 +125,18 @@ function drawChart() {
   const key = [chart.clientWidth, fontPx(), target, guesses.join(), selected, over()].join();
   if (key === chart.dataset.key) return;
   chart.dataset.key = key;
-  const viewW = 236 * chart.clientWidth / chart.clientHeight;
+  const k = 236 / 200;
+  const viewW = k * chart.clientWidth;
   const plotL = 36;
   const plotR = viewW - 4;
   const cx = plotL + .93 * (plotR - plotL);
   const wgMax = (plotR - plotL) / 20;
-  const gap = wgMax;
   const W = cx - plotL - .3 * (plotR - plotL);
   const base = chartY(0);
   const T = peaks[target];
 
-  const font = fontPx() * 236 / chart.clientHeight;   // body font size in chart units
-  const half = t => t.length * .3 * font;   // estimated half-width of a text
+  const font = fontPx() * k;
+  const half = t => t.length * .35 * font;   // estimated half-width of a text
   const labels = [];   // [x, name, peak index]: laid out in rows below the baseline once all peaks are drawn
   const addName = (x, t, i) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t, i]);
   const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
@@ -161,7 +161,7 @@ function drawChart() {
     const wg = wgMax * Math.min(1, G.height / T.height);
     const xc = cx - W * (1 - col / T.height);
     const reach = wg * (1 - col / G.height);
-    const xg = xc - reach - (col > 0 ? 0 : gap);
+    const xg = col > 0 ? xc - reach : plotL + wg;
     const isSel = g === selected;
     guessPolys += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct, .6)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
     if (isSel) marks += text(xg + reach + 2, chartY(col) - 2, metres(col), "col") + altitude(xg, G);
@@ -177,12 +177,13 @@ function drawChart() {
   const placed = labels.sort((a, b) => a[0] - b[0]).map(([x, t, i]) => {
     const h = half(t);
     const lx = clamp(x, h, viewW - h);
-    let row = rowEnds.findIndex(end => lx - h > end + 3);
+    let row = rowEnds.findIndex(end => lx - h > end + 6);
     if (row < 0) row = rowEnds.length;
     rowEnds[row] = lx + h;
     return { x, lx, t, i, row };
   });
-  const rowH = Math.min(1.2 * font, (233 - base - 1.1 * font) / Math.max(1, rowEnds.length - 1));   // squeeze rows to fit
+  const rowH = 1.2 * font;
+  const H = base + 1.1 * font + (rowEnds.length - 1) * rowH + .4 * font;
   placed.forEach(({ x, lx, t, i, row }) => {
     const y = base + 1.1 * font + row * rowH;
     if (row) out += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y - font).toFixed(1)}"/>`;   // leader to its peak
@@ -191,7 +192,8 @@ function drawChart() {
       : `<a href="#" data-i="${i}">${text(lx, y, t, i === selected ? "sel" : "")}</a>`;
   });
 
-  chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
+  chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} ${H.toFixed(1)}`);
+  chart.style.height = H / k + "px";
   chart.setAttribute("font-size", font.toFixed(2));
   chart.innerHTML = out;
 }
