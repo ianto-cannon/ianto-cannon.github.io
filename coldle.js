@@ -130,7 +130,6 @@ function drawChart() {
   const W = cx - plotL - .15 * (plotR - plotL);   // half-width: the left slope fills the chart, leaving a wide space at its foot for guesses linked at sea level
   const base = chartY(0);
   const T = peaks[target];
-  const targetColor = over() ? colGuess(100) : "currentColor";
 
   const font = fontPx() * 236 / chart.clientHeight;   // body font size in chart units
   const half = t => t.length * .3 * font;   // estimated half-width of a text
@@ -138,15 +137,6 @@ function drawChart() {
   const addName = (x, t, i) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t, i]);
   const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
   const altitude = (x, p) => text(x, chartY(p.height) - 3, metres(p.height));
-
-  // Solid up to `col`, grey above it.
-  const triangle = (x, p, color, col) => {
-    const peakY = chartY(p.height);
-    const topY = Math.min(chartY(col), base - 2);
-    const inset = W * Math.min(1, (base - topY) / (base - peakY));
-    return (col < p.height ? `<polygon class="ghost" points="${pt(x - W, base)} ${pt(x + W, base)} ${pt(x, peakY)}"/>` : "")
-      + `<polygon fill="${color}" points="${pt(x - W, base)} ${pt(x + W, base)} ${pt(x + W - inset, topY)} ${pt(x - W + inset, topY)}"/>`;
-  };
 
   let out = [0, 2000, 4000, 6000, 8000].map(alt =>
     `<line x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${chartY(alt)}" y2="${chartY(alt)}"/>`
@@ -163,20 +153,22 @@ function drawChart() {
   // link that selects it; only the selected one shows its altitude above and a line at the col altitude,
   // labelled with that number.
   const others = guesses.filter(g => g !== target);
-  const bestCol = others.length ? Math.min(T.height, Math.max(...others.map(g => linkToTarget(g).colAlt))) : T.height;
-  out += triangle(cx, T, targetColor, bestCol);   // solid up to the best col so far, grey above
+  // Peaks are drawn like their map markers: a solid triangle with an outline; the target is grey.
+  out += `<polygon class="target" points="${pt(cx - W, base)} ${pt(cx + W, base)} ${pt(cx, chartY(T.height))}"/>`;
   let marks = "";
-  others.forEach(g => {
+  const selectedLast = [...others.filter(g => g !== selected), ...others.filter(g => g === selected)];   // so the selected peak is on top
+  selectedLast.forEach(g => {
     const G = peaks[g];
     const { colAlt, pct } = linkToTarget(g);
     const col = Math.min(colAlt, T.height, G.height);
     const wg = wgMax * Math.min(1, G.height / T.height);   // lower peaks are narrower
-    const xc = cx - W * (1 - col / T.height);   // the col: the point on the target's left slope at that altitude
+    // the col: the point on the target's left slope at that altitude; a col at sea level lies beyond the foot, across a gap
+    const xc = col === 0 ? cx - W - .06 * (plotR - plotL) : cx - W * (1 - col / T.height);
     const reach = wg * (1 - col / G.height);   // half-width of the guess at the col altitude
     const xg = xc - reach;   // the guess's right side passes through the col
     const colY = chartY(col);
     const isSel = g === selected;
-    out += `<polygon class="guess${isSel ? " sel" : ""}" fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
+    out += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
     if (isSel) {
       marks += `<line class="col" x1="${(xg - Math.max(reach, 3)).toFixed(1)}" x2="${(xg + Math.max(reach, 3)).toFixed(1)}" y1="${colY.toFixed(1)}" y2="${colY.toFixed(1)}"/>`
         + text(xc + 2, colY - 2, metres(col), "start b")   // just right of the peak, left-aligned, over the col itself
