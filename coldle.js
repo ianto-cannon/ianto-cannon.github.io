@@ -150,20 +150,28 @@ function drawChart() {
   out += `<line class="target-alt" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`;
   out += `<line class="sea" x1="28" x2="${(cx - W).toFixed(1)}" y1="${base}" y2="${base}"/>`;
 
-  const others = guesses.filter(g => g !== target);
-  let guessPolys = "";
-  let marks = "";
-  const selectedLast = [...others.filter(g => g !== selected), ...others.filter(g => g === selected)];
-  selectedLast.forEach(g => {
+  const place = g => {
     const G = peaks[g];
     const { colAlt, pct } = linkToTarget(g);
     const col = Math.min(colAlt, G.height);
     const wg = wgMax * Math.min(1, G.height / T.height);
-    const xc = cx - W * (1 - col / T.height);
     const reach = wg * (1 - col / G.height);
-    const xg = col > 0 ? xc - reach : plotL + wg;
+    const xg = col > 0 ? cx - W * (1 - col / T.height) - reach : plotL + wg;
+    return { G, col, wg, reach, xg, pct };
+  };
+  const shape = (xg, wg, G) => `points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"`;
+  const others = guesses.filter(g => g !== target);
+  const selectedLast = [...others.filter(g => g !== selected), ...others.filter(g => g === selected)];
+  out += peaks.map((_, g) => g).filter(g => g !== target && !guesses.includes(g)).map(g => {
+    const { G, wg, xg } = place(g);
+    return `<polygon class="tree" ${shape(xg, wg, G)}/>`;
+  }).join("");
+  let guessPolys = "";
+  let marks = "";
+  selectedLast.forEach(g => {
+    const { G, col, wg, reach, xg, pct } = place(g);
     const isSel = g === selected;
-    guessPolys += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct, .6)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
+    guessPolys += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct, .6)}" ${shape(xg, wg, G)}/>`;
     if (isSel) marks += text(xg + reach + 2, chartY(col) - 2, metres(col), "col") + altitude(xg, G);
     addName(xg, G.name, g);
   });
