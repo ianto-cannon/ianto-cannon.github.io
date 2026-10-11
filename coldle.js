@@ -446,18 +446,6 @@ mapSvg.addEventListener("click", e => {
   if (e.target.closest("a")) e.preventDefault();
 });
 
-let toastTimer;
-function toast(msg, anchor) {
-  if (!$("#toast")) document.body.insertAdjacentHTML("beforeend", '<div id="toast" role="status"></div>');
-  const el = $("#toast");
-  const r = anchor.getBoundingClientRect();
-  el.textContent = msg;
-  el.style.left = r.left + r.width / 2 + "px";
-  el.style.top = r.top + "px";
-  el.classList.add("show");
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove("show"), 2000);
-}
 function shareResult() {
   // one block per guess, as tall as its closeness to the mystery peak (a correct guess is a full block)
   const blocks = guesses.map(g => "▁▂▃▄▅▆▇█"[Math.round(linkToTarget(g).pct / 100 * 7)]).join("") + (won() ? "🎯" : "");
@@ -473,8 +461,10 @@ function shareResult() {
     $("#shm").replaceChildren(area);
     area.select();
   };
-  Promise.resolve().then(() => navigator.clipboard.writeText(text))
-    .then(() => toast("Copied to clipboard", $("#go")), showText);
+  Promise.resolve().then(() => navigator.clipboard.writeText(text)).then(() => {
+    $("#go").textContent = "copied!";
+    setTimeout(() => { if (over()) $("#go").textContent = "share results"; }, 2000);
+  }, showText);
 }
 // names in the chart and the list are links that select their peak
 const pickFromLink = e => {
