@@ -63,6 +63,7 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 #ch text{fill:currentColor;text-anchor:middle}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
+#ch text.col{text-anchor:start}   /* the linking col's altitude, just right of the guessed peak */
 /* peaks look like their map markers: a solid triangle with an outline (guesses are filled inline by closeness) */
 #ch polygon{stroke:currentColor;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #ch polygon.target{fill:var(--mut)}
