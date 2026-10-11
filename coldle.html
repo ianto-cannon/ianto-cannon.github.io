@@ -26,8 +26,8 @@
 <h1>Coldle</h1>
 <p class="sub">
   Guess the mystery peak among the
-  <label><input type="radio" name="count" value="50" checked>50</label>
-  <label><input type="radio" name="count" value="125">125</label>
+  <label><input type="radio" name="count" value="50" checked> 50</label>
+  <label><input type="radio" name="count" value="125"> 125</label>
   most prominent summits. Each guess shows the lowest pass you would cross walking from it to the mystery peak: the higher that pass, the closer you are.
 </p>
 <div id="status" role="status" aria-live="polite" hidden>
@@ -56,7 +56,7 @@
 </div>
 <svg id="ch" viewBox="0 0 360 236"></svg>
 <svg id="mp" viewBox="0 0 40030 12742">
-  <g id="bg"><image href="map.svg" width="40030" height="12742"/></g>
+  <g id="bg"></g>
   <g id="pk"></g>
 </svg>
 <div class='foot'>
@@ -73,12 +73,13 @@
 </div>
 <div id="rows"></div>
 </main>
+<script defer src="map.js"></script>
 <script defer src="peaks.js"></script>
 <script defer src="coldle.js"></script>
   <svg class="banner peaks"></svg>
   <p class="foot">
   <span>
-    <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="cc.svg" alt="CC " class="license" loading="lazy"><img src="by.svg" alt="BY-" class="license" loading="lazy"><img src="sa.svg" alt="SA" class="license" loading="lazy"></a> Ianto Cannon 2026 Oct 11
+    <a rel="license" href="https://creativecommons.org/licenses/by-sa/4.0/"><img src="cc.svg" alt="CC " class="license" loading="lazy"><img src="by.svg" alt="BY-" class="license" loading="lazy"><img src="sa.svg" alt="SA" class="license" loading="lazy"></a> Ianto Cannon 2026 Oct 8
   </span>
   <span class='theme-toggle'>
     <label><input type="radio" name="theme" value="light">light</label>

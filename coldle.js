@@ -419,9 +419,28 @@ function project(lat, lon) {
   ];
 }
 
+// Move map.js's SVG into <g id="bg">, keeping it vector (no <image>, which would be rasterized).
+// DOMParser works on file:// where fetch() does not.
+function injectMap() {
+  var bg = document.getElementById("bg");
+  if (!bg || typeof MAP_SVG === "undefined") return;
+  if (!window.DOMParser) return; // very old browsers get an empty map
+  var doc = new DOMParser().parseFromString(MAP_SVG, "image/svg+xml");
+  var root = doc.documentElement;
+  if (!root || root.nodeName === "parsererror") return;
+  var next = root.firstChild;
+  while (next) {
+    var following = next.nextSibling;
+    var node = document.importNode ? document.importNode(next, true) : next.cloneNode(true);
+    bg.appendChild(node);
+    next = following;
+  }
+}
+
 // Parse peaks.js once; slice later depending on how many are in play.
 function load() {
-  // PEAKS_CSV comes from peaks.js; the map is an <image> in coldle.html (fetch() fails on file://)
+  injectMap();
+  // PEAKS_CSV comes from peaks.js; the map is injected from map.js
   var rows = parseCSV(PEAKS_CSV).slice(1).filter(function (f) { return f.length >= 8; });
   allPeaks = rows.map(function (f) {
     return {
