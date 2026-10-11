@@ -1,3 +1,6 @@
+// The 125 most topographically prominent summits on Earth.
+// Source: Wikipedia "List of mountain peaks by prominence" (top-125 table).
+// parent = Wikipedia's "prominence parent" column; "None" → Everest (island/isolated high points).
 const PEAKS_CSV = String.raw`name,height,prominence,parent,lat,lon,range,country
 Everest,8849,8849,,27.99,86.93,Himalayas,China/Nepal
 Aconcagua,6961,6961,Everest,-32.65,-70.01,Andes,Argentina
@@ -24,9 +27,9 @@ K2,8611,4020,Everest,35.88,76.51,Karakoram,China/Pakistan
 Ras Dashen,4550,3997,Kilimanjaro,13.24,38.37,Simien Mtns,Ethiopia
 Volcán Tajumulco,4220,3980,Pico de Orizaba,15.03,-91.9,Sierra Madre de Chiapas,Guatemala
 Pico Bolívar,4981,3957,Chimborazo,8.54,-71.05,Sierra Nevada de Mérida,Venezuela
-Mount Fairweather,4671,3946,Mount Logan,58.91,-137.53,Saint Elias Mtns,Canada/USA
 Yushan,3952,3952,Everest,23.47,120.96,Yushan Range,Taiwan
 Mount Stanley,5109,3951,Kilimanjaro,0.39,29.87,Rwenzori,DR Congo/Uganda
+Mount Fairweather,4671,3946,Mount Logan,58.91,-137.53,Saint Elias Mtns,Canada/USA
 Kangchenjunga,8586,3922,Everest,27.7,88.13,Himalayas,India/Nepal
 Tirich Mir,7708,3908,K2,36.25,71.84,Hindu Kush,Pakistan
 Mount Cameroon,4040,3901,Mount Stanley,4.22,9.17,Cameroon line,Cameroon
@@ -49,4 +52,79 @@ Mount Gongga,7556,3642,K2,29.6,101.88,Daxue Shan,China
 Mount Ararat,5137,3611,Damavand,39.7,44.3,Armenian Highlands,Turkey
 Kongur Tagh,7649,3585,K2,38.59,75.31,Kongur Shan,China
 Mount Blackburn,4996,3535,Mount Logan,61.73,-143.44,Wrangell Mtns,USA
+Mount Hayes,4216,3501,Denali,63.62,-146.72,Alaska Range,USA
+Mount Latimojong,3478,3478,Everest,-3.39,120.02,Sulawesi,Indonesia
+Mount Saint Elias,5489,3448,Mount Logan,60.29,-140.93,Saint Elias Mtns,Canada/USA
+Mount Etna,3403,3403,Everest,37.75,14.99,Sicily,Italy
+Ismoil Somoni Peak,7495,3402,K2,38.94,72.02,Pamir Mtns,Tajikistan
+Dhaulagiri,8167,3357,K2,28.7,83.49,Himalayas,Nepal
+Mercedario,6720,3353,Aconcagua,-31.98,-70.11,Cordillera de la Ramada,Argentina
+Lautaro,3623,3345,Aconcagua,-49.02,-73.5,Andes,Chile
+Belukha,4506,3343,K2,49.81,86.59,Altai,Russia/Kazakhstan
+Monte San Lorenzo,3706,3319,Aconcagua,-47.59,-72.31,Andes,Argentina/Chile
+Mount Karisimbi,4507,3312,Mount Stanley,-1.5,29.45,Virunga Mtns,DR Congo/Rwanda
+Jabal An-Nabi Shu'ayb,3666,3311,Mount Ararat,15.28,43.98,Sarawat Mtns,Yemen
+Mount Waddington,4019,3289,Mount Fairweather,51.37,-125.26,Coast Mtns,Canada
+Mulhacén,3479,3285,Mont Blanc,37.05,-3.31,Sierra Nevada,Spain
+Mount Slamet,3432,3284,Semeru,-7.24,109.22,Java,Indonesia
+Sabalan,4811,3283,Mount Ararat,38.27,47.84,Sabalan,Iran
+Mount Marcus Baker,3991,3269,Mount Hayes,61.44,-147.75,Chugach Mtns,USA
+Sauyr Zhotasy,3840,3252,Belukha,47.05,85.57,Saur Mtns,China/Kazakhstan
+Cerro del Bolsón,5552,3252,Ojos del Salado,-27.21,-66.09,Andes,Argentina
+Tomort,4886,3243,Bogda Peak,43.07,94.35,Tian Shan,China
+Jade Dragon Snow Mountain,5596,3202,K2,27.1,100.18,Yun Range,China
+Mount Meru,4565,3170,Mount Kenya,-3.25,36.76,Eastern Rift,Tanzania
+Shiveluch,3307,3168,Klyuchevskaya Sopka,56.65,161.36,Kamchatka,Russia
+Nanda Devi,7817,3139,Dhaulagiri,30.37,79.97,Himalayas,India
+Ichinsky,3607,3125,Klyuchevskaya Sopka,55.68,157.72,Sredinny Range,Russia
+Mount Lawu,3265,3118,Semeru,-7.63,111.19,Java,Indonesia
+Batura Sar,7795,3118,K2,36.51,74.52,Karakoram,Pakistan
+Mount Siple,3110,3110,Everest,-73.43,-126.67,Siple Island,Antarctica
+Pico Duarte,3098,3098,Everest,19.03,-71.01,Cordillera Central,Dominican Republic
+Manaslu,8163,3092,Everest,28.55,84.56,Himalayas,Nepal
+Mount Whitney,4418,3073,Pico de Orizaba,36.58,-118.29,Sierra Nevada,USA
+Piton des Neiges,3069,3069,Everest,-21.1,55.48,Réunion,France
+Raung,3332,3069,Semeru,-8.13,114.04,Java,Indonesia
+Xuelian Feng,6627,3068,Jengish Chokusu,42.26,80.89,Tian Shan,China
+Haleakalā,3055,3055,Everest,20.72,-156.25,Maui,USA
+Mount Lucania,5226,3046,Mount Logan,61.02,-140.47,Saint Elias Mtns,Canada
+Mount Agung,3031,3031,Everest,-8.34,115.51,Bali,Indonesia
+Mount Binaiya,3027,3027,Everest,-3.17,129.46,Seram,Indonesia
+Popocatépetl,5400,3020,Pico de Orizaba,19.02,-98.62,Trans-Mexican Volcanic Belt,Mexico
+Pico Basilé,3011,3011,Everest,3.58,8.77,Bioko,Equatorial Guinea
+Koryaksky,3456,2999,Klyuchevskaya Sopka,53.32,158.68,Sredinny Range,Russia
+Gangkhar Puensum,7570,2995,Kangchenjunga,28.05,90.46,Himalayas,Bhutan/China
+Mount Stephenson,2987,2987,Everest,-69.82,-69.72,Alexander Island,Antarctica
+Annapurna,8091,2984,Everest,28.6,83.82,Himalayas,Nepal
+Pik Talgar,4979,2982,Jengish Chokusu,43.12,77.34,Trans-Ili Alatau,Kazakhstan
+Mount Shasta,4317,2977,Mount Whitney,41.41,-122.19,Cascades,USA
+Mount Wilhelm,4509,2969,Puncak Jaya,-5.78,145.03,Bismarck Range,Papua New Guinea
+Pico do Ramelau,2963,2963,Everest,-8.91,125.49,Timor,Timor-Leste
+Mount Apo,2954,2954,Everest,6.99,125.27,Mindanao,Philippines
+Gyala Peri,7294,2942,Dhaulagiri,29.81,94.97,Nyenchen Tanglha,China
+Mount Leuser,3466,2941,Mount Kerinci,3.8,97.22,Sumatra,Indonesia
+Mount Paget,2934,2934,Everest,-54.44,-36.56,Allardyce Range,South Georgia
+Chakragil,6760,2934,Mount Gongga,38.87,75.11,Kunlun,China
+Emi Koussi,3445,2934,Mount Karisimbi,19.79,18.55,Tibesti,Chad
+Monarch Mountain,3555,2930,Mount Waddington,51.9,-125.88,Coast Mtns,Canada
+Mount Suckling,3676,2925,Puncak Jaya,-9.67,149.01,Owen Stanley Range,Papua New Guinea
+Mount Pulag,2922,2922,Everest,16.58,120.88,Cordillera Central,Philippines
+El Melao,4150,2907,Ojos del Salado,-28.87,-67.13,Sierras Pampeanas,Argentina
+Taftan,3941,2901,Sabalan,28.6,61.13,Baluchestan,Iran
+Jabal Shams,3019,2899,Jabal An-Nabi Shu'ayb,23.24,57.26,Al-Hajar Mtns,Oman
+Shishapangma,8027,2897,Annapurna,28.35,85.78,Himalayas,China
+Pico da Neblina,2994,2886,Ritacuba Blanco,0.81,-66.01,Cerro de la Neblina,Brazil
+Saramati,3826,2885,Dhaulagiri,25.74,95.04,Patkai,India/Myanmar
+Maromokotro,2876,2876,Everest,-14.02,48.97,Tsaratanana,Madagascar
+Mount Shishaldin,2869,2869,Everest,54.75,-163.97,Aleutian Range,USA
+Moncong Lompotabang,2874,2857,Mount Latimojong,-5.35,119.93,Sulawesi,Indonesia
+Buni Zom,6542,2845,K2,36.15,72.33,Hindu Raj,Pakistan
+Kuh-e Bandaka,6812,2834,Tirich Mir,36.18,70.98,Hindu Kush,Afghanistan
+Mount Robson,3959,2829,Mount Whitney,53.11,-119.16,Canadian Rockies,Canada
+Pico do Fogo,2829,2829,Everest,14.95,-24.34,Fogo,Cape Verde
+Kamet,7756,2825,Nanda Devi,30.92,79.59,Himalayas,India
+Rakaposhi,7788,2818,K2,36.14,74.49,Karakoram,Pakistan
+Aneto,3404,2812,Mulhacén,42.63,0.66,Pyrenees,Spain
+Arjuno-Welirang,3339,2812,Semeru,-7.77,112.59,Java,Indonesia
+Jiuding Shan,4969,2808,K2,31.54,103.85,Daxue Shan,China
 `;

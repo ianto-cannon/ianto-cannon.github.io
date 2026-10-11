@@ -1,7 +1,6 @@
 // Coldle: guess the mystery peak. peaks.csv columns: name,height,prominence,parent,lat,lon,range,country.
 // map.svg is a Lambert cylindrical equal-area projection (x = longitude, y = sin latitude).
-// ES5 translation: no let/const, arrow functions, template literals, destructuring, spread,
-// for-of, Map/Set, includes/find/findIndex, **, matchAll, Object.assign, Promise.
+// ES5 translation, with a top-N selector (default 50; #125, #37, … in the URL).
 (function () {
 
 function $(s) { return document.querySelector(s); }
@@ -9,6 +8,7 @@ function $(s) { return document.querySelector(s); }
 var MAX_GUESSES = 8;
 var MAX_ZOOM = 150;
 var RAD = Math.PI / 180;
+var DEFAULT_COUNT = 50;
 
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function metres(m) { return m.toLocaleString() + " m"; }
@@ -37,7 +37,10 @@ function parseCSV(text) {
 
 /* --------------------------------------------------------------- state */
 var mode = "daily";
-var peaks = [];
+var allPeaks = null;   // every row in peaks.js
+var maxCount = 125;    // set once allPeaks is parsed
+var count = DEFAULT_COUNT;
+var peaks = [];        // allPeaks.slice(0, count) — what the game actually uses
 var target;
 var guesses = [];
 var selected = null;
@@ -93,7 +96,12 @@ function linkToTarget(g) {
   for (var i = 0; i < a.length; i++) {
     if (b.indexOf(a[i]) !== -1) { meet = a[i]; break; } // highest common ancestor
   }
-  var crossed = a.slice(0, a.indexOf(meet)).concat(b.slice(0, b.indexOf(meet)));
+  var crossed;
+  if (meet === undefined) {
+    crossed = a.concat(b); // no shared ancestor: walk both full chains
+  } else {
+    crossed = a.slice(0, a.indexOf(meet)).concat(b.slice(0, b.indexOf(meet)));
+  }
   var colAlt;
   if (crossed.length) {
     colAlt = Infinity;
@@ -209,7 +217,8 @@ function chartY(alt) { return 198 - alt / 9000 * 168; } // 0..9000 m → y 198..
 
 function drawChart() {
   var chart = $("#ch");
-  var key = [chart.clientWidth, fontPx(), target, guesses.join(), selected, over()].join();
+  // peaks.length is in the key so switching 50 ↔ 125 redraws the background trees
+  var key = [chart.clientWidth, fontPx(), target, guesses.join(), selected, over(), peaks.length].join();
   if (key === chart.getAttribute("data-key")) return;
   chart.setAttribute("data-key", key);
 
@@ -410,10 +419,11 @@ function project(lat, lon) {
   ];
 }
 
+// Parse peaks.js once; slice later depending on how many are in play.
 function load() {
   // PEAKS_CSV comes from peaks.js; the map is an <image> in coldle.html (fetch() fails on file://)
   var rows = parseCSV(PEAKS_CSV).slice(1).filter(function (f) { return f.length >= 8; });
-  peaks = rows.map(function (f) {
+  allPeaks = rows.map(function (f) {
     return {
       name: f[0],
       parent: f[3],
@@ -425,21 +435,54 @@ function load() {
       colAlt: +f[1] - +f[2]
     };
   });
-
-  for (var i = 0; i < peaks.length; i++) {
-    var par = peaks[i].parent;
+  for (var i = 0; i < allPeaks.length; i++) {
+    var par = allPeaks[i].parent;
     var idx = -1;
-    for (var j = 0; j < peaks.length; j++) {
-      if (peaks[j].name === par) { idx = j; break; }
+    for (var j = 0; j < allPeaks.length; j++) {
+      if (allPeaks[j].name === par) { idx = j; break; }
     }
-    peaks[i].parent = idx;
+    allPeaks[i].parent = idx;
   }
-  for (var m = 0; m < peaks.length; m++) {
-    var xy = project(peaks[m].lat, peaks[m].lon);
-    peaks[m].x = xy[0];
-    peaks[m].y = xy[1];
+  for (var m = 0; m < allPeaks.length; m++) {
+    var xy = project(allPeaks[m].lat, allPeaks[m].lon);
+    allPeaks[m].x = xy[0];
+    allPeaks[m].y = xy[1];
   }
+  maxCount = allPeaks.length;
+}
+
+/* ------------------------------------------------- top-N selector / URL */
+// The URL hash is the only source of truth: #50, #125, #37 … no hash → 50.
+function readCount() {
+  var m = /^#(\d+)$/.exec(location.hash || "");
+  if (!m) return DEFAULT_COUNT;
+  var n = parseInt(m[1], 10);
+  if (!isFinite(n) || n < 1) return DEFAULT_COUNT;
+  return Math.min(n, maxCount);
+}
+function writeCountHash(n) {
+  var hash = "#" + n;
+  if (location.hash === hash) return;
+  if (window.history && window.history.replaceState) {
+    window.history.replaceState(null, "", hash); // no history entry
+  } else {
+    location.hash = hash;
+  }
+}
+function updateCountRadios() {
+  var radios = document.querySelectorAll("input[name=count]");
+  for (var i = 0; i < radios.length; i++) {
+    radios[i].checked = (+radios[i].value === count);
+  }
+}
+// writeHash=false on load and on hashchange, so the URL keeps whatever the user typed.
+function applyCount(n, writeHash) {
+  count = clamp(Math.round(n) || DEFAULT_COUNT, 1, maxCount);
+  if (writeHash) writeCountHash(count);
+  updateCountRadios();
+  peaks = allPeaks.slice(0, count);
   resetView();
+  newRound();
 }
 
 function aspect() {
@@ -720,6 +763,21 @@ $("#reset").onclick = function () {
   newRound();
 };
 
+// top-50 / top-125 radios in the subtitle
+var countRadios = document.querySelectorAll("input[name=count]");
+for (var cr = 0; cr < countRadios.length; cr++) {
+  (function (radio) {
+    radio.onchange = function () {
+      if (radio.checked) applyCount(+radio.value, true); // write #50 / #125
+    };
+  })(countRadios[cr]);
+}
+// typing #37 (or deleting the hash) in the address bar re-seeds the game
+window.addEventListener("hashchange", function () {
+  var n = readCount();
+  if (n !== count) applyCount(n, false);
+}, false);
+
 var radios = document.querySelectorAll("input[name=mode]");
 for (var r = 0; r < radios.length; r++) {
   (function (radio) {
@@ -732,7 +790,7 @@ for (var r = 0; r < radios.length; r++) {
 
 try {
   load();
-  newRound();
+  applyCount(readCount(), false); // no hash → 50, without writing one
 } catch (e) {
   var status = $("#status");
   status.hidden = false;
