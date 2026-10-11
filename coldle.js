@@ -732,10 +732,9 @@ function shareResult() {
     ? "I guessed the correct peak in " + n + " " + (n === 1 ? "try" : "tries") + "!"
     : "I didn't find the mystery peak in " + MAX_GUESSES + " tries.";
 
-  // daily shows the date and score; random just says "random"
+  // daily shows the date; random just says "random"
   var head = mode === "daily"
     ? "Coldle " + count + " peaks " + new Date().toISOString().slice(0, 10)
-      + " " + (won() ? n : "X") + "/" + MAX_GUESSES
     : "Coldle " + count + " peaks random";
 
   // the link carries the top-N only when it isn't the default
