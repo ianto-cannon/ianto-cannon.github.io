@@ -63,9 +63,11 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 #ch polygon.target{fill:var(--mut)}
 #ch polygon.target.lost{fill:black}   /* the target, revealed after running out of guesses */
 #ch polygon.sel{stroke-width:3px}
-#ch line.col{stroke:currentColor;stroke-width:1}
-/* peak names in the chart and the list are links that select the peak; they take the page's <a> style
-   (the chart's text inherits the link's colour through currentColor, and its decoration explicitly) */
+/* peak names in the chart and the list are links that select the peak, and take the page's <a> style. The
+   chart's <a> carries that style and its <text> inherits it: fill paints with currentColor (the link's
+   colour) and the decoration is inherited explicitly, since text-decoration does not reach SVG text on
+   its own. */
+#ch a{fill:currentColor}
 #ch a text{text-decoration:inherit}
 #rows tr.sel{font-weight:bold}
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
