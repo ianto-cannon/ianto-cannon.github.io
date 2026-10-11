@@ -9,7 +9,7 @@ const metres = m => m.toLocaleString() + " m";
 const colLabel = m => (m ? metres(m) : "sea level");
 const pt = (x, y) => `${x.toFixed(1)},${y.toFixed(1)}`;
 const fontPx = () => parseFloat(getComputedStyle(document.body).fontSize);
-const colGuess = pct => `hsl(${hue}, 65%, ${20 + 70 * (pct / 100) ** .25}%)`;   // hue: from common.js
+const colGuess = (pct, alpha = 1) => `hsl(${hue} 65% ${20 + 70 * (pct / 100) ** .25}% / ${alpha})`;
 
 const parseCSV = text => text.trim().split(/\r?\n/).map(line =>
   [...line.matchAll(/(?:^|,)("(?:[^"]|"")*"|[^,]*)/g)].map(m => m[1].replace(/^"|"$/g, "").replace(/""/g, '"')));
@@ -122,15 +122,16 @@ const chartY = alt => 178 - alt / 9000 * 168;   // altitude 0…9000 m → y 178
 
 function drawChart() {
   const chart = $("#ch");
+  const key = [chart.clientWidth, fontPx(), target, guesses.join(), selected, over()].join();
+  if (key === chart.dataset.key) return;
+  chart.dataset.key = key;
   const viewW = 236 * chart.clientWidth / chart.clientHeight;
   const plotL = 36;
   const plotR = viewW - 4;
-  const cx = plotL + .93 * (plotR - plotL);   // the mystery peak's summit sits near the right; its right slope runs off the chart edge
-  const wgMax = (plotR - plotL) / 40;   // half-width of the widest guessed peak
-  const gap = wgMax;   // clear space left between a guess linked at sea level and the target's foot
-  // The target's left foot stands two of those half-widths, plus the gap, in from the left edge of the
-  // plot, so a guess linked to it at sea level — shifted left by the gap — just touches the left edge.
-  const W = cx - plotL - 2 * wgMax - gap;   // the target's half-width
+  const cx = plotL + .93 * (plotR - plotL);
+  const wgMax = (plotR - plotL) / 20;
+  const gap = wgMax;
+  const W = cx - plotL - .3 * (plotR - plotL);
   const base = chartY(0);
   const T = peaks[target];
 
@@ -145,46 +146,30 @@ function drawChart() {
     `<line x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${chartY(alt)}" y2="${chartY(alt)}"/>`
     + text(2, chartY(alt) + 3, alt, "start")).join("");
 
-  // The target's altitude: a dashed line across the chart. Its height is labelled over its summit below.
   const ty = chartY(T.height);
   out += `<line class="target-alt" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`;
+  out += `<line class="sea" x1="28" x2="${(cx - W).toFixed(1)}" y1="${base}" y2="${base}"/>`;
 
-  // The target is drawn once, as a wide peak. Each guess stands on the target's slope where the slope is as
-  // high as the col linking them: the higher the col, the nearer the target's summit, and a col above the
-  // summit carries the guess past the peak. All guesses stand on the left slope. A guess linked at sea level
-  // is held a gap clear of the target's foot. Each guess has its name below, as a link that selects it;
-  // only the selected one shows its altitude above and its col altitude, labelled just to its right.
   const others = guesses.filter(g => g !== target);
-  // Peaks are drawn like their map markers: a solid triangle with an outline; the target is grey.
-  // Once the game is over the target takes the correct-guess colour if it was found, or goes black if not.
-  out += `<polygon class="target${over() && !won() ? " lost" : ""}"${won() ? ` style="fill:${colGuess(100)}"` : ""} points="${pt(cx - W, base)} ${pt(cx + W, base)} ${pt(cx, chartY(T.height))}"/>`;
+  let guessPolys = "";
   let marks = "";
-  const selectedLast = [...others.filter(g => g !== selected), ...others.filter(g => g === selected)];   // so the selected peak is on top
+  const selectedLast = [...others.filter(g => g !== selected), ...others.filter(g => g === selected)];
   selectedLast.forEach(g => {
     const G = peaks[g];
     const { colAlt, pct } = linkToTarget(g);
-    const col = Math.min(colAlt, G.height);   // the col may stand above the target's summit
-    const wg = wgMax * Math.min(1, G.height / T.height);   // lower peaks are narrower
-    // the col: the point on the target's left slope at that altitude. Above the summit the slope carries on
-    // to the right, so a col higher than the target sits beyond its peak, above it; at sea level it lies at
-    // the target's foot.
+    const col = Math.min(colAlt, G.height);
+    const wg = wgMax * Math.min(1, G.height / T.height);
     const xc = cx - W * (1 - col / T.height);
-    const reach = wg * (1 - col / G.height);   // half-width of the guess at the col altitude
-    const gapHere = col > 0 ? 0 : gap;   // the gap only opens when the linking col is at sea level
-    const xg = xc - reach - gapHere;   // the guess's right side passes through the col
-    const colY = chartY(col);
+    const reach = wg * (1 - col / G.height);
+    const xg = xc - reach - (col > 0 ? 0 : gap);
     const isSel = g === selected;
-    out += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
-    if (isSel) {
-      // the col altitude, labelled just right of the guess, where its right slope crosses the col. Only a
-      // col at sea level shifts the label, by the gap holding the guess off the target's foot.
-      marks += text(xg + reach + 2, colY - 2, metres(col), "col")
-        + altitude(xg, G);
-    }
+    guessPolys += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct, .6)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
+    if (isSel) marks += text(xg + reach + 2, chartY(col) - 2, metres(col), "col") + altitude(xg, G);
     addName(xg, G.name, g);
   });
-  marks += altitude(cx, T);   // the target's altitude, over its summit
-  out += marks;
+  out += guessPolys;
+  out += `<polygon class="target"${over() ? ` style="fill:${colGuess(100)}"` : ""} points="${pt(cx - W, base)} ${pt(cx + W, base)} ${pt(cx, chartY(T.height))}"/>`;
+  out += marks + altitude(cx, T);
   addName(cx, over() ? T.name : "?", over() ? target : undefined);
 
   // Each name goes in the first row where it doesn't overlap the previous name there.
@@ -340,8 +325,8 @@ function drawMap() {
     const isSel = i === selected;
     const revealed = !live && i === target;
     const tap = live ? ` data-i="${i}"` : "";
-    const fill = guessed ? colGuess(linkToTarget(i).pct) : "";   // a revealed target that was not guessed is black (see .lost)
-    const cls = [isSel && "sel", revealed && !guessed && "lost"].filter(Boolean).join(" ");
+    const fill = revealed ? colGuess(100) : guessed ? colGuess(linkToTarget(i).pct) : "";
+    const cls = isSel ? "sel" : "";
     const shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
     const marker = `<polygon${cls && ` class="${cls}"`}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`;
