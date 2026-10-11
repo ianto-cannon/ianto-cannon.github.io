@@ -127,7 +127,10 @@ function drawChart() {
   const plotR = viewW - 4;
   const cx = plotL + .88 * (plotR - plotL);   // the mystery peak's summit sits towards the right; its right slope runs off the chart edge
   const wgMax = (plotR - plotL) / 40;   // half-width of the widest guessed peak
-  const W = cx - plotL - .15 * (plotR - plotL);   // half-width: the left slope fills the chart, leaving a wide space at its foot for guesses linked at sea level
+  // The target's left foot stands two of those half-widths in from the left edge of the plot, so a guess
+  // linked to it at sea level — whose own left foot is two half-widths further left again — just touches
+  // the left edge.
+  const W = cx - plotL - 2 * wgMax;   // the target's half-width
   const base = chartY(0);
   const T = peaks[target];
 
@@ -148,10 +151,10 @@ function drawChart() {
     + text(viewW - 4, ty - 3, metres(T.height), "end");
 
   // The target is drawn once, as a wide peak. Each guess stands on the target's slope where the slope is as
-  // high as the col linking them (the dot): the higher the col, the nearer the target's summit. The guess's
-  // inner side runs down to that point. All guesses stand on the left slope. Each has its name below, as a
-  // link that selects it; only the selected one shows its altitude above and a line at the col altitude,
-  // labelled with that number.
+  // high as the col linking them: the higher the col, the nearer the target's summit, and a col above the
+  // summit carries the guess past the peak. All guesses stand on the left slope. Each has its name below, as
+  // a link that selects it; only the selected one shows its altitude above and its col altitude, labelled
+  // beside the col.
   const others = guesses.filter(g => g !== target);
   // Peaks are drawn like their map markers: a solid triangle with an outline; the target is grey.
   // Once the game is over the target takes the correct-guess colour if it was found, or goes black if not.
@@ -161,18 +164,19 @@ function drawChart() {
   selectedLast.forEach(g => {
     const G = peaks[g];
     const { colAlt, pct } = linkToTarget(g);
-    const col = Math.min(colAlt, T.height, G.height);
+    const col = Math.min(colAlt, G.height);   // the col may stand above the target's summit
     const wg = wgMax * Math.min(1, G.height / T.height);   // lower peaks are narrower
-    // the col: the point on the target's left slope at that altitude; a col at sea level lies beyond the foot, across a gap
-    const xc = col === 0 ? cx - W - .06 * (plotR - plotL) : cx - W * (1 - col / T.height);
+    // the col: the point on the target's left slope at that altitude. Above the summit the slope carries on
+    // to the right, so a col higher than the target sits beyond its peak, above it; at sea level it lies at
+    // the target's foot.
+    const xc = cx - W * (1 - col / T.height);
     const reach = wg * (1 - col / G.height);   // half-width of the guess at the col altitude
     const xg = xc - reach;   // the guess's right side passes through the col
     const colY = chartY(col);
     const isSel = g === selected;
     out += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
     if (isSel) {
-      marks += `<line class="col" x1="${(xg - Math.max(reach, 3)).toFixed(1)}" x2="${(xg + Math.max(reach, 3)).toFixed(1)}" y1="${colY.toFixed(1)}" y2="${colY.toFixed(1)}"/>`
-        + text(xc + 2, colY - 2, metres(col), "start")   // just right of the peak, left-aligned, over the col itself
+      marks += text(xc + 2, colY - 2, metres(col), "start")   // beside the col, left-aligned
         + altitude(xg, G);
     }
     addName(xg, G.name, g);
@@ -336,8 +340,8 @@ function drawMap() {
     const shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
     const marker = `<polygon${cls && ` class="${cls}"`}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`;
-    // label every peak when zoomed in ~3.6x, guessed ones from ~1.8x
-    const label = zoomFrac <= .28 || isSel || (guessed && zoomFrac <= .56)
+    // label every peak once zoomed in enough, guessed or not
+    const label = zoomFrac <= .28 || isSel
       ? `<text${tap} x="${(p.x + 9 * px).toFixed(1)}" y="${(p.y + 4 * px).toFixed(1)}">${p.name}</text>`
       : "";
     if (isSel) {
