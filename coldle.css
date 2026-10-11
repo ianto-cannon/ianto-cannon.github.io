@@ -1,7 +1,7 @@
 :root{
   --card:Canvas;
-  --mut:GrayText;
-  --bd:#8886;
+  --mut:gray;
+  --bd:gray;
 }
 body{max-width:1200px}
 svg,table{width:100%;}
@@ -21,48 +21,44 @@ th,td{padding:4px 6px;text-align:left}
 
 /* live status box: a plain left rule, flashing when its text changes */
 #status{
-  border-left:3px solid var(--bd);
-  padding-left:.6em;
+  border-left:.3em solid var(--bd);
+  padding-left:.5em;
 }
 #status .tag{display:block;font-weight:bold;color:var(--mut)}
 #status ol{margin:0;padding-left:1.5em}
 #status p{margin:0}
-#status.flash{animation:flash .8s}
+#status.flash{animation:flash 1s}
 @keyframes flash{
   from{background:color-mix(in srgb, var(--mut) 30%, transparent)}
 }
 
-#go,#reset{font-size:1.2rem}
-/* the guess button shakes when the player runs out of guesses */
-#go.shake{animation:shake .5s}
+#go.shake{animation:shake 1s}
 @keyframes shake{
   10%,90%{transform:translateX(-2px)}
   20%,80%{transform:translateX(4px)}
   30%,50%,70%{transform:translateX(-8px)}
   40%,60%{transform:translateX(8px)}
 }
-div.foot label{font-size:1.2rem}
-div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 
 /* blue in light mode; dark.css overrides */
 :where(svg) a,:where(svg) a:visited{color:blue}
 
-#pk polygon{fill:var(--mut);stroke:currentColor;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-#pk polygon.sel{stroke-width:3px}
+#pk polygon{fill:var(--mut);stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#pk polygon.sel{stroke-width:2px}
 #pk [data-i]{cursor:pointer}
 #pk text{fill:currentColor}
 #pk text.sel{font-weight:bold}
 
 #ch{height:200px}
-#ch line{stroke:var(--bd);stroke-width:.5}
+#ch line{stroke:var(--bd)}
 #ch text{fill:currentColor;text-anchor:middle}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
 #ch text.col{text-anchor:start}   /* the linking col's altitude, just right of the guessed peak */
-#ch polygon{stroke:currentColor;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#ch polygon{stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #ch polygon.target{fill:var(--mut)}
-#ch polygon.tree{fill:var(--mut);fill-opacity:.3;stroke-width:.5px}
-#ch polygon.sel{stroke-width:3px}
+#ch polygon.tree{fill:var(--mut);fill-opacity:.3}
+#ch polygon.sel{stroke-width:2px}
 #ch text.sel{font-weight:bold}
 #rows tr.sel{font-weight:bold}
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
@@ -81,9 +77,7 @@ canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:non
   background:var(--card);
   border:1px solid var(--bd);
   border-radius:4px;
-  padding:4px 8px;
   pointer-events:none;
-  opacity:0;
   transition:opacity .3s;
   z-index:100;
 }
