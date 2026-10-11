@@ -50,7 +50,12 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 #pk polygon.sel{stroke-width:3px}
 #pk polygon.lost{fill:black}   /* the target, revealed after running out of guesses */
 #pk [data-i]{cursor:pointer}
-#pk text{fill:currentColor}
+/* peak names on the map are links that select the peak, like those in the chart, and take the page's <a>
+   style: the anchor carries it and its <text> inherits it (fill via currentColor, decoration explicitly,
+   since text-decoration does not reach SVG text on its own). The selected peak's name is bold. */
+#pk a{fill:currentColor}
+#pk a text{text-decoration:inherit}
+#pk text.sel{font-weight:bold}
 
 /* chart layer */
 #ch{height:300px}
@@ -63,12 +68,13 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 #ch polygon.target{fill:var(--mut)}
 #ch polygon.target.lost{fill:black}   /* the target, revealed after running out of guesses */
 #ch polygon.sel{stroke-width:3px}
-/* peak names in the chart and the list are links that select the peak, and take the page's <a> style. The
-   chart's <a> carries that style and its <text> inherits it: fill paints with currentColor (the link's
-   colour) and the decoration is inherited explicitly, since text-decoration does not reach SVG text on
-   its own. */
+/* peak names in the chart and the list are links that select the peak, and take the page's <a> style.
+   The chart's <a> carries that style and its <text> inherits it: fill paints with currentColor (the
+   link's colour) and the decoration is inherited explicitly, since text-decoration does not reach SVG
+   text on its own. The selected peak's name is bold. */
 #ch a{fill:currentColor}
 #ch a text{text-decoration:inherit}
+#ch text.sel{font-weight:bold}
 #rows tr.sel{font-weight:bold}
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
 

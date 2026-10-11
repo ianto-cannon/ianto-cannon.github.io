@@ -125,12 +125,12 @@ function drawChart() {
   const viewW = 236 * chart.clientWidth / chart.clientHeight;
   const plotL = 36;
   const plotR = viewW - 4;
-  const cx = plotL + .88 * (plotR - plotL);   // the mystery peak's summit sits towards the right; its right slope runs off the chart edge
+  const cx = plotL + .93 * (plotR - plotL);   // the mystery peak's summit sits near the right; its right slope runs off the chart edge
   const wgMax = (plotR - plotL) / 40;   // half-width of the widest guessed peak
-  // The target's left foot stands two of those half-widths in from the left edge of the plot, so a guess
-  // linked to it at sea level — whose own left foot is two half-widths further left again — just touches
-  // the left edge.
-  const W = cx - plotL - 2 * wgMax;   // the target's half-width
+  const gap = wgMax;   // clear space between a guess linked at sea level and the target's foot
+  // The target's left foot stands two of those half-widths, plus the gap, in from the left edge of the
+  // plot, so a guess linked to it at sea level — shifted left by the gap — just touches the left edge.
+  const W = cx - plotL - 2 * wgMax - gap;   // the target's half-width
   const base = chartY(0);
   const T = peaks[target];
 
@@ -145,16 +145,15 @@ function drawChart() {
     `<line x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${chartY(alt)}" y2="${chartY(alt)}"/>`
     + text(2, chartY(alt) + 3, alt, "start")).join("");
 
-  // The target's altitude: a dashed line across the chart, labelled at its right end.
+  // The target's altitude: a dashed line across the chart. Its height is labelled over its summit below.
   const ty = chartY(T.height);
-  out += `<line class="target-alt" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`
-    + text(viewW - 4, ty - 3, metres(T.height), "end");
+  out += `<line class="target-alt" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`;
 
   // The target is drawn once, as a wide peak. Each guess stands on the target's slope where the slope is as
   // high as the col linking them: the higher the col, the nearer the target's summit, and a col above the
-  // summit carries the guess past the peak. All guesses stand on the left slope. Each has its name below, as
-  // a link that selects it; only the selected one shows its altitude above and its col altitude, labelled
-  // beside the col.
+  // summit carries the guess past the peak. All guesses stand on the left slope. A guess linked at sea level
+  // is held a gap clear of the target's foot. Each guess has its name below, as a link that selects it;
+  // only the selected one shows its altitude above and its col altitude, labelled beside the col.
   const others = guesses.filter(g => g !== target);
   // Peaks are drawn like their map markers: a solid triangle with an outline; the target is grey.
   // Once the game is over the target takes the correct-guess colour if it was found, or goes black if not.
@@ -171,7 +170,8 @@ function drawChart() {
     // the target's foot.
     const xc = cx - W * (1 - col / T.height);
     const reach = wg * (1 - col / G.height);   // half-width of the guess at the col altitude
-    const xg = xc - reach;   // the guess's right side passes through the col
+    // the gap closes as the col rises, so only a guess linked at sea level is held clear of the target
+    const xg = xc - reach - gap * Math.max(0, 1 - col / T.height);
     const colY = chartY(col);
     const isSel = g === selected;
     out += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
@@ -181,6 +181,7 @@ function drawChart() {
     }
     addName(xg, G.name, g);
   });
+  marks += altitude(cx, T);   // the target's altitude, over its summit
   out += marks;
   addName(cx, over() ? T.name : "?", over() ? target : undefined);
 
@@ -198,7 +199,9 @@ function drawChart() {
   placed.forEach(({ x, lx, t, i, row }) => {
     const y = base + 1.1 * font + row * rowH;
     if (row) out += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y - font).toFixed(1)}"/>`;   // leader to its peak
-    out += i === undefined ? text(lx, y, t) : `<a href="#" data-i="${i}">${text(lx, y, t)}</a>`;
+    out += i === undefined
+      ? text(lx, y, t)
+      : `<a href="#" data-i="${i}">${text(lx, y, t, i === selected ? "sel" : "")}</a>`;
   });
 
   chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} 236`);
@@ -340,9 +343,10 @@ function drawMap() {
     const shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
     const marker = `<polygon${cls && ` class="${cls}"`}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`;
-    // label every peak once zoomed in enough, guessed or not
+    // label every peak once zoomed in enough, guessed or not. The name is a link, like those in the
+    // chart, and selects the peak; the selected peak's name is bold.
     const label = zoomFrac <= .28 || isSel
-      ? `<text${tap} x="${(p.x + 9 * px).toFixed(1)}" y="${(p.y + 4 * px).toFixed(1)}">${p.name}</text>`
+      ? `<a${tap} href="#"><text${isSel ? ' class="sel"' : ""} x="${(p.x + 9 * px).toFixed(1)}" y="${(p.y + 4 * px).toFixed(1)}">${p.name}</text></a>`
       : "";
     if (isSel) {
       top = marker + label;
@@ -440,6 +444,10 @@ mapSvg.addEventListener("wheel", e => {
   const [wx, wy] = toWorld(e.clientX, e.clientY);
   zoomTo(w, wx, wy, e.clientX, e.clientY);
 }, { passive: false });
+// the names are links, but selection is handled on pointerup, so stop the anchor navigating
+mapSvg.addEventListener("click", e => {
+  if (e.target.closest("a")) e.preventDefault();
+});
 
 let toastTimer;
 function toast(msg, anchor) {
