@@ -127,7 +127,7 @@ function drawChart() {
   const plotR = viewW - 4;
   const cx = plotL + .93 * (plotR - plotL);   // the mystery peak's summit sits near the right; its right slope runs off the chart edge
   const wgMax = (plotR - plotL) / 40;   // half-width of the widest guessed peak
-  const gap = wgMax;   // clear space between a guess linked at sea level and the target's foot
+  const gap = wgMax;   // clear space left between a guess linked at sea level and the target's foot
   // The target's left foot stands two of those half-widths, plus the gap, in from the left edge of the
   // plot, so a guess linked to it at sea level — shifted left by the gap — just touches the left edge.
   const W = cx - plotL - 2 * wgMax - gap;   // the target's half-width
@@ -153,7 +153,7 @@ function drawChart() {
   // high as the col linking them: the higher the col, the nearer the target's summit, and a col above the
   // summit carries the guess past the peak. All guesses stand on the left slope. A guess linked at sea level
   // is held a gap clear of the target's foot. Each guess has its name below, as a link that selects it;
-  // only the selected one shows its altitude above and its col altitude, labelled beside the col.
+  // only the selected one shows its altitude above and its col altitude, labelled just to its right.
   const others = guesses.filter(g => g !== target);
   // Peaks are drawn like their map markers: a solid triangle with an outline; the target is grey.
   // Once the game is over the target takes the correct-guess colour if it was found, or goes black if not.
@@ -170,13 +170,15 @@ function drawChart() {
     // the target's foot.
     const xc = cx - W * (1 - col / T.height);
     const reach = wg * (1 - col / G.height);   // half-width of the guess at the col altitude
-    // the gap closes as the col rises, so only a guess linked at sea level is held clear of the target
-    const xg = xc - reach - gap * Math.max(0, 1 - col / T.height);
+    const gapHere = col > 0 ? 0 : gap;   // the gap only opens when the linking col is at sea level
+    const xg = xc - reach - gapHere;   // the guess's right side passes through the col
     const colY = chartY(col);
     const isSel = g === selected;
     out += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
     if (isSel) {
-      marks += text(xc + 2, colY - 2, metres(col), "start")   // beside the col, left-aligned
+      // the col altitude, labelled just right of the guess, where its right slope crosses the col. Only a
+      // col at sea level shifts the label, by the gap holding the guess off the target's foot.
+      marks += text(xg + reach + 2, colY - 2, metres(col), "col")
         + altitude(xg, G);
     }
     addName(xg, G.name, g);
