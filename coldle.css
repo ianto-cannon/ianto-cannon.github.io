@@ -48,24 +48,25 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
    non-scaling-stroke keeps marker outlines at fixed CSS px regardless of zoom. */
 #pk polygon{fill:var(--mut);stroke:currentColor;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #pk polygon.sel{stroke-width:3px}
+#pk polygon.lost{fill:black}   /* the target, revealed after running out of guesses */
 #pk [data-i]{cursor:pointer}
-#pk text{fill:CanvasText;stroke:var(--card);stroke-width:.22em;paint-order:stroke}
+#pk text{fill:currentColor}
 
 /* chart layer */
 #ch{height:300px}
 #ch line{stroke:var(--bd);stroke-width:.5}
-#ch text{fill:currentColor;text-anchor:middle;stroke:var(--card);stroke-width:.2em;paint-order:stroke}   /* halo keeps labels readable over the peaks */
+#ch text{fill:currentColor;text-anchor:middle}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
-#ch text.b{font-weight:bold}
 /* peaks look like their map markers: a solid triangle with an outline (guesses are filled inline by closeness) */
 #ch polygon{stroke:currentColor;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #ch polygon.target{fill:var(--mut)}
+#ch polygon.target.lost{fill:black}   /* the target, revealed after running out of guesses */
 #ch polygon.sel{stroke-width:3px}
 #ch line.col{stroke:currentColor;stroke-width:1}
-/* peak names in the chart and the list are links that select the peak */
-#ch a{cursor:pointer}
-#ch a text{text-decoration:underline}
+/* peak names in the chart and the list are links that select the peak; they take the page's <a> style
+   (the chart's text inherits the link's colour through currentColor, and its decoration explicitly) */
+#ch a text{text-decoration:inherit}
 #rows tr.sel{font-weight:bold}
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
 

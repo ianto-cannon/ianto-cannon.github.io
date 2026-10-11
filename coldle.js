@@ -154,7 +154,8 @@ function drawChart() {
   // labelled with that number.
   const others = guesses.filter(g => g !== target);
   // Peaks are drawn like their map markers: a solid triangle with an outline; the target is grey.
-  out += `<polygon class="target" points="${pt(cx - W, base)} ${pt(cx + W, base)} ${pt(cx, chartY(T.height))}"/>`;
+  // Once the game is over the target takes the correct-guess colour if it was found, or goes black if not.
+  out += `<polygon class="target${over() && !won() ? " lost" : ""}"${won() ? ` style="fill:${colGuess(100)}"` : ""} points="${pt(cx - W, base)} ${pt(cx + W, base)} ${pt(cx, chartY(T.height))}"/>`;
   let marks = "";
   const selectedLast = [...others.filter(g => g !== selected), ...others.filter(g => g === selected)];   // so the selected peak is on top
   selectedLast.forEach(g => {
@@ -171,7 +172,7 @@ function drawChart() {
     out += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct)}" points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"/>`;
     if (isSel) {
       marks += `<line class="col" x1="${(xg - Math.max(reach, 3)).toFixed(1)}" x2="${(xg + Math.max(reach, 3)).toFixed(1)}" y1="${colY.toFixed(1)}" y2="${colY.toFixed(1)}"/>`
-        + text(xc + 2, colY - 2, metres(col), "start b")   // just right of the peak, left-aligned, over the col itself
+        + text(xc + 2, colY - 2, metres(col), "start")   // just right of the peak, left-aligned, over the col itself
         + altitude(xg, G);
     }
     addName(xg, G.name, g);
@@ -330,10 +331,11 @@ function drawMap() {
     const isSel = i === selected;
     const revealed = !live && i === target;
     const tap = live ? ` data-i="${i}"` : "";
-    const fill = guessed ? colGuess(linkToTarget(i).pct) : revealed ? colGuess(100) : "";
+    const fill = guessed ? colGuess(linkToTarget(i).pct) : "";   // a revealed target that was not guessed is black (see .lost)
+    const cls = [isSel && "sel", revealed && !guessed && "lost"].filter(Boolean).join(" ");
     const shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
-    const marker = `<polygon${isSel ? ' class="sel"' : ""}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`;
+    const marker = `<polygon${cls && ` class="${cls}"`}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`;
     // label every peak when zoomed in ~3.6x, guessed ones from ~1.8x
     const label = zoomFrac <= .28 || isSel || (guessed && zoomFrac <= .56)
       ? `<text${tap} x="${(p.x + 9 * px).toFixed(1)}" y="${(p.y + 4 * px).toFixed(1)}">${p.name}</text>`
