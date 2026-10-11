@@ -58,9 +58,10 @@ div.foot input[type=radio]{height:1.4em;vertical-align:middle}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
 #ch text.b{font-weight:bold}
-#ch polygon.ghost{fill:var(--mut);opacity:.5}
-#ch polygon.guess{fill-opacity:.6;stroke:currentColor;stroke-width:.5}
-#ch polygon.guess.sel{stroke-width:1.5}
+/* peaks look like their map markers: a solid triangle with an outline (guesses are filled inline by closeness) */
+#ch polygon{stroke:currentColor;stroke-width:1.5px;stroke-linejoin:round;vector-effect:non-scaling-stroke}
+#ch polygon.target{fill:var(--mut)}
+#ch polygon.sel{stroke-width:3px}
 #ch line.col{stroke:currentColor;stroke-width:1}
 /* peak names in the chart and the list are links that select the peak */
 #ch a{cursor:pointer}
