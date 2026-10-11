@@ -1,66 +1,117 @@
 // Coldle: guess the mystery peak. peaks.csv columns: name,height,prominence,parent,lat,lon,range,country.
 // map.svg is a Lambert cylindrical equal-area projection (x = longitude, y = sin latitude).
-const $ = s => document.querySelector(s);
-const MAX_GUESSES = 8;
-const MAX_ZOOM = 150;
-const RAD = Math.PI / 180;
-const clamp = (v, lo, hi) => Math.max(lo, Math.min(hi, v));
-const metres = m => m.toLocaleString() + " m";
-const colLabel = m => (m ? metres(m) : "sea level");
-const pt = (x, y) => `${x.toFixed(1)},${y.toFixed(1)}`;
-const fontPx = () => parseFloat(getComputedStyle(document.body).fontSize);
-const colGuess = (pct, alpha = 1) => `hsl(${hue} 65% ${20 + 70 * (pct / 100) ** .25}% / ${alpha})`;
+// ES5 translation: no let/const, arrow functions, template literals, destructuring, spread,
+// for-of, Map/Set, includes/find/findIndex, **, matchAll, Object.assign, Promise.
+(function () {
 
-const parseCSV = text => text.trim().split(/\r?\n/).map(line =>
-  [...line.matchAll(/(?:^|,)("(?:[^"]|"")*"|[^,]*)/g)].map(m => m[1].replace(/^"|"$/g, "").replace(/""/g, '"')));
+function $(s) { return document.querySelector(s); }
 
-let mode = "daily";
-let peaks = [];
-let target;
-let guesses = [];
-let selected = null;
+var MAX_GUESSES = 8;
+var MAX_ZOOM = 150;
+var RAD = Math.PI / 180;
 
-const won = () => guesses.includes(target);
-const over = () => won() || guesses.length >= MAX_GUESSES;
+function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
+function metres(m) { return m.toLocaleString() + " m"; }
+function colLabel(m) { return m ? metres(m) : "sea level"; }
+function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
+function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
+function colGuess(pct, alpha) {
+  if (alpha === undefined) alpha = 1;
+  return "hsl(" + hue + " 65% " + (20 + 70 * Math.pow(pct / 100, .25)) + "% / " + alpha + ")";
+}
+
+/* ------------------------------------------------------------------ CSV */
+var CSV_RE = /(?:^|,)("(?:[^"]|"")*"|[^,]*)/g;
+function parseCSV(text) {
+  return text.trim().split(/\r?\n/).map(function (line) {
+    CSV_RE.lastIndex = 0;
+    var fields = [];
+    var m;
+    while ((m = CSV_RE.exec(line)) !== null) {
+      fields.push(m[1].replace(/^"|"$/g, "").replace(/""/g, '"'));
+      if (m.index === CSV_RE.lastIndex) CSV_RE.lastIndex++; // guard against zero-length matches
+    }
+    return fields;
+  });
+}
+
+/* --------------------------------------------------------------- state */
+var mode = "daily";
+var peaks = [];
+var target;
+var guesses = [];
+var selected = null;
+
+function won()  { return guesses.indexOf(target) !== -1; }
+function over() { return won() || guesses.length >= MAX_GUESSES; }
 
 function newRound() {
-  const day = Math.floor(Date.now() / 864e5);   // hashed so every visitor gets the same daily peak
-  target = mode === "daily" ? (day * 2654435761 >>> 0) % peaks.length : Math.floor(Math.random() * peaks.length);
+  var day = Math.floor(Date.now() / 864e5); // hashed so every visitor gets the same daily peak
+  target = mode === "daily"
+    ? (day * 2654435761 >>> 0) % peaks.length
+    : Math.floor(Math.random() * peaks.length);
   guesses = [];
   selected = null;
   render();
 }
+
 function guess() {
-  if (over() || selected === null || guesses.includes(selected)) return;
-  guesses.push(selected);   // the guessed peak stays selected, so the chart shows its height and col
+  if (over() || selected === null || guesses.indexOf(selected) !== -1) return;
+  guesses.push(selected);
   render();
   if (won()) confetti();
-  else if (over()) shake($("#go"));   // out of guesses
+  else if (over()) shake($("#go"));
 }
+
+function prefersReducedMotion() {
+  return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
+}
+
 function shake(el) {
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+  if (prefersReducedMotion()) return;
   el.classList.remove("shake");
-  void el.offsetWidth;   // restart the animation if it is already running
+  void el.offsetWidth; // restart the animation if it is already running
   el.classList.add("shake");
-  el.addEventListener("animationend", () => el.classList.remove("shake"), { once: true });
+  var handler = function () {
+    el.classList.remove("shake");
+    if (el.removeEventListener) el.removeEventListener("animationend", handler, false);
+  };
+  el.addEventListener("animationend", handler, false);
 }
-const chain = i => (i < 0 ? [] : [i, ...chain(peaks[i].parent)]);   // a peak and its ancestors
+
+function chain(i) {
+  if (i < 0) return [];
+  return [i].concat(chain(peaks[i].parent)); // a peak and its ancestors
+}
 
 // The lowest col crossed walking from a guess to the target, and its height as % of the target's.
 function linkToTarget(g) {
   if (g === target) return { colAlt: peaks[g].height, pct: 100 };
-  const a = chain(g);
-  const b = chain(target);
-  const meet = a.find(i => b.includes(i));   // highest common ancestor, if any
-  const crossed = [...a.slice(0, a.indexOf(meet)), ...b.slice(0, b.indexOf(meet))];
-  const colAlt = crossed.length ? Math.min(...crossed.map(i => peaks[i].colAlt)) : peaks[g].height;
-  return { colAlt, pct: Math.round(100 * colAlt / peaks[target].height) };
+  var a = chain(g);
+  var b = chain(target);
+  var meet;
+  for (var i = 0; i < a.length; i++) {
+    if (b.indexOf(a[i]) !== -1) { meet = a[i]; break; } // highest common ancestor
+  }
+  var crossed = a.slice(0, a.indexOf(meet)).concat(b.slice(0, b.indexOf(meet)));
+  var colAlt;
+  if (crossed.length) {
+    colAlt = Infinity;
+    for (var j = 0; j < crossed.length; j++) {
+      var c = peaks[crossed[j]].colAlt;
+      if (c < colAlt) colAlt = c;
+    }
+  } else {
+    colAlt = peaks[g].height;
+  }
+  return { colAlt: colAlt, pct: Math.round(100 * colAlt / peaks[target].height) };
 }
-// Selecting a peak (from the map, the chart or the list) updates all three.
+
 function selectPeak(i) {
   selected = i;
   render();
 }
+
 function render() {
   renderTable();
   drawChart();
@@ -68,159 +119,241 @@ function render() {
   renderStatus();
   $("#go").textContent = over() ? "share results" : "guess";
 }
+
+/* --------------------------------------------------------------- table */
 function renderTable() {
-  const rows = guesses.map((g, i) => {
-    const { colAlt, pct } = linkToTarget(g);
-    return `<tr${g === selected ? ' class="sel"' : ""}><td>${i + 1}</td><td><a href="#" data-i="${g}">${peaks[g].name}</a></td>`
-      + `<td>${g === target ? "🎯 Correct" : colLabel(colAlt)}</td>`
-      + `<td style="color:${colGuess(pct)}">${pct}%</td></tr>`;
+  var rows = guesses.map(function (g, i) {
+    var lt = linkToTarget(g);
+    var colAlt = lt.colAlt, pct = lt.pct;
+    return '<tr' + (g === selected ? ' class="sel"' : "") + '>'
+      + '<td>' + (i + 1) + '</td>'
+      + '<td><a href="#" data-i="' + g + '">' + peaks[g].name + '</a></td>'
+      + '<td>' + (g === target ? "🎯 Correct" : colLabel(colAlt)) + '</td>'
+      + '<td style="color:' + colGuess(pct) + '">' + pct + '%</td></tr>';
   });
   $("#rows").innerHTML = rows.length
-    ? `<table><tr><th>#</th><th>Peak</th><th>Lowest pass</th><th>Connectedness</th></tr>${rows.join("")}</table>`
+    ? '<table><tr><th>#</th><th>Peak</th><th>Lowest pass</th><th>Connectedness</th></tr>'
+      + rows.join("") + '</table>'
     : "";
 }
-let lastStatus = "";
+
+/* -------------------------------------------------------------- status */
+function setHidden(el, hide) {
+  el.hidden = hide;
+  if (hide) el.setAttribute("hidden", "");
+  else el.removeAttribute("hidden");
+}
+function closestHidden(el) {
+  while (el) {
+    if (el.hidden) return el;
+    if (el.getAttribute && el.getAttribute("hidden") !== null) return el;
+    el = el.parentNode;
+  }
+  return null;
+}
+
+var lastStatus = "";
 function renderStatus() {
-  const p = peaks[target];
-  const made = guesses.length;
-  const end = over();
-  const box = $("#status");
-  // The wording lives in coldle.html. An element with data-when is shown while all the listed states
-  // are true; an element with data-v gets that value as its text.
-  const states = {
+  var p = peaks[target];
+  var made = guesses.length;
+  var end = over();
+  var box = $("#status");
+  var states = {
     play: !end, over: end, won: won(), lost: end && !won(),
     first: made === 0, more: made > 0,
-    picked: selected !== null && !guesses.includes(selected),   // a new peak waiting to be confirmed
-    unpicked: selected === null || guesses.includes(selected),
-    g3: made >= 3, g5: made >= 5,
+    picked: selected !== null && guesses.indexOf(selected) === -1,
+    unpicked: selected === null || guesses.indexOf(selected) !== -1,
+    g3: made >= 3, g5: made >= 5
   };
-  const values = {
-    height: metres(p.height), col: colLabel(p.colAlt), n: made + 1, max: MAX_GUESSES, made,
+  var values = {
+    height: metres(p.height), col: colLabel(p.colAlt), n: made + 1, max: MAX_GUESSES, made: made,
     sel: selected === null ? "" : peaks[selected].name,
-    range: p.range, country: p.country, name: p.name,
+    range: p.range, country: p.country, name: p.name
   };
-  box.hidden = false;
-  box.querySelectorAll("[data-when]").forEach(el => {
-    el.hidden = !el.dataset.when.split(" ").every(s => states[s]);
-  });
-  // text that would give the answer away is only filled in once its item is shown
-  box.querySelectorAll("[data-v]").forEach(el => {
-    el.textContent = el.closest("[hidden]") ? "" : values[el.dataset.v];
-  });
-  if (!end) $("#shm").replaceChildren();   // clear a share fallback left from the last game
-  const state = JSON.stringify(states) + box.textContent;
+  setHidden(box, false);
+
+  var els = box.querySelectorAll("[data-when]");
+  for (var i = 0; i < els.length; i++) {
+    var el = els[i];
+    var parts = el.getAttribute("data-when").split(" ");
+    var show = true;
+    for (var j = 0; j < parts.length; j++) {
+      if (!states[parts[j]]) { show = false; break; }
+    }
+    setHidden(el, !show);
+  }
+
+  els = box.querySelectorAll("[data-v]");
+  for (var k = 0; k < els.length; k++) {
+    var el2 = els[k];
+    el2.textContent = closestHidden(el2) ? "" : values[el2.getAttribute("data-v")];
+  }
+
+  if (!end) {
+    var shm = $("#shm");
+    while (shm.firstChild) shm.removeChild(shm.firstChild); // clear a share fallback
+  }
+
+  var state = JSON.stringify(states) + box.textContent;
   if (state === lastStatus) return;
   lastStatus = state;
-  // flash the box whenever its text changes, so it is clear this is live
-  if (!matchMedia("(prefers-reduced-motion: reduce)").matches) {
+  if (!prefersReducedMotion()) {
     box.classList.remove("flash");
-    void box.offsetWidth;   // restart the animation if it is already running
+    void box.offsetWidth;
     box.classList.add("flash");
   }
 }
-const chartY = alt => 198 - alt / 9000 * 168;   // altitude 0…9000 m → y 198…30, leaving room above for the highest label
+
+/* --------------------------------------------------------------- chart */
+function chartY(alt) { return 198 - alt / 9000 * 168; } // 0..9000 m → y 198..30
 
 function drawChart() {
-  const chart = $("#ch");
-  const key = [chart.clientWidth, fontPx(), target, guesses.join(), selected, over()].join();
-  if (key === chart.dataset.key) return;
-  chart.dataset.key = key;
-  const k = 236 / 200;
-  const viewW = k * chart.clientWidth;
-  const plotL = 36;
-  const plotR = viewW - 4;
-  const cx = plotL + .93 * (plotR - plotL);
-  const wgMax = (plotR - plotL) / 20;
-  const W = cx - plotL - .3 * (plotR - plotL);
-  const base = chartY(0);
-  const T = peaks[target];
+  var chart = $("#ch");
+  var key = [chart.clientWidth, fontPx(), target, guesses.join(), selected, over()].join();
+  if (key === chart.getAttribute("data-key")) return;
+  chart.setAttribute("data-key", key);
 
-  const font = fontPx() * k;
-  const half = t => t.length * .35 * font;   // estimated half-width of a text
-  const labels = [];   // [x, name, peak index]: laid out in rows below the baseline once all peaks are drawn
-  const addName = (x, t, i) => labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t, i]);
-  const text = (x, y, t, cls = "") => `<text class="${cls}" x="${x.toFixed(1)}" y="${y.toFixed(1)}">${t}</text>`;
-  const altitude = (x, p) => text(x, chartY(p.height) - 3, metres(p.height));
+  var k = 236 / 200;
+  var viewW = k * chart.clientWidth;
+  var plotL = 36;
+  var plotR = viewW - 4;
+  var cx = plotL + .93 * (plotR - plotL);
+  var wgMax = (plotR - plotL) / 20;
+  var W = cx - plotL - .3 * (plotR - plotL);
+  var base = chartY(0);
+  var T = peaks[target];
 
-  let out = [0, 2000, 4000, 6000, 8000].map(alt =>
-    `<line x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${chartY(alt)}" y2="${chartY(alt)}"/>`
-    + text(2, chartY(alt) + 3, alt, "start")).join("");
+  var font = fontPx() * k;
+  function half(t) { return t.length * .35 * font; }
+  var labels = [];
+  function addName(x, t, i) { labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t, i]); }
+  function text(x, y, t, cls) {
+    if (cls === undefined) cls = "";
+    return '<text class="' + cls + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '">' + t + '</text>';
+  }
+  function altitude(x, p) { return text(x, chartY(p.height) - 3, metres(p.height)); }
 
-  const ty = chartY(T.height);
-  out += `<line class="target-alt" x1="28" x2="${(viewW - 4).toFixed(1)}" y1="${ty.toFixed(1)}" y2="${ty.toFixed(1)}"/>`;
-  out += `<line class="sea" x1="28" x2="${(cx - W).toFixed(1)}" y1="${base}" y2="${base}"/>`;
-
-  const place = g => {
-    const G = peaks[g];
-    const { colAlt, pct } = linkToTarget(g);
-    const col = Math.min(colAlt, G.height);
-    const wg = wgMax * Math.min(1, G.height / T.height);
-    const reach = wg * (1 - col / G.height);
-    const xg = col > 0 ? cx - W * (1 - col / T.height) - reach : plotL + wg;
-    return { G, col, wg, reach, xg, pct };
-  };
-  const shape = (xg, wg, G) => `points="${pt(xg - wg, base)} ${pt(xg + wg, base)} ${pt(xg, chartY(G.height))}"`;
-  const others = guesses.filter(g => g !== target);
-  const selectedLast = [...others.filter(g => g !== selected), ...others.filter(g => g === selected)];
-  out += peaks.map((_, g) => g).filter(g => g !== target && !guesses.includes(g)).map(g => {
-    const { G, wg, xg } = place(g);
-    return `<polygon class="tree" ${shape(xg, wg, G)}/>`;
+  var out = [0, 2000, 4000, 6000, 8000].map(function (alt) {
+    return '<line x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + chartY(alt) + '" y2="' + chartY(alt) + '"/>'
+      + text(2, chartY(alt) + 3, alt, "start");
   }).join("");
-  let guessPolys = "";
-  let marks = "";
-  selectedLast.forEach(g => {
-    const { G, col, wg, reach, xg, pct } = place(g);
-    const isSel = g === selected;
-    guessPolys += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct, 1)}" ${shape(xg, wg, G)}/>`;
-    if (isSel) marks += text(xg + reach + 2, chartY(col) - 2, metres(col), "col") + altitude(xg, G);
-    addName(xg, G.name, g);
-  });
+
+  var ty = chartY(T.height);
+  out += '<line class="target-alt" x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + ty.toFixed(1) + '" y2="' + ty.toFixed(1) + '"/>';
+  out += '<line class="sea" x1="28" x2="' + (cx - W).toFixed(1) + '" y1="' + base + '" y2="' + base + '"/>';
+
+  function place(g) {
+    var G = peaks[g];
+    var lt = linkToTarget(g);
+    var col = Math.min(lt.colAlt, G.height);
+    var wg = wgMax * Math.min(1, G.height / T.height);
+    var reach = wg * (1 - col / G.height);
+    var xg = col > 0 ? cx - W * (1 - col / T.height) - reach : plotL + wg;
+    return { G: G, col: col, wg: wg, reach: reach, xg: xg, pct: lt.pct };
+  }
+  function shape(xg, wg, G) {
+    return 'points="' + pt(xg - wg, base) + " " + pt(xg + wg, base) + " " + pt(xg, chartY(G.height)) + '"';
+  }
+
+  // unguessed background trees
+  var treeBuf = "";
+  for (var gi = 0; gi < peaks.length; gi++) {
+    if (gi === target || guesses.indexOf(gi) !== -1) continue;
+    var tp = place(gi);
+    treeBuf += '<polygon class="tree" ' + shape(tp.xg, tp.wg, tp.G) + '/>';
+  }
+  out += treeBuf;
+
+  // guessed peaks; the selected one is drawn last so it appears on top
+  var others = [];
+  for (var oi = 0; oi < guesses.length; oi++) if (guesses[oi] !== target) others.push(guesses[oi]);
+  var selectedLast = [];
+  for (var si = 0; si < others.length; si++) if (others[si] !== selected) selectedLast.push(others[si]);
+  for (var sj = 0; sj < others.length; sj++) if (others[sj] === selected) selectedLast.push(others[sj]);
+
+  var guessPolys = "";
+  var marks = "";
+  for (var li = 0; li < selectedLast.length; li++) {
+    var g = selectedLast[li];
+    var pl = place(g);
+    var isSel = g === selected;
+    guessPolys += '<polygon' + (isSel ? ' class="sel"' : "")
+      + ' fill="' + colGuess(pl.pct, 1) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
+    if (isSel) {
+      marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col")
+        + altitude(pl.xg, pl.G);
+    }
+    addName(pl.xg, pl.G.name, g);
+  }
   out += guessPolys;
-  out += `<polygon class="target"${over() ? ` style="fill:${colGuess(100)}"` : ""} points="${pt(cx - W, base)} ${pt(cx + W, base)} ${pt(cx, chartY(T.height))}"/>`;
+  out += '<polygon class="target"' + (over() ? ' style="fill:' + colGuess(100) + '"' : "")
+    + ' points="' + pt(cx - W, base) + " " + pt(cx + W, base) + " " + pt(cx, chartY(T.height)) + '"/>';
   out += marks + altitude(cx, T);
   addName(cx, over() ? T.name : "?", over() ? target : undefined);
 
-  // Each name goes in the first row where it doesn't overlap the previous name there.
-  const rowEnds = [];
-  const placed = labels.sort((a, b) => a[0] - b[0]).map(([x, t, i]) => {
-    const h = half(t);
-    const lx = clamp(x, h, viewW - h);
-    let row = rowEnds.findIndex(end => lx - h > end + 6);
+  // label layout: first row that doesn't overlap the previous name there
+  labels.sort(function (a, b) { return a[0] - b[0]; });
+  var rowEnds = [];
+  var placed = [];
+  for (var li2 = 0; li2 < labels.length; li2++) {
+    var lab = labels[li2];
+    var x0 = lab[0], t = lab[1], idx = lab[2];
+    var h = half(t);
+    var lx = clamp(x0, h, viewW - h);
+    var row = -1;
+    for (var ri = 0; ri < rowEnds.length; ri++) {
+      if (lx - h > rowEnds[ri] + 6) { row = ri; break; }
+    }
     if (row < 0) row = rowEnds.length;
     rowEnds[row] = lx + h;
-    return { x, lx, t, i, row };
-  });
-  const rowH = 1.2 * font;
-  const H = base + 1.1 * font + (rowEnds.length - 1) * rowH + .4 * font;
-  placed.forEach(({ x, lx, t, i, row }) => {
-    const y = base + 1.1 * font + row * rowH;
-    if (row) out += `<line x1="${x.toFixed(1)}" x2="${x.toFixed(1)}" y1="${base}" y2="${(y - font).toFixed(1)}"/>`;   // leader to its peak
-    out += i === undefined
-      ? text(lx, y, t)
-      : `<a href="#" data-i="${i}">${text(lx, y, t, i === selected ? "sel" : "")}</a>`;
-  });
+    placed.push({ x: x0, lx: lx, t: t, i: idx, row: row });
+  }
+  var rowH = 1.2 * font;
+  var H = base + 1.1 * font + (rowEnds.length - 1) * rowH + .4 * font;
+  for (var pi = 0; pi < placed.length; pi++) {
+    var pp = placed[pi];
+    var y = base + 1.1 * font + pp.row * rowH;
+    if (pp.row) {
+      out += '<line x1="' + pp.x.toFixed(1) + '" x2="' + pp.x.toFixed(1)
+        + '" y1="' + base + '" y2="' + (y - font).toFixed(1) + '"/>'; // leader line
+    }
+    out += pp.i === undefined
+      ? text(pp.lx, y, pp.t)
+      : '<a href="#" data-i="' + pp.i + '">' + text(pp.lx, y, pp.t, pp.i === selected ? "sel" : "") + '</a>';
+  }
 
-  chart.setAttribute("viewBox", `0 0 ${viewW.toFixed(1)} ${H.toFixed(1)}`);
+  chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + H.toFixed(1));
   chart.style.height = H / k + "px";
   chart.setAttribute("font-size", font.toFixed(2));
   chart.innerHTML = out;
 }
+
+/* ------------------------------------------------------------ confetti */
+var raf = window.requestAnimationFrame
+  || window.webkitRequestAnimationFrame
+  || window.mozRequestAnimationFrame
+  || function (fn) { return setTimeout(function () { fn(nowMs()); }, 16); };
+var nowMs = (window.performance && window.performance.now)
+  ? function () { return window.performance.now(); }
+  : function () { return Date.now(); };
+
 function confetti() {
-  if (matchMedia("(prefers-reduced-motion: reduce)").matches) return;
-  const dpr = devicePixelRatio || 1;
-  const canvas = document.createElement("canvas");
-  const ctx = canvas.getContext("2d");
+  if (prefersReducedMotion()) return;
+  var dpr = window.devicePixelRatio || 1;
+  var canvas = document.createElement("canvas");
+  var ctx = canvas.getContext("2d");
   canvas.className = "confetti";
-  canvas.width = innerWidth * dpr;
-  canvas.height = innerHeight * dpr;
+  canvas.width = window.innerWidth * dpr;
+  canvas.height = window.innerHeight * dpr;
   document.body.appendChild(canvas);
 
-  const btn = $("#go").getBoundingClientRect();
-  const colors = ["#0072b2", "#e69f00", "#cc79a7", "#56b4e9", "#009e73", "#f0e442"];
-  const particles = Array.from({ length: 160 }, () => {   // launched upwards from the button in a cone
-    const angle = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.2;
-    const speed = (6 + Math.random() * 11) * dpr;
-    return {
+  var btn = $("#go").getBoundingClientRect();
+  var colors = ["#0072b2", "#e69f00", "#cc79a7", "#56b4e9", "#009e73", "#f0e442"];
+  var particles = [];
+  for (var i = 0; i < 160; i++) { // launched upward from the button in a cone
+    var angle = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.2;
+    var speed = (6 + Math.random() * 11) * dpr;
+    particles.push({
       x: (btn.left + btn.width / 2) * dpr,
       y: (btn.top + btn.height / 2) * dpr,
       vx: Math.cos(angle) * speed,
@@ -229,16 +362,19 @@ function confetti() {
       rot: Math.random() * 6,
       vr: (Math.random() - .5) * .4,
       color: colors[Math.random() * colors.length | 0],
-      life: 0,
-    };
-  });
-  let last = performance.now();
-  (function tick(now) {
-    const dt = clamp((now - last) / 16.7, 0, 2);
+      life: 0
+    });
+  }
+
+  var last = nowMs();
+  function tick(now) {
+    if (now === undefined) now = nowMs();
+    var dt = clamp((now - last) / 16.7, 0, 2);
     last = now;
     ctx.clearRect(0, 0, canvas.width, canvas.height);
-    let alive = 0;
-    for (const p of particles) {
+    var alive = 0;
+    for (var j = 0; j < particles.length; j++) {
+      var p = particles[j];
       p.vy += .35 * dpr * dt;
       p.vx *= .99;
       p.x += p.vx * dt;
@@ -256,42 +392,67 @@ function confetti() {
         ctx.restore();
       }
     }
-    if (alive) requestAnimationFrame(tick);
-    else canvas.remove();
-  })(last);
+    if (alive) raf(tick);
+    else if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+  }
+  raf(tick);
 }
-let world = { W: 40030, H: 12742, R: 6371, lon0: 0 };   // must match map.svg: viewBox, data-r, data-lon0
-let view = { x: 0, y: 0, w: 40030, h: 12742 };
-const mapSvg = $("#mp");
 
-const project = (lat, lon) => [
-  world.W / 2 + world.R * (((lon - world.lon0 + 540) % 360) - 180) * RAD,
-  world.H / 2 - world.R * Math.sin(lat * RAD),
-];
-async function load() {
+/* ----------------------------------------------------------------- map */
+var world = { W: 40030, H: 12742, R: 6371, lon0: 0 }; // must match map.svg: viewBox, data-r, data-lon0
+var view = { x: 0, y: 0, w: 40030, h: 12742 };
+var mapSvg = $("#mp");
+
+function project(lat, lon) {
+  return [
+    world.W / 2 + world.R * (((lon - world.lon0 + 540) % 360) - 180) * RAD,
+    world.H / 2 - world.R * Math.sin(lat * RAD)
+  ];
+}
+
+function load() {
   // PEAKS_CSV comes from peaks.js; the map is an <image> in coldle.html (fetch() fails on file://)
-  peaks = parseCSV(PEAKS_CSV).slice(1).filter(f => f.length >= 8)
-    .map(([name, height, prominence, parent, lat, lon, range, country]) => ({
-      name, parent, range, country, lat: +lat, lon: +lon,
-      height: +height,
-      colAlt: height - prominence,
-    }));
-  peaks.forEach(p => { p.parent = peaks.findIndex(q => q.name === p.parent); });
+  var rows = parseCSV(PEAKS_CSV).slice(1).filter(function (f) { return f.length >= 8; });
+  peaks = rows.map(function (f) {
+    return {
+      name: f[0],
+      parent: f[3],
+      range: f[6],
+      country: f[7],
+      lat: +f[4],
+      lon: +f[5],
+      height: +f[1],
+      colAlt: +f[1] - +f[2]
+    };
+  });
 
-  peaks.forEach(p => { [p.x, p.y] = project(p.lat, p.lon); });
+  for (var i = 0; i < peaks.length; i++) {
+    var par = peaks[i].parent;
+    var idx = -1;
+    for (var j = 0; j < peaks.length; j++) {
+      if (peaks[j].name === par) { idx = j; break; }
+    }
+    peaks[i].parent = idx;
+  }
+  for (var m = 0; m < peaks.length; m++) {
+    var xy = project(peaks[m].lat, peaks[m].lon);
+    peaks[m].x = xy[0];
+    peaks[m].y = xy[1];
+  }
   resetView();
 }
-const aspect = () => {
-  const r = mapSvg.getBoundingClientRect();
-  return r.height ? r.width / r.height : world.W / world.H;
-};
-const minW = () => world.W / MAX_ZOOM;
-const maxW = () => Math.min(world.W, world.H * aspect());
 
-function resetView() {   // centred on 60°E
-  const w = maxW();
-  const h = w / aspect();
-  view = { x: project(0, 60)[0] - w / 2, y: (world.H - h) / 2, w, h };
+function aspect() {
+  var r = mapSvg.getBoundingClientRect();
+  return r.height ? r.width / r.height : world.W / world.H;
+}
+function minW() { return world.W / MAX_ZOOM; }
+function maxW() { return Math.min(world.W, world.H * aspect()); }
+
+function resetView() { // centred on 60°E
+  var w = maxW();
+  var h = w / aspect();
+  view = { x: project(0, 60)[0] - w / 2, y: (world.H - h) / 2, w: w, h: h };
 }
 function clampView() {
   view.w = clamp(view.w, minW(), maxW());
@@ -299,51 +460,55 @@ function clampView() {
   view.x = clamp(view.x, 0, world.W - view.w);
   view.y = clamp(view.y, 0, world.H - view.h);
 }
-const toWorld = (cx, cy) => {
-  const r = mapSvg.getBoundingClientRect();
+function toWorld(cx, cy) {
+  var r = mapSvg.getBoundingClientRect();
   return [view.x + (cx - r.left) / r.width * view.w, view.y + (cy - r.top) / r.height * view.h];
-};
+}
 function zoomTo(w, wx, wy, cx, cy) {
-  const r = mapSvg.getBoundingClientRect();
+  var r = mapSvg.getBoundingClientRect();
   view.w = clamp(w, minW(), maxW());
   view.h = view.w / aspect();
   view.x = wx - (cx - r.left) / r.width * view.w;
   view.y = wy - (cy - r.top) / r.height * view.h;
   drawMap();
 }
-addEventListener("resize", () => {
-  if (peaks.length) {
-    drawMap();
-    drawChart();
-  }
-});
-const triangle = (x, y, r) => `${pt(x, y - r)} ${pt(x + r * .87, y + r * .5)} ${pt(x - r * .87, y + r * .5)}`;
+window.addEventListener("resize", function () {
+  if (peaks.length) { drawMap(); drawChart(); }
+}, false);
+
+function triangle(x, y, r) {
+  return pt(x, y - r) + " " + pt(x + r * .87, y + r * .5) + " " + pt(x - r * .87, y + r * .5);
+}
 
 function drawMap() {
   clampView();
-  mapSvg.setAttribute("viewBox", `${view.x} ${view.y} ${view.w} ${view.h}`);
-  mapSvg.style.touchAction = view.h < world.H - .5 ? "none" : "pan-y";   // fully zoomed out: vertical swipes scroll the page
-  const px = view.w / mapSvg.clientWidth;
-  const zoomFrac = view.w / world.W;
-  const live = !over();
+  mapSvg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
+  mapSvg.style.touchAction = view.h < world.H - .5 ? "none" : "pan-y";
+  var px = view.w / mapSvg.clientWidth;
+  var zoomFrac = view.w / world.W;
+  var live = !over();
   // draw order: unguessed, guessed, revealed target, all labels, then the selected marker and label
-  const tiers = [[], [], []];
-  let labels = "";
-  let top = "";
-  peaks.forEach((p, i) => {
-    const guessed = guesses.includes(i);
-    const isSel = i === selected;
-    const revealed = !live && i === target;
-    const tap = live ? ` data-i="${i}"` : "";
-    const fill = revealed ? colGuess(100) : guessed ? colGuess(linkToTarget(i).pct) : "";
-    const cls = isSel ? "sel" : "";
-    const shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
+  var tiers = [[], [], []];
+  var labels = "";
+  var top = "";
+  for (var i = 0; i < peaks.length; i++) {
+    var p = peaks[i];
+    var guessed = guesses.indexOf(i) !== -1;
+    var isSel = i === selected;
+    var revealed = !live && i === target;
+    var tap = live ? ' data-i="' + i + '"' : "";
+    var fill = revealed ? colGuess(100) : (guessed ? colGuess(linkToTarget(i).pct) : "");
+    var cls = isSel ? "sel" : "";
+    var shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
-    const marker = `<polygon${cls && ` class="${cls}"`}${fill && ` style="fill:${fill}"`}${tap} points="${shape}"/>`;
-    // label every peak once zoomed in enough, guessed or not. The name is a link, like those in the
-    // chart, and selects the peak; the selected peak's name is bold.
-    const label = zoomFrac <= .28 || isSel
-      ? `<a${tap} href="#"><text${isSel ? ' class="sel"' : ""} x="${(p.x + 9 * px).toFixed(1)}" y="${(p.y + 4 * px).toFixed(1)}">${p.name}</text></a>`
+    var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
+      + (fill ? ' style="fill:' + fill + '"' : "") + tap
+      + ' points="' + shape + '"/>';
+    // label every peak once zoomed in enough, guessed or not
+    var label = (zoomFrac <= .28 || isSel)
+      ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="sel"' : "")
+        + ' x="' + (p.x + 9 * px).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
+        + p.name + '</text></a>'
       : "";
     if (isSel) {
       top = marker + label;
@@ -351,142 +516,227 @@ function drawMap() {
       tiers[revealed ? 2 : guessed ? 1 : 0].push(marker);
       labels += label;
     }
-  });
-  const layer = $("#pk");
+  }
+  var layer = $("#pk");
   layer.setAttribute("font-size", (fontPx() * px).toFixed(2));
-  layer.innerHTML = tiers.flat().join("") + labels + top;
+  layer.innerHTML = tiers[0].join("") + tiers[1].join("") + tiers[2].join("") + labels + top;
 }
-const pointers = new Map();
-let drag = null;
-let pinch = null;
-let dragged = false;
+
+/* ------------------------------------------------------ pointer input */
+var pointers = {}; // pointerId → {x, y}  (replaces Map)
+function pointerCount() {
+  var n = 0;
+  for (var k in pointers) if (pointers.hasOwnProperty(k)) n++;
+  return n;
+}
+function pointerValues() {
+  var arr = [];
+  for (var k in pointers) if (pointers.hasOwnProperty(k)) arr.push(pointers[k]);
+  return arr;
+}
+function closestDataI(el) {
+  while (el && el.getAttribute) {
+    if (el.getAttribute("data-i") !== null) return el;
+    el = el.parentNode;
+  }
+  return null;
+}
+function closestAnchor(el) {
+  while (el && el.tagName) {
+    if (el.tagName.toLowerCase() === "a") return el;
+    el = el.parentNode;
+  }
+  return null;
+}
+
+var drag = null;
+var pinch = null;
+var dragged = false;
 
 function nearestPeak(cx, cy) {
-  const [wx, wy] = toWorld(cx, cy);
-  const reach = 20 * view.w / mapSvg.getBoundingClientRect().width;
-  let best = -1;
-  let bestDist = reach * reach;
-  peaks.forEach((p, i) => {
-    const d = (p.x - wx) ** 2 + (p.y - wy) ** 2;
-    if (d < bestDist) [best, bestDist] = [i, d];
-  });
+  var w = toWorld(cx, cy);
+  var wx = w[0], wy = w[1];
+  var reach = 20 * view.w / mapSvg.getBoundingClientRect().width;
+  var best = -1;
+  var bestDist = reach * reach;
+  for (var i = 0; i < peaks.length; i++) {
+    var p = peaks[i];
+    var dx = p.x - wx, dy = p.y - wy;
+    var d = dx * dx + dy * dy;
+    if (d < bestDist) { best = i; bestDist = d; }
+  }
   return best;
 }
 function pinchMid() {
-  const [a, b] = [...pointers.values()];
-  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, dist: Math.hypot(a.x - b.x, a.y - b.y) || 1 };
+  var vals = pointerValues();
+  var a = vals[0], b = vals[1];
+  var dx = a.x - b.x, dy = a.y - b.y;
+  return { x: (a.x + b.x) / 2, y: (a.y + b.y) / 2, dist: Math.sqrt(dx * dx + dy * dy) || 1 };
 }
 function startPinch() {
-  const m = pinchMid();
-  const [wx, wy] = toWorld(m.x, m.y);
-  pinch = { dist: m.dist, w: view.w, wx, wy };
+  var m = pinchMid();
+  var w = toWorld(m.x, m.y);
+  pinch = { dist: m.dist, w: view.w, wx: w[0], wy: w[1] };
 }
-mapSvg.onpointerdown = e => {
+
+mapSvg.onpointerdown = function (e) {
   if (!peaks.length) return;
-  mapSvg.setPointerCapture(e.pointerId);
-  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (pointers.size === 1) {
-    const hit = e.target.closest("[data-i]");
+  if (mapSvg.setPointerCapture) {
+    try { mapSvg.setPointerCapture(e.pointerId); } catch (err) {}
+  }
+  pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+  if (pointerCount() === 1) {
+    var hit = closestDataI(e.target);
     dragged = false;
-    drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y, hit: hit ? +hit.dataset.i : -1 };
-  } else if (pointers.size === 2) {
+    drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y,
+             hit: hit ? +hit.getAttribute("data-i") : -1 };
+  } else if (pointerCount() === 2) {
     dragged = true;
     drag = null;
     startPinch();
   }
 };
-mapSvg.onpointermove = e => {
-  if (!pointers.has(e.pointerId)) return;
-  pointers.set(e.pointerId, { x: e.clientX, y: e.clientY });
-  if (pointers.size >= 2 && pinch) {
-    const m = pinchMid();
+
+mapSvg.onpointermove = function (e) {
+  if (!pointers.hasOwnProperty(e.pointerId)) return;
+  pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+  if (pointerCount() >= 2 && pinch) {
+    var m = pinchMid();
     zoomTo(pinch.w * pinch.dist / m.dist, pinch.wx, pinch.wy, m.x, m.y);
   } else if (drag) {
-    const dx = e.clientX - drag.x;
-    const dy = e.clientY - drag.y;
-    if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true;   // below 5 px it is still a tap
+    var dx = e.clientX - drag.x;
+    var dy = e.clientY - drag.y;
+    if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true; // below 5 px it is still a tap
     if (dragged) {
-      const k = view.w / mapSvg.getBoundingClientRect().width;
+      var k = view.w / mapSvg.getBoundingClientRect().width;
       view.x = drag.vx - dx * k;
       view.y = drag.vy - dy * k;
       drawMap();
     }
   }
 };
-mapSvg.onpointerup = mapSvg.onpointercancel = e => {
-  if (!pointers.delete(e.pointerId)) return;
-  if (pointers.size === 2) {
+
+mapSvg.onpointerup = mapSvg.onpointercancel = function (e) {
+  if (!pointers.hasOwnProperty(e.pointerId)) return;
+  delete pointers[e.pointerId];
+  if (pointerCount() === 2) {
     startPinch();
   // two → one finger: keep panning
-  } else if (pointers.size === 1) {
-    const [p] = pointers.values();
+  } else if (pointerCount() === 1) {
+    var vals = pointerValues();
+    var p = vals[0];
     drag = { x: p.x, y: p.y, vx: view.x, vy: view.y, hit: -1 };
     pinch = null;
   } else {
-    const hit = drag ? drag.hit : -1;
+    var hit = drag ? drag.hit : -1;
     drag = pinch = null;
     if (e.type === "pointerup" && !dragged) {
-      const i = hit >= 0 ? hit : nearestPeak(e.clientX, e.clientY);
+      var i = hit >= 0 ? hit : nearestPeak(e.clientX, e.clientY);
       if (i >= 0) selectPeak(i);
     }
   }
 };
-mapSvg.addEventListener("wheel", e => {
+
+mapSvg.addEventListener("wheel", function (e) {
   if (!peaks.length) return;
   // line-mode deltas are much larger than pixel ones
-  const step = e.deltaMode === 1 ? .05 : .0015;
-  const w = clamp(view.w * Math.exp(clamp(e.deltaY, -100, 100) * step), minW(), maxW());
-  if (Math.abs(w / view.w - 1) < 1e-9) return;   // at the zoom limit: let the page scroll
+  var step = e.deltaMode === 1 ? .05 : .0015;
+  var w = clamp(view.w * Math.exp(clamp(e.deltaY, -100, 100) * step), minW(), maxW());
+  if (Math.abs(w / view.w - 1) < 1e-9) return; // at the zoom limit: let the page scroll
   e.preventDefault();
-  const [wx, wy] = toWorld(e.clientX, e.clientY);
-  zoomTo(w, wx, wy, e.clientX, e.clientY);
-}, { passive: false });
+  var ww = toWorld(e.clientX, e.clientY);
+  zoomTo(w, ww[0], ww[1], e.clientX, e.clientY);
+}, false);
+
 // the names are links, but selection is handled on pointerup, so stop the anchor navigating
-mapSvg.addEventListener("click", e => {
-  if (e.target.closest("a")) e.preventDefault();
-});
+mapSvg.addEventListener("click", function (e) {
+  if (closestAnchor(e.target)) e.preventDefault();
+}, false);
 
+/* --------------------------------------------------------------- share */
 function shareResult() {
-  // one block per guess, as tall as its closeness to the mystery peak (a correct guess is a full block)
-  const blocks = guesses.map(g => "▁▂▃▄▅▆▇█"[Math.round(linkToTarget(g).pct / 100 * 7)]).join("") + (won() ? "🎯" : "");
-  const title = mode === "daily" ? new Date().toISOString().slice(0, 10) : "(random)";
-  const n = guesses.length;
-  const summary = won()
-    ? `I guessed the correct peak in ${n} ${n === 1 ? "try" : "tries"}!`
-    : `I didn't find the mystery peak in ${MAX_GUESSES} tries.`;
-  const text = `Coldle ${title} ${won() ? n : "X"}/${MAX_GUESSES}\n${summary}\n${blocks}\nhttps://ianto-cannon.github.io/coldle.html`;
+  // one block per guess, as tall as its closeness to the mystery peak
+  var blocks = "";
+  for (var i = 0; i < guesses.length; i++) {
+    blocks += "▁▂▃▄▅▆▇█".charAt(Math.round(linkToTarget(guesses[i]).pct / 100 * 7));
+  }
+  blocks += won() ? "🎯" : "";
+  var title = mode === "daily" ? new Date().toISOString().slice(0, 10) : "(random)";
+  var n = guesses.length;
+  var summary = won()
+    ? "I guessed the correct peak in " + n + " " + (n === 1 ? "try" : "tries") + "!"
+    : "I didn't find the mystery peak in " + MAX_GUESSES + " tries.";
+  var text = "Coldle " + title + " " + (won() ? n : "X") + "/" + MAX_GUESSES
+    + "\n" + summary + "\n" + blocks
+    + "\nhttps://ianto-cannon.github.io/coldle.html";
 
-  const showText = () => {
-    const area = Object.assign(document.createElement("textarea"), { value: text, readOnly: true, rows: 8 });
-    $("#shm").replaceChildren(area);
+  function showText() {
+    var area = document.createElement("textarea");
+    area.value = text;
+    area.readOnly = true;
+    area.rows = 8;
+    var shm = $("#shm");
+    while (shm.firstChild) shm.removeChild(shm.firstChild);
+    shm.appendChild(area);
     area.select();
-  };
-  Promise.resolve().then(() => navigator.clipboard.writeText(text)).then(() => {
+  }
+
+  function onCopied() {
     $("#go").textContent = "copied!";
-    setTimeout(() => { if (over()) $("#go").textContent = "share results"; }, 2000);
-  }, showText);
+    setTimeout(function () {
+      if (over()) $("#go").textContent = "share results";
+    }, 2000);
+  }
+
+  function tryCopy() {
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+      try {
+        var pr = navigator.clipboard.writeText(text);
+        if (pr && typeof pr.then === "function") pr.then(onCopied, showText);
+        else onCopied();
+      } catch (err) { showText(); }
+    } else {
+      showText();
+    }
+  }
+  setTimeout(tryCopy, 0); // equivalent of Promise.resolve().then(...)
 }
+
+/* --------------------------------------------------------------- wiring */
 // names in the chart and the list are links that select their peak
-const pickFromLink = e => {
-  const link = e.target.closest("[data-i]");
+function pickFromLink(e) {
+  var link = closestDataI(e.target);
   if (!link) return;
   e.preventDefault();
-  selectPeak(+link.dataset.i);
-};
-$("#ch").addEventListener("click", pickFromLink);
-$("#rows").addEventListener("click", pickFromLink);
-$("#go").onclick = () => (over() ? shareResult() : guess());
-$("#reset").onclick = () => {
+  selectPeak(+link.getAttribute("data-i"));
+}
+$("#ch").addEventListener("click", pickFromLink, false);
+$("#rows").addEventListener("click", pickFromLink, false);
+
+$("#go").onclick = function () { return over() ? shareResult() : guess(); };
+
+$("#reset").onclick = function () {
   resetView();
   newRound();
 };
-document.querySelectorAll("input[name=mode]").forEach(radio => {
-  radio.onchange = () => {
-    mode = radio.value;
-    newRound();
-  };
-});
-load().then(newRound).catch(e => {
-  $("#status").hidden = false;
-  $("#status").textContent = "Could not load map data: " + e.message;
-});
+
+var radios = document.querySelectorAll("input[name=mode]");
+for (var r = 0; r < radios.length; r++) {
+  (function (radio) {
+    radio.onchange = function () {
+      mode = radio.value;
+      newRound();
+    };
+  })(radios[r]);
+}
+
+try {
+  load();
+  newRound();
+} catch (e) {
+  var status = $("#status");
+  status.hidden = false;
+  status.textContent = "Could not load map data: " + e.message;
+}
+
+})();
