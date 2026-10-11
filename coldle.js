@@ -461,12 +461,16 @@ function readCount() {
   return Math.min(n, maxCount);
 }
 function writeCountHash(n) {
-  var hash = "#" + n;
+  // 50 is the default, so it gets no hash; anything else is pinned in the URL
+  var hash = (n === DEFAULT_COUNT) ? "" : "#" + n;
+  var url = location.pathname + location.search + hash;
   if (location.hash === hash) return;
   if (window.history && window.history.replaceState) {
-    window.history.replaceState(null, "", hash); // no history entry
-  } else {
+    window.history.replaceState(null, "", url); // no history entry
+  } else if (hash) {
     location.hash = hash;
+  } else {
+    location.replace(url); // older browsers: drop the hash without a history entry
   }
 }
 function updateCountRadios() {
@@ -704,14 +708,21 @@ function shareResult() {
     blocks += "▁▂▃▄▅▆▇█".charAt(Math.round(linkToTarget(guesses[i]).pct / 100 * 7));
   }
   blocks += won() ? "🎯" : "";
-  var title = mode === "daily" ? new Date().toISOString().slice(0, 10) : "(random)";
   var n = guesses.length;
   var summary = won()
     ? "I guessed the correct peak in " + n + " " + (n === 1 ? "try" : "tries") + "!"
     : "I didn't find the mystery peak in " + MAX_GUESSES + " tries.";
-  var text = "Coldle " + title + " " + (won() ? n : "X") + "/" + MAX_GUESSES
-    + "\n" + summary + "\n" + blocks
-    + "\nhttps://ianto-cannon.github.io/coldle.html";
+
+  // daily shows the date and score; random just says "random"
+  var head = mode === "daily"
+    ? "Coldle " + count + " peaks " + new Date().toISOString().slice(0, 10)
+      + " " + (won() ? n : "X") + "/" + MAX_GUESSES
+    : "Coldle " + count + " peaks random";
+
+  // the link carries the top-N only when it isn't the default
+  var url = "https://ianto-cannon.github.io/coldle.html"
+    + (count === DEFAULT_COUNT ? "" : "#" + count);
+  var text = head + "\n" + summary + "\n" + blocks + "\n" + url;
 
   function showText() {
     var area = document.createElement("textarea");
