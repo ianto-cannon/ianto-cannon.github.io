@@ -118,7 +118,7 @@ function renderStatus() {
     box.classList.add("flash");
   }
 }
-const chartY = alt => 178 - alt / 9000 * 168;   // altitude 0…9000 m → y 178…10 (viewBox height 236)
+const chartY = alt => 198 - alt / 9000 * 168;   // altitude 0…9000 m → y 198…30, leaving room above for the highest label
 
 function drawChart() {
   const chart = $("#ch");
@@ -171,7 +171,7 @@ function drawChart() {
   selectedLast.forEach(g => {
     const { G, col, wg, reach, xg, pct } = place(g);
     const isSel = g === selected;
-    guessPolys += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct, .6)}" ${shape(xg, wg, G)}/>`;
+    guessPolys += `<polygon${isSel ? ' class="sel"' : ""} fill="${colGuess(pct, 1)}" ${shape(xg, wg, G)}/>`;
     if (isSel) marks += text(xg + reach + 2, chartY(col) - 2, metres(col), "col") + altitude(xg, G);
     addName(xg, G.name, g);
   });

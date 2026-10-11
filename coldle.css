@@ -42,8 +42,8 @@ th,td{padding:4px 6px;text-align:left}
 /* blue in light mode; dark.css overrides */
 :where(svg) a,:where(svg) a:visited{color:blue}
 
-#pk polygon{fill:var(--mut);stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke}
-#pk polygon.sel{stroke-width:2px}
+#pk polygon{fill:var(--mut);}
+#pk polygon{stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-width:1px}
 #pk [data-i]{cursor:pointer}
 #pk text{fill:currentColor}
 #pk text.sel{font-weight:bold}
@@ -54,14 +54,13 @@ th,td{padding:4px 6px;text-align:left}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
 #ch text.col{text-anchor:start}   /* the linking col's altitude, just right of the guessed peak */
-#ch polygon{stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #ch polygon.target{fill:var(--mut)}
-#ch polygon.tree{fill:var(--mut);fill-opacity:.3}
-#ch polygon.sel{stroke-width:2px}
+#ch polygon.tree{fill:var(--mut)}
+#ch polygon.sel{stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #ch text.sel{font-weight:bold}
 #rows tr.sel{font-weight:bold}
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
-#ch .sea{stroke:blue;stroke-width:2px}
+#ch .sea{stroke:blue}
 
 /* confetti overlay */
 canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}
