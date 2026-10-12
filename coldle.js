@@ -1,6 +1,5 @@
 // Coldle: guess the mystery peak. peaks.csv columns: name,height,prominence,parent,lat,lon,range,country.
 // map.svg is a Lambert cylindrical equal-area projection (x = longitude, y = sin latitude).
-// ES5 translation, with a top-N selector (default 50; #125, #37, … in the URL).
 (function () {
 
 function $(s) { return document.querySelector(s); }
@@ -31,7 +30,6 @@ var supportsHidden = (function () {
   d.hidden = true;
   return d.hidden === true;
 })();
-
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function metres(m) { return m.toLocaleString() + " m"; }
 function colLabel(m) { return m ? metres(m) : "sea level"; }
@@ -41,8 +39,6 @@ function colGuess(pct, alpha) {
   if (alpha === undefined) alpha = 1;
   return "hsl(" + hue + " 65% " + (20 + 70 * Math.pow(pct / 100, .25)) + "% / " + alpha + ")";
 }
-
-/* ------------------------------------------------------------------ CSV */
 var CSV_RE = /(?:^|,)("(?:[^"]|"")*"|[^,]*)/g;
 function parseCSV(text) {
   return text.trim().split(/\r?\n/).map(function (line) {
@@ -56,8 +52,6 @@ function parseCSV(text) {
     return fields;
   });
 }
-
-/* --------------------------------------------------------------- state */
 var mode = "daily";
 var allPeaks = null;   // every row in peaks.js
 var maxCount = 125;    // set once allPeaks is parsed
@@ -79,7 +73,6 @@ function newRound() {
   selected = null;
   render();
 }
-
 function guess() {
   if (over() || selected === null || guesses.indexOf(selected) !== -1) return;
   guesses.push(selected);
@@ -87,11 +80,9 @@ function guess() {
   if (won()) confetti();
   else if (over()) shake($("#go"));
 }
-
 function prefersReducedMotion() {
   return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
-
 function shake(el) {
   if (prefersReducedMotion()) return;
   removeClass(el, "shake");
@@ -103,13 +94,10 @@ function shake(el) {
   };
   el.addEventListener("animationend", handler, false);
 }
-
 function chain(i) {
   if (i < 0) return [];
   return [i].concat(chain(peaks[i].parent)); // a peak and its ancestors
 }
-
-// The lowest col crossed walking from a guess to the target, and its height as % of the target's.
 function linkToTarget(g) {
   if (g === target) return { colAlt: peaks[g].height, pct: 100 };
   var a = chain(g);
@@ -136,12 +124,10 @@ function linkToTarget(g) {
   }
   return { colAlt: colAlt, pct: Math.round(100 * colAlt / peaks[target].height) };
 }
-
 function selectPeak(i) {
   selected = i;
   render();
 }
-
 function render() {
   renderTable();
   drawChart();
@@ -149,8 +135,6 @@ function render() {
   renderStatus();
   $("#go").textContent = over() ? "share results" : "guess";
 }
-
-/* --------------------------------------------------------------- table */
 function renderTable() {
   var rows = guesses.map(function (g, i) {
     var lt = linkToTarget(g);
@@ -158,16 +142,16 @@ function renderTable() {
     return '<tr' + (g === selected ? ' class="sel"' : "") + '>'
       + '<td>' + (i + 1) + '</td>'
       + '<td><a href="#" data-i="' + g + '">' + peaks[g].name + '</a></td>'
+      + '<td>' + peaks[g].range + '</td>'
+      + '<td>' + peaks[g].country + '</td>'
       + '<td>' + (g === target ? "🎯 Correct" : colLabel(colAlt)) + '</td>'
-      + '<td style="color:' + colGuess(pct) + '">' + pct + '%</td></tr>';
+      + '<td>' + pct + '%</td></tr>';
   });
   $("#rows").innerHTML = rows.length
-    ? '<table><tr><th>#</th><th>Peak</th><th>Lowest pass</th><th>Connectedness</th></tr>'
+    ? '<table><tr><th>Guess</th><th>Peak</th><th>Range</th><th>Country</th><th>Linking col</th><th>Score</th></tr>'
       + rows.join("") + '</table>'
     : "";
 }
-
-/* -------------------------------------------------------------- status */
 function setHidden(el, hide) {
   if (supportsHidden) {
     el.hidden = hide;
@@ -185,7 +169,6 @@ function closestHidden(el) {
   }
   return null;
 }
-
 var lastStatus = "";
 function renderStatus() {
   var p = peaks[target];
@@ -216,18 +199,15 @@ function renderStatus() {
     }
     setHidden(el, !show);
   }
-
   els = box.querySelectorAll("[data-v]");
   for (var k = 0; k < els.length; k++) {
     var el2 = els[k];
     el2.textContent = closestHidden(el2) ? "" : values[el2.getAttribute("data-v")];
   }
-
   if (!end) {
     var shm = $("#shm");
     while (shm.firstChild) shm.removeChild(shm.firstChild); // clear a share fallback
   }
-
   var state = JSON.stringify(states) + box.textContent;
   if (state === lastStatus) return;
   lastStatus = state;
@@ -237,8 +217,6 @@ function renderStatus() {
     addClass(box, "flash");
   }
 }
-
-/* --------------------------------------------------------------- chart */
 function chartY(alt) { return 198 - alt / 9000 * 168; } // 0..9000 m → y 198..30
 
 function drawChart() {
@@ -289,7 +267,6 @@ function drawChart() {
   function shape(xg, wg, G) {
     return 'points="' + pt(xg - wg, base) + " " + pt(xg + wg, base) + " " + pt(xg, chartY(G.height)) + '"';
   }
-
   // unguessed background trees
   var treeBuf = "";
   for (var gi = 0; gi < peaks.length; gi++) {
@@ -356,14 +333,11 @@ function drawChart() {
       ? text(pp.lx, y, pp.t)
       : '<a href="#" data-i="' + pp.i + '">' + text(pp.lx, y, pp.t, pp.i === selected ? "sel" : "") + '</a>';
   }
-
   chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + H.toFixed(1));
   chart.style.height = H / k + "px";
   chart.setAttribute("font-size", font.toFixed(2));
   chart.innerHTML = out;
 }
-
-/* ------------------------------------------------------------ confetti */
 var raf = window.requestAnimationFrame
   || window.webkitRequestAnimationFrame
   || window.mozRequestAnimationFrame
@@ -400,7 +374,6 @@ function confetti() {
       life: 0
     });
   }
-
   var last = nowMs();
   function tick(now) {
     if (now === undefined) now = nowMs();
@@ -432,8 +405,6 @@ function confetti() {
   }
   raf(tick);
 }
-
-/* ----------------------------------------------------------------- map */
 var world = { W: 40030, H: 12742, R: 6371, lon0: 0 }; // must match map.svg: viewBox, data-r, data-lon0
 var view = { x: 0, y: 0, w: 40030, h: 12742 };
 var mapSvg = $("#mp");
@@ -444,9 +415,6 @@ function project(lat, lon) {
     world.H / 2 - world.R * Math.sin(lat * RAD)
   ];
 }
-
-// Move map.js's SVG into <g id="bg">, keeping it vector (no <image>, which would be rasterized).
-// DOMParser works on file:// where fetch() does not.
 function injectMap() {
   var bg = document.getElementById("bg");
   if (!bg || typeof MAP_SVG === "undefined") return;
@@ -462,11 +430,8 @@ function injectMap() {
     next = following;
   }
 }
-
-// Parse peaks.js once; slice later depending on how many are in play.
 function load() {
   injectMap();
-  // PEAKS_CSV comes from peaks.js; the map is injected from map.js
   var rows = parseCSV(PEAKS_CSV).slice(1).filter(function (f) { return f.length >= 8; });
   allPeaks = rows.map(function (f) {
     return {
@@ -495,9 +460,6 @@ function load() {
   }
   maxCount = allPeaks.length;
 }
-
-/* ------------------------------------------------- top-N selector / URL */
-// The URL hash is the only source of truth: #50, #125, #37 … no hash → 50.
 function readCount() {
   var m = /^#(\d+)$/.exec(location.hash || "");
   if (!m) return DEFAULT_COUNT;
@@ -533,7 +495,6 @@ function applyCount(n, writeHash) {
   resetView();
   newRound();
 }
-
 function aspect() {
   var r = mapSvg.getBoundingClientRect();
   return r.height ? r.width / r.height : world.W / world.H;
@@ -567,11 +528,9 @@ function zoomTo(w, wx, wy, cx, cy) {
 window.addEventListener("resize", function () {
   if (peaks.length) { drawMap(); drawChart(); }
 }, false);
-
 function triangle(x, y, r) {
   return pt(x, y - r) + " " + pt(x + r * .87, y + r * .5) + " " + pt(x - r * .87, y + r * .5);
 }
-
 function drawMap() {
   clampView();
   mapSvg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
@@ -613,7 +572,6 @@ function drawMap() {
   layer.setAttribute("font-size", (fontPx() * px).toFixed(2));
   layer.innerHTML = tiers[0].join("") + tiers[1].join("") + tiers[2].join("") + labels + top;
 }
-
 var pointers = {}; // pointerId → {x, y}  (replaces Map)
 function pointerCount() {
   var n = 0;
@@ -639,7 +597,6 @@ function closestAnchor(el) {
   }
   return null;
 }
-
 var drag = null;
 var pinch = null;
 var dragged = false;
@@ -669,7 +626,6 @@ function startPinch() {
   var w = toWorld(m.x, m.y);
   pinch = { dist: m.dist, w: view.w, wx: w[0], wy: w[1] };
 }
-
 function handleDown(id, cx, cy, target) {
   if (!peaks.length) return;
   pointers[id] = { x: cx, y: cy };
@@ -684,7 +640,6 @@ function handleDown(id, cx, cy, target) {
     startPinch();
   }
 }
-
 function handleMove(id, cx, cy) {
   if (!pointers.hasOwnProperty(id)) return;
   pointers[id] = { x: cx, y: cy };
@@ -703,7 +658,6 @@ function handleMove(id, cx, cy) {
     }
   }
 }
-
 function handleUp(id, cx, cy, isCancel) {
   if (!pointers.hasOwnProperty(id)) return;
   delete pointers[id];
@@ -724,7 +678,6 @@ function handleUp(id, cx, cy, isCancel) {
     }
   }
 }
-
 if ("onpointerdown" in window) {
   // Native Pointer Events (IE11+, Edge, Chrome, Firefox, Safari ≥ 13).
   mapSvg.onpointerdown = function (e) {
@@ -763,7 +716,6 @@ if ("onpointerdown" in window) {
   };
   mapSvg.addEventListener("touchend", onTouchEnd(false), false);
   mapSvg.addEventListener("touchcancel", onTouchEnd(true), false);
-
   // Fallback: mouse events.
   mapSvg.addEventListener("mousedown", function (e) {
     handleDown("mouse", e.clientX, e.clientY, e.target);
@@ -776,7 +728,6 @@ if ("onpointerdown" in window) {
     handleUp("mouse", e.clientX, e.clientY, false);
   }, false);
 }
-
 mapSvg.addEventListener("wheel", function (e) {
   if (!peaks.length) return;
   // line-mode deltas are much larger than pixel ones
@@ -824,14 +775,12 @@ function shareResult() {
     shm.appendChild(area);
     area.select();
   }
-
   function onCopied() {
     $("#go").textContent = "copied!";
     setTimeout(function () {
       if (over()) $("#go").textContent = "share results";
     }, 2000);
   }
-
   function tryCopy() {
     if (navigator.clipboard && navigator.clipboard.writeText) {
       try {
@@ -845,8 +794,6 @@ function shareResult() {
   }
   setTimeout(tryCopy, 0); // equivalent of Promise.resolve().then(...)
 }
-
-/* --------------------------------------------------------------- wiring */
 // names in the chart and the list are links that select their peak
 function pickFromLink(e) {
   var link = closestDataI(e.target);
@@ -856,15 +803,11 @@ function pickFromLink(e) {
 }
 $("#ch").addEventListener("click", pickFromLink, false);
 $("#rows").addEventListener("click", pickFromLink, false);
-
 $("#go").onclick = function () { return over() ? shareResult() : guess(); };
-
 $("#reset").onclick = function () {
   resetView();
   newRound();
 };
-
-// top-50 / top-125 radios in the subtitle
 var countRadios = document.querySelectorAll("input[name=count]");
 for (var cr = 0; cr < countRadios.length; cr++) {
   (function (radio) {
@@ -873,7 +816,6 @@ for (var cr = 0; cr < countRadios.length; cr++) {
     };
   })(countRadios[cr]);
 }
-// typing #37 (or deleting the hash) in the address bar re-seeds the game
 window.addEventListener("hashchange", function () {
   var n = readCount();
   if (n !== count) applyCount(n, false);
@@ -888,7 +830,6 @@ for (var r = 0; r < radios.length; r++) {
     };
   })(radios[r]);
 }
-
 try {
   load();
   applyCount(readCount(), false); // no hash → 50, without writing one
@@ -897,5 +838,4 @@ try {
   setHidden(status, false);
   status.textContent = "Could not load map data: " + e.message;
 }
-
 })();

@@ -27,6 +27,8 @@ th,td{padding:4px 6px;text-align:left}
 @keyframes flash{
   from{background:color-mix(in srgb, var(--mut) 30%, transparent)}
 }
+#reset{font-size:1.5em}
+#go{font-size:1.5em}
 #go.shake{animation:shake 1s}
 @keyframes shake{
   10%,90%{transform:translateX(-2px)}
