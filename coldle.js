@@ -10,6 +10,28 @@ var MAX_ZOOM = 150;
 var RAD = Math.PI / 180;
 var DEFAULT_COUNT = 50;
 
+/* ------------------------------------------------ old-browser helpers */
+function addClass(el, c) {
+  if (el.classList) { el.classList.add(c); return; }
+  var parts = (el.className || "").split(/\s+/);
+  for (var i = 0; i < parts.length; i++) if (parts[i] === c) return;
+  el.className = el.className ? el.className + " " + c : c;
+}
+function removeClass(el, c) {
+  if (el.classList) { el.classList.remove(c); return; }
+  var parts = (el.className || "").split(/\s+/);
+  var out = [];
+  for (var i = 0; i < parts.length; i++) if (parts[i] && parts[i] !== c) out.push(parts[i]);
+  el.className = out.join(" ");
+}
+// Detect native [hidden] support once (IE ≤ 10 lack it, as do some
+// old WebKit builds). Falls back to inline display:none.
+var supportsHidden = (function () {
+  var d = document.createElement("div");
+  d.hidden = true;
+  return d.hidden === true;
+})();
+
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function metres(m) { return m.toLocaleString() + " m"; }
 function colLabel(m) { return m ? metres(m) : "sea level"; }
@@ -72,11 +94,11 @@ function prefersReducedMotion() {
 
 function shake(el) {
   if (prefersReducedMotion()) return;
-  el.classList.remove("shake");
+  removeClass(el, "shake");
   void el.offsetWidth; // restart the animation if it is already running
-  el.classList.add("shake");
+  addClass(el, "shake");
   var handler = function () {
-    el.classList.remove("shake");
+    removeClass(el, "shake");
     if (el.removeEventListener) el.removeEventListener("animationend", handler, false);
   };
   el.addEventListener("animationend", handler, false);
@@ -147,7 +169,11 @@ function renderTable() {
 
 /* -------------------------------------------------------------- status */
 function setHidden(el, hide) {
-  el.hidden = hide;
+  if (supportsHidden) {
+    el.hidden = hide;
+  } else {
+    el.style.display = hide ? "none" : "";
+  }
   if (hide) el.setAttribute("hidden", "");
   else el.removeAttribute("hidden");
 }
@@ -206,9 +232,9 @@ function renderStatus() {
   if (state === lastStatus) return;
   lastStatus = state;
   if (!prefersReducedMotion()) {
-    box.classList.remove("flash");
+    removeClass(box, "flash");
     void box.offsetWidth;
-    box.classList.add("flash");
+    addClass(box, "flash");
   }
 }
 
@@ -644,33 +670,30 @@ function startPinch() {
   pinch = { dist: m.dist, w: view.w, wx: w[0], wy: w[1] };
 }
 
-mapSvg.onpointerdown = function (e) {
+function handleDown(id, cx, cy, target) {
   if (!peaks.length) return;
-  if (mapSvg.setPointerCapture) {
-    try { mapSvg.setPointerCapture(e.pointerId); } catch (err) {}
-  }
-  pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+  pointers[id] = { x: cx, y: cy };
   if (pointerCount() === 1) {
-    var hit = closestDataI(e.target);
+    var hit = closestDataI(target);
     dragged = false;
-    drag = { x: e.clientX, y: e.clientY, vx: view.x, vy: view.y,
+    drag = { x: cx, y: cy, vx: view.x, vy: view.y,
              hit: hit ? +hit.getAttribute("data-i") : -1 };
   } else if (pointerCount() === 2) {
     dragged = true;
     drag = null;
     startPinch();
   }
-};
+}
 
-mapSvg.onpointermove = function (e) {
-  if (!pointers.hasOwnProperty(e.pointerId)) return;
-  pointers[e.pointerId] = { x: e.clientX, y: e.clientY };
+function handleMove(id, cx, cy) {
+  if (!pointers.hasOwnProperty(id)) return;
+  pointers[id] = { x: cx, y: cy };
   if (pointerCount() >= 2 && pinch) {
     var m = pinchMid();
     zoomTo(pinch.w * pinch.dist / m.dist, pinch.wx, pinch.wy, m.x, m.y);
   } else if (drag) {
-    var dx = e.clientX - drag.x;
-    var dy = e.clientY - drag.y;
+    var dx = cx - drag.x;
+    var dy = cy - drag.y;
     if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true; // below 5 px it is still a tap
     if (dragged) {
       var k = view.w / mapSvg.getBoundingClientRect().width;
@@ -679,11 +702,11 @@ mapSvg.onpointermove = function (e) {
       drawMap();
     }
   }
-};
+}
 
-mapSvg.onpointerup = mapSvg.onpointercancel = function (e) {
-  if (!pointers.hasOwnProperty(e.pointerId)) return;
-  delete pointers[e.pointerId];
+function handleUp(id, cx, cy, isCancel) {
+  if (!pointers.hasOwnProperty(id)) return;
+  delete pointers[id];
   if (pointerCount() === 2) {
     startPinch();
   // two → one finger: keep panning
@@ -695,12 +718,64 @@ mapSvg.onpointerup = mapSvg.onpointercancel = function (e) {
   } else {
     var hit = drag ? drag.hit : -1;
     drag = pinch = null;
-    if (e.type === "pointerup" && !dragged) {
-      var i = hit >= 0 ? hit : nearestPeak(e.clientX, e.clientY);
+    if (!isCancel && !dragged) {
+      var i = hit >= 0 ? hit : nearestPeak(cx, cy);
       if (i >= 0) selectPeak(i);
     }
   }
-};
+}
+
+if ("onpointerdown" in window) {
+  // Native Pointer Events (IE11+, Edge, Chrome, Firefox, Safari ≥ 13).
+  mapSvg.onpointerdown = function (e) {
+    if (mapSvg.setPointerCapture) {
+      try { mapSvg.setPointerCapture(e.pointerId); } catch (err) {}
+    }
+    handleDown(e.pointerId, e.clientX, e.clientY, e.target);
+  };
+  mapSvg.onpointermove = function (e) {
+    handleMove(e.pointerId, e.clientX, e.clientY);
+  };
+  mapSvg.onpointerup = function (e) {
+    handleUp(e.pointerId, e.clientX, e.clientY, false);
+  };
+  mapSvg.onpointercancel = function (e) {
+    handleUp(e.pointerId, e.clientX, e.clientY, true);
+  };
+} else {
+  // Fallback: touch events (old WebKit / Kindle PW2 / iOS < 13).
+  mapSvg.addEventListener("touchstart", function (e) {
+    var t = e.changedTouches;
+    for (var i = 0; i < t.length; i++) {
+      handleDown(t[i].identifier, t[i].clientX, t[i].clientY, t[i].target || e.target);
+    }
+  }, false);
+  mapSvg.addEventListener("touchmove", function (e) {
+    var t = e.changedTouches;
+    for (var i = 0; i < t.length; i++) handleMove(t[i].identifier, t[i].clientX, t[i].clientY);
+    if (dragged || pointerCount() >= 2) e.preventDefault(); // stop page scroll while panning/pinching
+  }, false);
+  var onTouchEnd = function (cancel) {
+    return function (e) {
+      var t = e.changedTouches;
+      for (var i = 0; i < t.length; i++) handleUp(t[i].identifier, t[i].clientX, t[i].clientY, cancel);
+    };
+  };
+  mapSvg.addEventListener("touchend", onTouchEnd(false), false);
+  mapSvg.addEventListener("touchcancel", onTouchEnd(true), false);
+
+  // Fallback: mouse events.
+  mapSvg.addEventListener("mousedown", function (e) {
+    handleDown("mouse", e.clientX, e.clientY, e.target);
+    e.preventDefault();
+  }, false);
+  document.addEventListener("mousemove", function (e) {
+    handleMove("mouse", e.clientX, e.clientY);
+  }, false);
+  document.addEventListener("mouseup", function (e) {
+    handleUp("mouse", e.clientX, e.clientY, false);
+  }, false);
+}
 
 mapSvg.addEventListener("wheel", function (e) {
   if (!peaks.length) return;
@@ -819,7 +894,7 @@ try {
   applyCount(readCount(), false); // no hash → 50, without writing one
 } catch (e) {
   var status = $("#status");
-  status.hidden = false;
+  setHidden(status, false);
   status.textContent = "Could not load map data: " + e.message;
 }
 
