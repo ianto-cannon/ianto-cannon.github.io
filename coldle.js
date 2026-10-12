@@ -24,8 +24,6 @@ function removeClass(el, c) {
   for (var i = 0; i < parts.length; i++) if (parts[i] && parts[i] !== c) out.push(parts[i]);
   el.className = out.join(" ");
 }
-// Detect native [hidden] support once (IE ≤ 10 lack it, as do some
-// old WebKit builds). Falls back to inline display:none.
 var supportsHidden = (function () {
   var d = document.createElement("div");
   d.hidden = true;
@@ -48,16 +46,16 @@ function parseCSV(text) {
     var m;
     while ((m = CSV_RE.exec(line)) !== null) {
       fields.push(m[1].replace(/^"|"$/g, "").replace(/""/g, '"'));
-      if (m.index === CSV_RE.lastIndex) CSV_RE.lastIndex++; // guard against zero-length matches
+      if (m.index === CSV_RE.lastIndex) CSV_RE.lastIndex++;
     }
     return fields;
   });
 }
 var mode = "daily";
-var allPeaks = null;   // every row in peaks.js
-var maxCount = 125;    // set once allPeaks is parsed
+var allPeaks = null;
+var maxCount = 125;
 var count = DEFAULT_COUNT;
-var peaks = [];        // allPeaks.slice(0, count) — what the game actually uses
+var peaks = [];
 var target;
 var guesses = [];
 var selected = null;
@@ -66,7 +64,7 @@ function won()  { return guesses.indexOf(target) !== -1; }
 function over() { return won() || guesses.length >= MAX_GUESSES; }
 
 function newRound() {
-  var day = Math.floor(Date.now() / 864e5); // hashed so every visitor gets the same daily peak
+  var day = Math.floor(Date.now() / 864e5);
   target = mode === "daily"
     ? (day * 2654435761 >>> 0) % peaks.length
     : target = Date.now() % peaks.length;
@@ -87,7 +85,7 @@ function prefersReducedMotion() {
 function shake(el) {
   if (prefersReducedMotion()) return;
   removeClass(el, "shake");
-  void el.offsetWidth; // restart the animation if it is already running
+  void el.offsetWidth;
   addClass(el, "shake");
   var handler = function () {
     removeClass(el, "shake");
@@ -97,7 +95,7 @@ function shake(el) {
 }
 function chain(i) {
   if (i < 0) return [];
-  return [i].concat(chain(peaks[i].parent)); // a peak and its ancestors
+  return [i].concat(chain(peaks[i].parent));
 }
 function linkToTarget(g) {
   if (g === target) return { colAlt: peaks[g].height, pct: 100 };
@@ -105,11 +103,11 @@ function linkToTarget(g) {
   var b = chain(target);
   var meet;
   for (var i = 0; i < a.length; i++) {
-    if (b.indexOf(a[i]) !== -1) { meet = a[i]; break; } // highest common ancestor
+    if (b.indexOf(a[i]) !== -1) { meet = a[i]; break; }
   }
   var crossed;
   if (meet === undefined) {
-    crossed = a.concat(b); // no shared ancestor: walk both full chains
+    crossed = a.concat(b);
   } else {
     crossed = a.slice(0, a.indexOf(meet)).concat(b.slice(0, b.indexOf(meet)));
   }
@@ -183,16 +181,30 @@ function renderStatus() {
   var end = over();
   var box = $("#status");
   var states = {
-    play: !end, over: end, won: won(), lost: end && !won(),
-    first: made === 0, more: made > 0,
-    picked: selected !== null && guesses.indexOf(selected) === -1,
-    unpicked: selected === null || guesses.indexOf(selected) !== -1,
-    g3: made >= 3, g5: made >= 5
+    play: !end, over: end, won: won(), lost: end && !won()
   };
   var values = {
-    height: metres(p.height), col: colLabel(p.colAlt), n: made + 1, max: MAX_GUESSES, made: made,
-    sel: selected === null ? "" : peaks[selected].name,
-    range: p.range, country: p.country, name: p.name
+    height: metres(p.height),
+    prominence: metres(p.prominence),
+    n: made + 1,
+    max: MAX_GUESSES,
+    made: made,
+    hint3: made >= 3
+      ? "The mystery peak is in the " + p.range + " range."
+      : "The mountain range will be revealed after your third guess.",
+    hint4: made >= 5
+      ? "The mystery peak is in " + p.country + "."
+      : "The country will be revealed after your fifth guess.",
+    prompt: end
+      ? ""
+      : (selected !== null && guesses.indexOf(selected) === -1
+          ? "Selected " + peaks[selected].name + ". Press Guess to confirm."
+          : (made === 0
+              ? "Tap a peak on the map, then press Guess."
+              : "Tap another peak on the map, then press Guess.")),
+    name: p.name,
+    range: p.range,
+    country: p.country
   };
   setHidden(box, false);
 
@@ -213,7 +225,7 @@ function renderStatus() {
   }
   if (!end) {
     var shm = $("#shm");
-    while (shm.firstChild) shm.removeChild(shm.firstChild); // clear a share fallback
+    while (shm.firstChild) shm.removeChild(shm.firstChild);
   }
   var state = JSON.stringify(states) + box.textContent;
   if (state === lastStatus) return;
@@ -224,11 +236,10 @@ function renderStatus() {
     addClass(box, "flash");
   }
 }
-function chartY(alt) { return 198 - alt / 9000 * 168; } // 0..9000 m → y 198..30
+function chartY(alt) { return 198 - alt / 9000 * 168; }
 
 function drawChart() {
   var chart = $("#ch");
-  // peaks.length is in the key so switching 50 ↔ 125 redraws the background trees
   var key = [chart.clientWidth, fontPx(), target, guesses.join(), selected, over(), peaks.length].join();
   if (key === chart.getAttribute("data-key")) return;
   chart.setAttribute("data-key", key);
@@ -274,7 +285,6 @@ function drawChart() {
   function shape(xg, wg, G) {
     return 'points="' + pt(xg - wg, base) + " " + pt(xg + wg, base) + " " + pt(xg, chartY(G.height)) + '"';
   }
-  // unguessed background trees
   var treeBuf = "";
   for (var gi = 0; gi < peaks.length; gi++) {
     if (gi === target || guesses.indexOf(gi) !== -1) continue;
@@ -283,7 +293,6 @@ function drawChart() {
   }
   out += treeBuf;
 
-  // guessed peaks; the selected one is drawn last so it appears on top
   var others = [];
   for (var oi = 0; oi < guesses.length; oi++) if (guesses[oi] !== target) others.push(guesses[oi]);
   var selectedLast = [];
@@ -310,7 +319,6 @@ function drawChart() {
   out += marks + altitude(cx, T);
   addName(cx, over() ? T.name : "?", over() ? target : undefined);
 
-  // label layout: first row that doesn't overlap the previous name there
   labels.sort(function (a, b) { return a[0] - b[0]; });
   var rowEnds = [];
   var placed = [];
@@ -334,7 +342,7 @@ function drawChart() {
     var y = base + 1.1 * font + pp.row * rowH;
     if (pp.row) {
       out += '<line x1="' + pp.x.toFixed(1) + '" x2="' + pp.x.toFixed(1)
-        + '" y1="' + base + '" y2="' + (y - font).toFixed(1) + '"/>'; // leader line
+        + '" y1="' + base + '" y2="' + (y - font).toFixed(1) + '"/>';
     }
     out += pp.i === undefined
       ? text(pp.lx, y, pp.t)
@@ -366,7 +374,7 @@ function confetti() {
   var btn = $("#go").getBoundingClientRect();
   var colors = ["#0072b2", "#e69f00", "#cc79a7", "#56b4e9", "#009e73", "#f0e442"];
   var particles = [];
-  for (var i = 0; i < 160; i++) { // launched upward from the button in a cone
+  for (var i = 0; i < 160; i++) {
     var angle = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.2;
     var speed = (6 + Math.random() * 11) * dpr;
     particles.push({
@@ -412,7 +420,7 @@ function confetti() {
   }
   raf(tick);
 }
-var world = { W: 40030, H: 12742, R: 6371, lon0: 0 }; // must match map.svg: viewBox, data-r, data-lon0
+var world = { W: 40030, H: 12742, R: 6371, lon0: 0 };
 var view = { x: 0, y: 0, w: 40030, h: 12742 };
 var mapSvg = $("#mp");
 
@@ -425,7 +433,7 @@ function project(lat, lon) {
 function injectMap() {
   var bg = document.getElementById("bg");
   if (!bg || typeof MAP_SVG === "undefined") return;
-  if (!window.DOMParser) return; // very old browsers get an empty map
+  if (!window.DOMParser) return;
   var doc = new DOMParser().parseFromString(MAP_SVG, "image/svg+xml");
   var root = doc.documentElement;
   if (!root || root.nodeName === "parsererror") return;
@@ -449,6 +457,7 @@ function load() {
       lat: +f[4],
       lon: +f[5],
       height: +f[1],
+      prominence: +f[2],
       colAlt: +f[1] - +f[2]
     };
   });
@@ -475,16 +484,15 @@ function readCount() {
   return Math.min(n, maxCount);
 }
 function writeCountHash(n) {
-  // 50 is the default, so it gets no hash; anything else is pinned in the URL
   var hash = (n === DEFAULT_COUNT) ? "" : "#" + n;
   var url = location.pathname + location.search + hash;
   if (location.hash === hash) return;
   if (window.history && window.history.replaceState) {
-    window.history.replaceState(null, "", url); // no history entry
+    window.history.replaceState(null, "", url);
   } else if (hash) {
     location.hash = hash;
   } else {
-    location.replace(url); // older browsers: drop the hash without a history entry
+    location.replace(url);
   }
 }
 function updateCountRadios() {
@@ -493,7 +501,6 @@ function updateCountRadios() {
     radios[i].checked = (+radios[i].value === count);
   }
 }
-// writeHash=false on load and on hashchange, so the URL keeps whatever the user typed.
 function applyCount(n, writeHash) {
   count = clamp(Math.round(n) || DEFAULT_COUNT, 1, maxCount);
   if (writeHash) writeCountHash(count);
@@ -509,7 +516,7 @@ function aspect() {
 function minW() { return world.W / MAX_ZOOM; }
 function maxW() { return Math.min(world.W, world.H * aspect()); }
 
-function resetView() { // centred on 60°E
+function resetView() {
   var w = maxW();
   var h = w / aspect();
   view = { x: project(0, 60)[0] - w / 2, y: (world.H - h) / 2, w: w, h: h };
@@ -545,7 +552,6 @@ function drawMap() {
   var px = view.w / mapSvg.clientWidth;
   var zoomFrac = view.w / world.W;
   var live = !over();
-  // draw order: unguessed, guessed, revealed target, all labels, then the selected marker and label
   var tiers = [[], [], []];
   var labels = "";
   var top = "";
@@ -562,7 +568,6 @@ function drawMap() {
     var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
       + (fill ? ' style="fill:' + fill + '"' : "") + tap
       + ' points="' + shape + '"/>';
-    // label every peak once zoomed in enough, guessed or not
     var label = (zoomFrac <= .28 || isSel)
       ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="sel"' : "")
         + ' x="' + (p.x + 9 * px).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
@@ -579,7 +584,7 @@ function drawMap() {
   layer.setAttribute("font-size", (fontPx() * px).toFixed(2));
   layer.innerHTML = tiers[0].join("") + tiers[1].join("") + tiers[2].join("") + labels + top;
 }
-var pointers = {}; // pointerId → {x, y}  (replaces Map)
+var pointers = {};
 function pointerCount() {
   var n = 0;
   for (var k in pointers) if (pointers.hasOwnProperty(k)) n++;
@@ -656,7 +661,7 @@ function handleMove(id, cx, cy) {
   } else if (drag) {
     var dx = cx - drag.x;
     var dy = cy - drag.y;
-    if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true; // below 5 px it is still a tap
+    if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true;
     if (dragged) {
       var k = view.w / mapSvg.getBoundingClientRect().width;
       view.x = drag.vx - dx * k;
@@ -670,7 +675,6 @@ function handleUp(id, cx, cy, isCancel) {
   delete pointers[id];
   if (pointerCount() === 2) {
     startPinch();
-  // two → one finger: keep panning
   } else if (pointerCount() === 1) {
     var vals = pointerValues();
     var p = vals[0];
@@ -686,7 +690,6 @@ function handleUp(id, cx, cy, isCancel) {
   }
 }
 if ("onpointerdown" in window) {
-  // Native Pointer Events (IE11+, Edge, Chrome, Firefox, Safari ≥ 13).
   mapSvg.onpointerdown = function (e) {
     if (mapSvg.setPointerCapture) {
       try { mapSvg.setPointerCapture(e.pointerId); } catch (err) {}
@@ -703,7 +706,6 @@ if ("onpointerdown" in window) {
     handleUp(e.pointerId, e.clientX, e.clientY, true);
   };
 } else {
-  // Fallback: touch events (old WebKit / Kindle PW2 / iOS < 13).
   mapSvg.addEventListener("touchstart", function (e) {
     var t = e.changedTouches;
     for (var i = 0; i < t.length; i++) {
@@ -713,7 +715,7 @@ if ("onpointerdown" in window) {
   mapSvg.addEventListener("touchmove", function (e) {
     var t = e.changedTouches;
     for (var i = 0; i < t.length; i++) handleMove(t[i].identifier, t[i].clientX, t[i].clientY);
-    if (dragged || pointerCount() >= 2) e.preventDefault(); // stop page scroll while panning/pinching
+    if (dragged || pointerCount() >= 2) e.preventDefault();
   }, false);
   var onTouchEnd = function (cancel) {
     return function (e) {
@@ -723,7 +725,6 @@ if ("onpointerdown" in window) {
   };
   mapSvg.addEventListener("touchend", onTouchEnd(false), false);
   mapSvg.addEventListener("touchcancel", onTouchEnd(true), false);
-  // Fallback: mouse events.
   mapSvg.addEventListener("mousedown", function (e) {
     handleDown("mouse", e.clientX, e.clientY, e.target);
     e.preventDefault();
@@ -737,16 +738,14 @@ if ("onpointerdown" in window) {
 }
 mapSvg.addEventListener("wheel", function (e) {
   if (!peaks.length) return;
-  // line-mode deltas are much larger than pixel ones
   var step = e.deltaMode === 1 ? .05 : .0015;
   var w = clamp(view.w * Math.exp(clamp(e.deltaY, -100, 100) * step), minW(), maxW());
-  if (Math.abs(w / view.w - 1) < 1e-9) return; // at the zoom limit: let the page scroll
+  if (Math.abs(w / view.w - 1) < 1e-9) return;
   e.preventDefault();
   var ww = toWorld(e.clientX, e.clientY);
   zoomTo(w, ww[0], ww[1], e.clientX, e.clientY);
 }, false);
 
-// the names are links, but selection is handled on pointerup, so stop the anchor navigating
 mapSvg.addEventListener("click", function (e) {
   if (closestAnchor(e.target)) e.preventDefault();
 }, false);
@@ -762,12 +761,10 @@ function shareResult() {
     ? "I guessed the correct peak in " + n + " " + (n === 1 ? "try" : "tries") + "!"
     : "I didn't find the mystery peak in " + MAX_GUESSES + " tries.";
 
-  // daily shows the date; random just says "random"
   var head = mode === "daily"
     ? "Coldle " + count + " peaks " + new Date().toISOString().slice(0, 10)
     : "Coldle " + count + " peaks random";
 
-  // the link carries the top-N only when it isn't the default
   var url = "https://ianto-cannon.github.io/coldle.html"
     + (count === DEFAULT_COUNT ? "" : "#" + count);
   var text = head + "\n" + summary + "\n" + blocks + "\n" + url;
@@ -799,9 +796,8 @@ function shareResult() {
       showText();
     }
   }
-  setTimeout(tryCopy, 0); // equivalent of Promise.resolve().then(...)
+  setTimeout(tryCopy, 0);
 }
-// names in the chart and the list are links that select their peak
 function pickFromLink(e) {
   var link = closestDataI(e.target);
   if (!link) return;
@@ -819,7 +815,7 @@ var countRadios = document.querySelectorAll("input[name=count]");
 for (var cr = 0; cr < countRadios.length; cr++) {
   (function (radio) {
     radio.onchange = function () {
-      if (radio.checked) applyCount(+radio.value, true); // write #50 / #125
+      if (radio.checked) applyCount(+radio.value, true);
     };
   })(countRadios[cr]);
 }
@@ -839,7 +835,7 @@ for (var r = 0; r < radios.length; r++) {
 }
 try {
   load();
-  applyCount(readCount(), false); // no hash → 50, without writing one
+  applyCount(readCount(), false);
 } catch (e) {
   var status = $("#status");
   setHidden(status, false);

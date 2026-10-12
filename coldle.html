@@ -41,15 +41,13 @@
   <section data-when="play">
     <h2 class="tag">Hints</h2>
     <ol>
-      <li>The mystery peak is <b data-v="height">.......</b> high.</li>
-      <li>The mystery peak has a key col at <b data-v="col">.......</b>. This is the lowest point on the high path to any higher peak.</li>
-      <li data-when="g3" hidden>The mystery peak is in the <b data-v="range"></b> range.</li>
-      <li data-when="g5" hidden>The mystery peak is in <b data-v="country"></b>.</li>
+      <li>The mystery peak is <b data-v="height">0,000 m</b> high.</li>
+      <li>The mystery peak has <b data-v="prominence">0,000 m</b> of prominence.</li>
+      <li data-v="hint3">The mountain range will be revealed after your third guess.</li>
+      <li data-v="hint4">The country will be revealed after your fifth guess.</li>
     </ol>
     <p>Guess <span data-v="n">1</span> of <span data-v="max">8</span>.</p>
-    <p data-when="unpicked first">Tap a peak on the map, then press Guess.</p>
-    <p data-when="unpicked more" hidden>Tap another peak on the map, then press Guess.</p>
-    <p data-when="picked" hidden>Selected <b data-v="sel"></b>. Press Guess to confirm.</p>
+    <p data-v="prompt">Tap a peak on the map, then press Guess.</p>
   </section>
   <section data-when="over" hidden>
     <span class="tag">Results</span>
