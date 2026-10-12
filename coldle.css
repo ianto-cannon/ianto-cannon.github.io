@@ -8,14 +8,13 @@ th,td{padding:4px 6px;text-align:left}
 [hidden]{display:none}
 #land{fill:#aaa}
 #mp{
+  width: 100%;
+  height: 382px;
   border: 1px solid;
   touch-action:none;
   user-select:none;
   -webkit-user-select:none;
-  aspect-ratio:40030/12742;
   cursor:grab;
-} @media (max-width:640px){
-  #mp{aspect-ratio:1}
 } #status{
   border-left:.3em solid var(--bd);
   padding-left:.5em;
