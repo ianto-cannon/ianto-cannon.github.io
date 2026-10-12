@@ -1,12 +1,12 @@
 body{
-  max-width:1200px
+  max-width:1000px
 } svg,table{width:100%;}
 th,td{padding:4px 6px;text-align:left}
 [hidden]{display:none}
 #land{fill:#aaa}
 #mp{
   width: 100%;
-  height: 382px;
+  height: 318px;
   border: 1px solid;
   touch-action:none;
   user-select:none;
@@ -22,8 +22,8 @@ th,td{padding:4px 6px;text-align:left}
 @keyframes flash{
   from{background:color-mix(in srgb, gray 30%, transparent)}
 }
-#reset{font-size:1.5em}
-#go{font-size:1.5em}
+#reset{font-size:1.2em}
+#go{font-size:1.2em}
 #go.shake{animation:shake 1s}
 @keyframes shake{
   10%,90%{transform:translateX(-2px)}
@@ -37,8 +37,8 @@ th,td{padding:4px 6px;text-align:left}
 #pk [data-i]{cursor:pointer}
 #pk text{fill:currentColor}
 #pk text.sel{font-weight:bold}
-#ch{height:200px}
-#ch line{stroke:var(--bd)}
+#ch{height:300px}
+#ch line{stroke:gray}
 #ch text{fill:currentColor;text-anchor:middle}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
@@ -53,7 +53,7 @@ th,td{padding:4px 6px;text-align:left}
   #rows .wide{display:none}
 }
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
-#ch .sea{stroke:blue}
+#ch .sea{fill:blue}
 canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}
 #shm textarea{width:100%}
 #shm:empty{display:none}

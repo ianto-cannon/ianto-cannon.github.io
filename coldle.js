@@ -224,24 +224,41 @@ function chartY(alt) { return 198 - alt / 9000 * 168; }
 
 function drawChart() {
   var chart = $("#ch");
-  var key = [chart.clientWidth, fontPx(), target, guesses.join(), selected, over(), peaks.length].join();
+  var key = [chart.clientWidth, chart.clientHeight, fontPx(), target,
+             guesses.join(), selected, over(), peaks.length].join();
   if (key === chart.getAttribute("data-key")) return;
   chart.setAttribute("data-key", key);
 
+  var chartH = chart.clientHeight;
+  if (!chartH) return;
+
   var k = 236 / 200;
   var viewW = k * chart.clientWidth;
+  var viewH = k * chartH;
+  var small = chart.clientWidth < 500; // numbers instead of names on narrow charts
+
   var plotL = 36;
   var plotR = viewW - 4;
   var cx = plotL + .93 * (plotR - plotL);
   var wgMax = (plotR - plotL) / 20;
   var W = cx - plotL - .3 * (plotR - plotL);
-  var base = chartY(0);
   var T = peaks[target];
 
   var font = fontPx() * k;
+  var rowH = 1.2 * font;
+  var MAX_LABEL_ROWS = 3;
+  var labelArea = 1.1 * font + (MAX_LABEL_ROWS - 1) * rowH + .4 * font;
+
+  var base = viewH - labelArea;
+  var plotH = 0.848 * base;
+
+  function chartY(alt) { return base - alt / 9000 * plotH; }
   function half(t) { return t.length * .35 * font; }
   var labels = [];
-  function addName(x, t, i) { labels.push([x, t.length > 17 ? t.slice(0, 16) + "…" : t, i]); }
+  // prio = true for the selected peak and the target: never truncated, never dropped
+  function addName(x, t, i, prio) {
+    labels.push([x, (t.length > 17 && !prio) ? t.slice(0, 16) + "…" : t, i, prio]);
+  }
   function text(x, y, t, cls) {
     if (cls === undefined) cls = "";
     return '<text class="' + cls + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '">' + t + '</text>';
@@ -255,7 +272,12 @@ function drawChart() {
 
   var ty = chartY(T.height);
   out += '<line class="target-alt" x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + ty.toFixed(1) + '" y2="' + ty.toFixed(1) + '"/>';
-  out += '<line class="sea" x1="28" x2="' + (cx - W).toFixed(1) + '" y1="' + base + '" y2="' + base + '"/>';
+
+  // Sea: a filled rectangle 4 pixels tall, sitting on top of sea level, no outline.
+  var seaH = 4 * k;
+  out += '<rect class="sea" x="28" y="' + (base - seaH).toFixed(1)
+    + '" width="' + (cx - W - 28).toFixed(1)
+    + '" height="' + seaH.toFixed(1) + '"/>';
 
   function place(g) {
     var G = peaks[g];
@@ -269,6 +291,8 @@ function drawChart() {
   function shape(xg, wg, G) {
     return 'points="' + pt(xg - wg, base) + " " + pt(xg + wg, base) + " " + pt(xg, chartY(G.height)) + '"';
   }
+
+  // unguessed background trees
   var treeBuf = "";
   for (var gi = 0; gi < peaks.length; gi++) {
     if (gi === target || guesses.indexOf(gi) !== -1) continue;
@@ -277,6 +301,7 @@ function drawChart() {
   }
   out += treeBuf;
 
+  // guessed peaks; the selected one is drawn last so it appears on top
   var others = [];
   for (var oi = 0; oi < guesses.length; oi++) if (guesses[oi] !== target) others.push(guesses[oi]);
   var selectedLast = [];
@@ -295,32 +320,54 @@ function drawChart() {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col")
         + altitude(pl.xg, pl.G);
     }
-    addName(pl.xg, pl.G.name, g);
+    var labelText = small ? String(guesses.indexOf(g) + 1) : pl.G.name;
+    addName(pl.xg, labelText, g, isSel);
   }
   out += guessPolys;
   out += '<polygon class="target"' + (over() ? ' style="fill:' + colGuess(100) + '"' : "")
     + ' points="' + pt(cx - W, base) + " " + pt(cx + W, base) + " " + pt(cx, chartY(T.height)) + '"/>';
   out += marks + altitude(cx, T);
-  addName(cx, over() ? T.name : "?", over() ? target : undefined);
 
+  var targetLabel;
+  if (small) {
+    var tIdx = guesses.indexOf(target);
+    targetLabel = tIdx >= 0 ? String(tIdx + 1) : (over() ? "★" : "?");
+  } else {
+    targetLabel = over() ? T.name : "?";
+  }
+  addName(cx, targetLabel, over() ? target : undefined, true);
+
+  // label layout: first row that doesn't overlap the previous name there.
+  // Priority labels (selected, target) are never dropped and never truncated.
   labels.sort(function (a, b) { return a[0] - b[0]; });
   var rowEnds = [];
   var placed = [];
   for (var li2 = 0; li2 < labels.length; li2++) {
     var lab = labels[li2];
-    var x0 = lab[0], t = lab[1], idx = lab[2];
+    var x0 = lab[0], t = lab[1], idx = lab[2], prio = lab[3];
     var h = half(t);
     var lx = clamp(x0, h, viewW - h);
     var row = -1;
     for (var ri = 0; ri < rowEnds.length; ri++) {
       if (lx - h > rowEnds[ri] + 6) { row = ri; break; }
     }
-    if (row < 0) row = rowEnds.length;
+    if (row < 0) {
+      if (rowEnds.length < MAX_LABEL_ROWS) {
+        row = rowEnds.length;
+      } else if (prio) {
+        // every row is full here; force the priority label into the row with
+        // the most space to the left of its x, so it overlaps as little as possible
+        row = 0;
+        for (var rj = 1; rj < rowEnds.length; rj++) {
+          if (rowEnds[rj] < rowEnds[row]) row = rj;
+        }
+      } else {
+        continue; // all three rows are full at this x: drop this label
+      }
+    }
     rowEnds[row] = lx + h;
     placed.push({ x: x0, lx: lx, t: t, i: idx, row: row });
   }
-  var rowH = 1.2 * font;
-  var H = base + 1.1 * font + (rowEnds.length - 1) * rowH + .4 * font;
   for (var pi = 0; pi < placed.length; pi++) {
     var pp = placed[pi];
     var y = base + 1.1 * font + pp.row * rowH;
@@ -332,8 +379,8 @@ function drawChart() {
       ? text(pp.lx, y, pp.t)
       : '<a href="#" data-i="' + pp.i + '">' + text(pp.lx, y, pp.t, pp.i === selected ? "sel" : "") + '</a>';
   }
-  chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + H.toFixed(1));
-  chart.style.height = H / k + "px";
+
+  chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + viewH.toFixed(1));
   chart.setAttribute("font-size", font.toFixed(2));
   chart.innerHTML = out;
 }
