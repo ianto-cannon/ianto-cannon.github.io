@@ -52,7 +52,7 @@ function newRound() {
   var day = Math.floor(Date.now() / 864e5); // hashed so every visitor gets the same daily peak
   target = mode === "daily"
     ? (day * 2654435761 >>> 0) % peaks.length
-    : Math.floor(Math.random() * peaks.length);
+    : target = Date.now() % peaks.length;
   guesses = [];
   selected = null;
   render();
@@ -588,7 +588,6 @@ function drawMap() {
   layer.innerHTML = tiers[0].join("") + tiers[1].join("") + tiers[2].join("") + labels + top;
 }
 
-/* ------------------------------------------------------ pointer input */
 var pointers = {}; // pointerId → {x, y}  (replaces Map)
 function pointerCount() {
   var n = 0;
@@ -719,9 +718,7 @@ mapSvg.addEventListener("click", function (e) {
   if (closestAnchor(e.target)) e.preventDefault();
 }, false);
 
-/* --------------------------------------------------------------- share */
 function shareResult() {
-  // one block per guess, as tall as its closeness to the mystery peak
   var blocks = "";
   for (var i = 0; i < guesses.length; i++) {
     blocks += "▁▂▃▄▅▆▇█".charAt(Math.round(linkToTarget(guesses[i]).pct / 100 * 7));

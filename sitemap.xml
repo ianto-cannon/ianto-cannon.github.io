@@ -3,22 +3,22 @@
 
   <url>
     <loc>https://ianto-cannon.github.io/</loc>
-    <priority>1.00</priority>
   </url>
 
   <url>
     <loc>https://ianto-cannon.github.io/clock.html</loc>
-    <priority>0.80</priority>
   </url>
 
   <url>
     <loc>https://ianto-cannon.github.io/talks.html</loc>
-    <priority>0.80</priority>
+  </url>
+
+  <url>
+    <loc>https://ianto-cannon.github.io/coldle.html</loc>
   </url>
 
   <url>
     <loc>https://ianto-cannon.github.io/guestbook.html</loc>
-    <priority>0.80</priority>
   </url>
 
 </urlset>
