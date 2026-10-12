@@ -54,7 +54,15 @@ th,td{padding:4px 6px;text-align:left}
 #ch polygon.tree{fill:var(--mut)}
 #ch polygon.sel{stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #ch text.sel{font-weight:bold}
+
 #rows tr.sel{font-weight:bold}
+/* keep empty cells at full row height so filling a row doesn't shift the layout */
+#rows td:empty::after{content:"\00a0"}
+/* on narrow screens drop the Range and Country columns */
+@media (max-width:600px){
+  #rows .wide{display:none}
+}
+
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
 #ch .sea{stroke:blue}
 

@@ -1,5 +1,6 @@
 // Coldle: guess the mystery peak. peaks.csv columns: name,height,prominence,parent,lat,lon,range,country.
 // map.svg is a Lambert cylindrical equal-area projection (x = longitude, y = sin latitude).
+// ES5 translation, with a top-N selector (default 50; #125, #37, … in the URL).
 (function () {
 
 function $(s) { return document.querySelector(s); }
@@ -136,21 +137,27 @@ function render() {
   $("#go").textContent = over() ? "share results" : "guess";
 }
 function renderTable() {
-  var rows = guesses.map(function (g, i) {
-    var lt = linkToTarget(g);
-    var colAlt = lt.colAlt, pct = lt.pct;
-    return '<tr' + (g === selected ? ' class="sel"' : "") + '>'
-      + '<td>' + (i + 1) + '</td>'
-      + '<td><a href="#" data-i="' + g + '">' + peaks[g].name + '</a></td>'
-      + '<td>' + peaks[g].range + '</td>'
-      + '<td>' + peaks[g].country + '</td>'
-      + '<td>' + (g === target ? "🎯 Correct" : colLabel(colAlt)) + '</td>'
-      + '<td>' + pct + '%</td></tr>';
-  });
-  $("#rows").innerHTML = rows.length
-    ? '<table><tr><th>Guess</th><th>Peak</th><th>Range</th><th>Country</th><th>Linking col</th><th>Score</th></tr>'
-      + rows.join("") + '</table>'
-    : "";
+  var tableRows = document.querySelectorAll("#rows tbody tr");
+  for (var i = 0; i < tableRows.length; i++) {
+    var tr = tableRows[i];
+    if (i < guesses.length) {
+      var g = guesses[i];
+      var lt = linkToTarget(g);
+      tr.className = g === selected ? "sel" : "";
+      tr.cells[1].innerHTML = '<a href="#" data-i="' + g + '">' + peaks[g].name + '</a>';
+      tr.cells[2].textContent = peaks[g].range;
+      tr.cells[3].textContent = peaks[g].country;
+      tr.cells[4].textContent = g === target ? "🎯 Correct" : colLabel(lt.colAlt);
+      tr.cells[5].textContent = lt.pct + "%";
+    } else {
+      tr.className = "";
+      tr.cells[1].innerHTML = "";
+      tr.cells[2].textContent = "";
+      tr.cells[3].textContent = "";
+      tr.cells[4].textContent = "";
+      tr.cells[5].textContent = "";
+    }
+  }
 }
 function setHidden(el, hide) {
   if (supportsHidden) {
