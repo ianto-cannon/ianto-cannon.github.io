@@ -37,25 +37,25 @@
   <a href="https://en.wikipedia.org/wiki/list_of_mountain_peaks_by_prominence">prominent summits</a>. 
   Each guess shows the <b>linking col</b>, which is the lowest point on the high route between the guessed peak and the mystery peak. The higher the linking col, the warmer you are.
 </p>
-<div id="status" role="status" aria-live="polite" hidden>
+<div id="status" role="status" aria-live="polite">
   <section data-when="play">
     <span class="tag">Hints</span>
     <ol>
-      <li>The mystery peak is <b data-v="height"></b> high.</li>
-      <li>The mystery peak has a key col at <b data-v="col"></b>. This is the lowest point on the high path to any higher peak.</li>
-      <li data-when="g3">The mystery peak is in the <b data-v="range"></b> range.</li>
-      <li data-when="g5">The mystery peak is in <b data-v="country"></b>.</li>
+      <li>The mystery peak is <b data-v="height">.......</b> high.</li>
+      <li>The mystery peak has a key col at <b data-v="col">.......</b>. This is the lowest point on the high path to any higher peak.</li>
+      <li data-when="g3" hidden>The mystery peak is in the <b data-v="range"></b> range.</li>
+      <li data-when="g5" hidden>The mystery peak is in <b data-v="country"></b>.</li>
     </ol>
-    <p>Guess <span data-v="n"></span> of <span data-v="max"></span>.</p>
+    <p>Guess <span data-v="n">1</span> of <span data-v="max">8</span>.</p>
     <p data-when="unpicked first">Tap a peak on the map, then press Guess.</p>
-    <p data-when="unpicked more">Tap another peak on the map, then press Guess.</p>
-    <p data-when="picked">Selected <b data-v="sel"></b>. Press Guess to confirm.</p>
+    <p data-when="unpicked more" hidden>Tap another peak on the map, then press Guess.</p>
+    <p data-when="picked" hidden>Selected <b data-v="sel"></b>. Press Guess to confirm.</p>
   </section>
-  <section data-when="over">
+  <section data-when="over" hidden>
     <span class="tag">Results</span>
     <p>Select random and click reset for another peak.</p>
-    <p data-when="won"><b>Got it in <span data-v="made"></span>!</b></p>
-    <p data-when="lost"><b>Out of guesses.</b></p>
+    <p data-when="won" hidden><b>Got it in <span data-v="made"></span>!</b></p>
+    <p data-when="lost" hidden><b>Out of guesses.</b></p>
     <p>The peak was <b data-v="name"></b> in <span data-v="range"></span>, <span data-v="country"></span>. <span id="shm"></span></p>
   </section>
 </div>
