@@ -270,14 +270,14 @@ function drawChart() {
       + text(2, chartY(alt) + 3, alt, "start");
   }).join("");
 
-  var ty = chartY(T.height);
-  out += '<line class="target-alt" x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + ty.toFixed(1) + '" y2="' + ty.toFixed(1) + '"/>';
-
   // Sea: a filled rectangle 4 pixels tall, sitting on top of sea level, no outline.
   var seaH = 4 * k;
-  out += '<rect class="sea" x="28" y="' + (base - seaH).toFixed(1)
-    + '" width="' + (cx - W - 28).toFixed(1)
+  out += '<rect class="sea" x="60" y="' + (base - seaH).toFixed(1)
+    + '" width="' + (cx - W).toFixed(1)
     + '" height="' + seaH.toFixed(1) + '"/>';
+
+  var ty = chartY(T.height);
+  out += '<line class="target-alt" x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + ty.toFixed(1) + '" y2="' + ty.toFixed(1) + '"/>';
 
   function place(g) {
     var G = peaks[g];
