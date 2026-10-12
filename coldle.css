@@ -42,14 +42,13 @@ th,td{padding:4px 6px;text-align:left}
 #ch text{fill:currentColor;text-anchor:middle}
 #ch text.start{text-anchor:start}
 #ch text.end{text-anchor:end}
-#ch text.col{text-anchor:start}   /* the linking col's altitude, just right of the guessed peak */
+#ch text.col{text-anchor:start}
 #ch polygon.target{fill:gray}
 #ch polygon.tree{fill:gray}
 #ch polygon.sel{stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke}
 #ch text.sel{font-weight:bold}
 #rows tr.sel{font-weight:bold}
 #rows td:empty::after{content:"\00a0"}
-/* on narrow screens drop the Range and Country columns */
 @media (max-width:600px){
   #rows .wide{display:none}
 }
@@ -57,3 +56,4 @@ th,td{padding:4px 6px;text-align:left}
 #ch .sea{stroke:blue}
 canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}
 #shm textarea{width:100%}
+#shm:empty{display:none}

@@ -38,24 +38,16 @@
   Each guess shows the <b>linking col</b>, which is the lowest point on the high route between the guessed peak and the mystery peak. The higher the linking col, the warmer you are.
 </p>
 <div id="status" role="status" aria-live="polite">
-  <section data-when="play">
-    <h2 class="tag">Hints</h2>
-    <ol>
-      <li>The mystery peak is <b data-v="height">0,000 m</b> high.</li>
-      <li>The mystery peak has <b data-v="prominence">0,000 m</b> of prominence.</li>
-      <li data-v="hint3">The mountain range will be revealed after your third guess.</li>
-      <li data-v="hint4">The country will be revealed after your fifth guess.</li>
-    </ol>
-    <p>Guess <span data-v="n">1</span> of <span data-v="max">8</span>.</p>
-    <p data-v="prompt">Tap a peak on the map, then press Guess.</p>
-  </section>
-  <section data-when="over" hidden>
-    <span class="tag">Results</span>
-    <p>Select random and click reset for another peak.</p>
-    <p data-when="won" hidden><b>Got it in <span data-v="made"></span>!</b></p>
-    <p data-when="lost" hidden><b>Out of guesses.</b></p>
-    <p>The peak was <b data-v="name"></b> in <span data-v="range"></span>, <span data-v="country"></span>. <span id="shm"></span></p>
-  </section>
+  <h2 class="tag" data-v="heading">Hints</h2>
+  <ol>
+    <li>The mystery peak is <b data-v="height">0,000 m</b> high.</li>
+    <li>The mystery peak has <b data-v="prominence">0,000 m</b> of prominence.</li>
+    <li data-vhtml="hint3">The mountain range will be revealed after your <b>third</b> guess.</li>
+    <li data-vhtml="hint4">The country will be revealed after your <b>fifth</b> guess.</li>
+  </ol>
+  <p data-vhtml="tip1">Guess 1 of 8.</p>
+  <p data-vhtml="tip2">Tap a peak on the map, then press Guess.</p>
+  <div id="shm"></div>
 </div>
 <svg id="ch" viewBox="0 0 360 236"></svg>
 <svg id="mp" viewBox="0 0 40030 12742">

@@ -166,68 +166,52 @@ function setHidden(el, hide) {
   if (hide) el.setAttribute("hidden", "");
   else el.removeAttribute("hidden");
 }
-function closestHidden(el) {
-  while (el) {
-    if (el.hidden) return el;
-    if (el.getAttribute && el.getAttribute("hidden") !== null) return el;
-    el = el.parentNode;
-  }
-  return null;
-}
 var lastStatus = "";
 function renderStatus() {
   var p = peaks[target];
   var made = guesses.length;
   var end = over();
   var box = $("#status");
-  var states = {
-    play: !end, over: end, won: won(), lost: end && !won()
-  };
   var values = {
+    heading: end ? "Results" : "Hints",
     height: metres(p.height),
     prominence: metres(p.prominence),
-    n: made + 1,
-    max: MAX_GUESSES,
-    made: made,
-    hint3: made >= 3
-      ? "The mystery peak is in the " + p.range + " range."
-      : "The mountain range will be revealed after your third guess.",
-    hint4: made >= 5
-      ? "The mystery peak is in " + p.country + "."
-      : "The country will be revealed after your fifth guess.",
-    prompt: end
-      ? ""
+    hint3: (made >= 3 || end)
+      ? "The mystery peak is in the <b>" + p.range + "</b>."
+      : "The mountain range will be revealed after your <b>third</b> guess.",
+    hint4: (made >= 5 || end)
+      ? "The mystery peak is in <b>" + p.country + "</b>."
+      : "The country will be revealed after your <b>fifth</b> guess.",
+    tip1: end
+      ? (won()
+          ? "Got it in " + made + "! The mystery peak is <b>" + p.name + "</b>."
+          : "Out of guesses. The mystery peak is <b>" + p.name + "</b>.")
+      : "Guess " + (made + 1) + " of " + MAX_GUESSES + ".",
+    tip2: end
+      ? "Select random and click reset for another peak."
       : (selected !== null && guesses.indexOf(selected) === -1
-          ? "Selected " + peaks[selected].name + ". Press Guess to confirm."
+          ? "Selected <b>" + peaks[selected].name + "</b>. Press Guess to confirm."
           : (made === 0
               ? "Tap a peak on the map, then press Guess."
-              : "Tap another peak on the map, then press Guess.")),
-    name: p.name,
-    range: p.range,
-    country: p.country
+              : "Tap another peak on the map, then press Guess."))
   };
   setHidden(box, false);
 
-  var els = box.querySelectorAll("[data-when]");
+  var els = box.querySelectorAll("[data-v]");
   for (var i = 0; i < els.length; i++) {
-    var el = els[i];
-    var parts = el.getAttribute("data-when").split(" ");
-    var show = true;
-    for (var j = 0; j < parts.length; j++) {
-      if (!states[parts[j]]) { show = false; break; }
-    }
-    setHidden(el, !show);
+    els[i].textContent = values[els[i].getAttribute("data-v")];
   }
-  els = box.querySelectorAll("[data-v]");
-  for (var k = 0; k < els.length; k++) {
-    var el2 = els[k];
-    el2.textContent = closestHidden(el2) ? "" : values[el2.getAttribute("data-v")];
+  els = box.querySelectorAll("[data-vhtml]");
+  for (var j = 0; j < els.length; j++) {
+    els[j].innerHTML = values[els[j].getAttribute("data-vhtml")];
   }
+
   if (!end) {
     var shm = $("#shm");
     while (shm.firstChild) shm.removeChild(shm.firstChild);
   }
-  var state = JSON.stringify(states) + box.textContent;
+
+  var state = box.textContent;
   if (state === lastStatus) return;
   lastStatus = state;
   if (!prefersReducedMotion()) {
