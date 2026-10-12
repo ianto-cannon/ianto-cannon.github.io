@@ -1,12 +1,12 @@
 body{
-  max-width:1000px
+  max-width:800px
 } svg,table{width:100%;}
 th,td{padding:4px 6px;text-align:left}
 [hidden]{display:none}
 #land{fill:#aaa}
 #mp{
   width: 100%;
-  height: 318px;
+  height: 255px;
   border: 1px solid;
   touch-action:none;
   user-select:none;
@@ -37,7 +37,7 @@ th,td{padding:4px 6px;text-align:left}
 #pk [data-i]{cursor:pointer}
 #pk text{fill:currentColor}
 #pk text.sel{font-weight:bold}
-#ch{height:300px}
+#ch{height:200px}
 #ch line{stroke:gray}
 #ch text{fill:currentColor;text-anchor:middle}
 #ch text.start{text-anchor:start}
@@ -57,3 +57,15 @@ th,td{padding:4px 6px;text-align:left}
 canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}
 #shm textarea{width:100%}
 #shm:empty{display:none}
+
+#controls{
+  position:sticky;bottom:0;z-index:5;
+  display:flex;justify-content:space-between;align-items:center;
+  background:Canvas;
+}
+#mp,#ch{-webkit-tap-highlight-color:transparent}
+#shm textarea{font-size:16px}
+@media (max-width:600px){
+  #mp{height:min(55vh,420px)}
+  #ch{height:200px}
+}

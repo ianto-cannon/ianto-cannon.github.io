@@ -9,6 +9,7 @@ var MAX_GUESSES = 8;
 var MAX_ZOOM = 150;
 var RAD = Math.PI / 180;
 var DEFAULT_COUNT = 50;
+var COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 
 /* ------------------------------------------------ old-browser helpers */
 function addClass(el, c) {
@@ -647,7 +648,7 @@ var dragged = false;
 function nearestPeak(cx, cy) {
   var w = toWorld(cx, cy);
   var wx = w[0], wy = w[1];
-  var reach = 20 * view.w / mapSvg.getBoundingClientRect().width;
+  var reach = (COARSE ? 28 : 20) * view.w / mapSvg.getBoundingClientRect().width;
   var best = -1;
   var bestDist = reach * reach;
   for (var i = 0; i < peaks.length; i++) {
@@ -715,7 +716,9 @@ function handleUp(id, cx, cy, isCancel) {
     var hit = drag ? drag.hit : -1;
     drag = pinch = null;
     if (!isCancel && !dragged) {
-      var i = hit >= 0 ? hit : nearestPeak(cx, cy);
+      // nearest peak to the tap wins; the polygon that was hit is only a fallback
+      var i = nearestPeak(cx, cy);
+      if (i < 0) i = hit;
       if (i >= 0) selectPeak(i);
     }
   }
@@ -752,6 +755,8 @@ if ("onpointerdown" in window) {
     return function (e) {
       var t = e.changedTouches;
       for (var i = 0; i < t.length; i++) handleUp(t[i].identifier, t[i].clientX, t[i].clientY, cancel);
+      // stop the browser from also firing synthesized mouse events (double select)
+      if (!cancel && e.cancelable) e.preventDefault();
     };
   };
   mapSvg.addEventListener("touchend", onTouchEnd(false), false);
@@ -826,6 +831,20 @@ function shareResult() {
     } else {
       showText();
     }
+  }
+  // On touch devices use the native share sheet, called synchronously from the
+  // click so iOS keeps the user-gesture activation.
+  if (COARSE && navigator.share) {
+    try {
+      var sp = navigator.share({ text: text });
+      if (sp && typeof sp.then === "function") {
+        sp.then(function () {}, function (err) {
+          // user dismissed the sheet: do nothing; any other failure: fall back
+          if (!err || err.name !== "AbortError") tryCopy();
+        });
+      }
+      return;
+    } catch (err) { /* fall through to copy */ }
   }
   setTimeout(tryCopy, 0);
 }
