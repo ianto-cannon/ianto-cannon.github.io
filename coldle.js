@@ -59,11 +59,32 @@ var selected = null;
 function won()  { return guesses.indexOf(target) !== -1; }
 function over() { return won() || guesses.length >= MAX_GUESSES; }
 
+// Daily target for a game of n peaks. The game size is mixed into the hash so
+// that different sizes don't share a sequence of targets.
+function imul(a, b) {
+  if (Math.imul) return Math.imul(a, b);
+  var ah = (a >>> 16) & 0xffff, al = a & 0xffff;
+  var bh = (b >>> 16) & 0xffff, bl = b & 0xffff;
+  return (al * bl + (((ah * bl + al * bh) << 16) >>> 0)) | 0;
+}
+function dailyTarget(day, n) {
+  var h = imul(day ^ imul(n, 0x9E3779B1), 2654435761) >>> 0;
+  h = imul(h ^ (h >>> 15), 0x85EBCA6B) >>> 0;
+  h = (h ^ (h >>> 13)) >>> 0;
+  return h % n;
+}
 function newRound() {
   var day = Math.floor(Date.now() / 864e5);
-  target = mode === "daily"
-    ? (day * 2654435761 >>> 0) % peaks.length
-    : target = Date.now() % peaks.length;
+  if (mode === "daily") {
+    target = dailyTarget(day, peaks.length);
+    // Larger games must never share the default game's mystery peak.
+    if (peaks.length > DEFAULT_COUNT && target === dailyTarget(day, DEFAULT_COUNT)) {
+      target = (target + 1) % peaks.length;
+      if (target === dailyTarget(day, DEFAULT_COUNT)) target = (target + 1) % peaks.length;
+    }
+  } else {
+    target = Math.floor(Math.random() * peaks.length);
+  }
   guesses = [];
   selected = null;
   render();
