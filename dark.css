@@ -12,3 +12,6 @@ body .zodiac text {
   stroke: black;
   border-radius: 5px;
 }
+#coldle-controls {
+  background-color: black;
+}
