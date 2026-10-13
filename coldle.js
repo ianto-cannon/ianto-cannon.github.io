@@ -302,11 +302,24 @@ function drawChart() {
   }
 
   // unguessed background trees
-  var treeBuf = "";
+  // Drawn as a range: gray, lighter the taller the peak (as in the peaks clock),
+  // with the tallest at the back and shorter, darker ones in front.
+  var minH = Infinity, maxH = 0;
+  for (var hi = 0; hi < peaks.length; hi++) {
+    minH = Math.min(minH, peaks[hi].height);
+    maxH = Math.max(maxH, peaks[hi].height);
+  }
+  var trees = [];
   for (var gi = 0; gi < peaks.length; gi++) {
-    if (gi === target || guesses.indexOf(gi) !== -1) continue;
-    var tp = place(gi);
-    treeBuf += '<polygon class="tree" ' + shape(tp.xg, tp.wg, tp.G) + '/>';
+    if (gi !== target && guesses.indexOf(gi) === -1) trees.push(gi);
+  }
+  trees.sort(function (a, b) { return peaks[b].height - peaks[a].height; });
+  var treeBuf = "";
+  for (var ti = 0; ti < trees.length; ti++) {
+    var tp = place(trees[ti]);
+    var frac = maxH > minH ? (tp.G.height - minH) / (maxH - minH) : 1;
+    treeBuf += '<polygon class="tree" style="fill:hsl(0 0% ' + (40 + 40 * frac).toFixed(0) + '%)" '
+      + shape(tp.xg, tp.wg, tp.G) + '/>';
   }
   out += treeBuf;
 
