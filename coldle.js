@@ -237,14 +237,18 @@ function drawChart() {
   var viewW = k * chart.clientWidth;
   var viewH = k * chartH;
 
-  var plotL = 36;
+  var font = fontPx() * k;
+  // Axis labels are right-aligned at axisR; the gridlines (and everything else)
+  // start to the right of the widest label, so the two never overlap.
+  var axisR = 4 * .6 * font + 2;
+  var lineX0 = axisR + 4;
+  var plotL = lineX0 + 8;
   var plotR = viewW - 4;
   var cx = plotL + .93 * (plotR - plotL);
   var wgMax = (plotR - plotL) / 20;
   var W = cx - plotL - .3 * (plotR - plotL);
   var T = peaks[target];
 
-  var font = fontPx() * k;
   var labelArea = 1.5 * font;
 
   var base = viewH - labelArea;
@@ -265,28 +269,20 @@ function drawChart() {
   }
 
   var out = [0, 2000, 4000, 6000, 8000].map(function (alt) {
-    return '<line x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + chartY(alt) + '" y2="' + chartY(alt) + '"/>'
-      + text(2, chartY(alt) + 3, alt, "start");
+    return '<line x1="' + lineX0.toFixed(1) + '" x2="' + (viewW - 4).toFixed(1) + '" y1="' + chartY(alt) + '" y2="' + chartY(alt) + '"/>'
+      + text(axisR, chartY(alt) + .35 * font, alt, "end");
   }).join("");
 
-  // Sea: a band sitting on sea level with a wavy surface, shading from light
-  // at the top to deep blue at the bottom, and a pale line along the crests.
-  var seaH = 8 * k;
-  var seaTop = base - seaH;
-  var seaX0 = 60;
-  var seaX1 = seaX0 + cx - W;
+  // Sea: a single wavy blue line at 0 m, behind the peaks and across the whole chart.
+  var seaX0 = lineX0, seaX1 = viewW - 4;
   var waveN = Math.max(2, Math.round((seaX1 - seaX0) / (7 * k))); // number of half-waves
-  var half = (seaX1 - seaX0) / waveN;
-  var swell = "M" + pt(seaX0, seaTop) + " Q" + pt(seaX0 + half / 2, seaTop - 1.5 * k) + " " + pt(seaX0 + half, seaTop);
-  for (var wi = 2; wi <= waveN; wi++) swell += " T" + pt(seaX0 + wi * half, seaTop);
-  out += '<defs><linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">'
-    + '<stop offset="0" stop-color="#3fa0e0"/><stop offset="1" stop-color="#0a4a9a"/>'
-    + '</linearGradient></defs>'
-    + '<path class="sea" d="' + swell + " V" + base.toFixed(1) + " H" + seaX0 + ' Z"/>'
-    + '<path class="swell" d="' + swell + '"/>';
+  var halfWave = (seaX1 - seaX0) / waveN;
+  var sea = "M" + pt(seaX0, base) + " Q" + pt(seaX0 + halfWave / 2, base - 1.5 * k) + " " + pt(seaX0 + halfWave, base);
+  for (var wi = 2; wi <= waveN; wi++) sea += " T" + pt(seaX0 + wi * halfWave, base);
+  out += '<path class="sea" d="' + sea + '"/>';
 
   var ty = chartY(T.height);
-  out += '<line class="target-alt" x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + ty.toFixed(1) + '" y2="' + ty.toFixed(1) + '"/>';
+  out += '<line class="target-alt" x1="' + lineX0.toFixed(1) + '" x2="' + (viewW - 4).toFixed(1) + '" y1="' + ty.toFixed(1) + '" y2="' + ty.toFixed(1) + '"/>';
 
   function place(g) {
     var G = peaks[g];
@@ -297,9 +293,14 @@ function drawChart() {
     var xg = col > 0 ? cx - W * (1 - col / T.height) - reach : plotL + wg;
     return { G: G, col: col, wg: wg, reach: reach, xg: xg, pct: lt.pct };
   }
-  function shape(xg, wg, G) {
-    return 'points="' + pt(xg - wg, base) + " " + pt(xg + wg, base) + " " + pt(xg, chartY(G.height)) + '"';
+  // Triangles continue the same slopes a few pixels below sea level, so the
+  // wavy sea line doesn't show underneath them. w is the half-width at sea level.
+  var sink = 3 * k;
+  function tri(x, w, topY) {
+    var w2 = w * (base + sink - topY) / (base - topY);
+    return 'points="' + pt(x - w2, base + sink) + " " + pt(x + w2, base + sink) + " " + pt(x, topY) + '"';
   }
+  function shape(xg, wg, G) { return tri(xg, wg, chartY(G.height)); }
 
   // unguessed background trees
   // Drawn as a range: gray, lighter the taller the peak (as in the peaks clock),
@@ -316,33 +317,28 @@ function drawChart() {
     var f = maxH > minH ? (G.height - minH) / (maxH - minH) : 1;
     return "hsl(" + (colored ? hue + " 30%" : "0 0%") + " " + (40 + 40 * f).toFixed(0) + "%)";
   }
-  var trees = [];
-  for (var gi = 0; gi < peaks.length; gi++) {
-    if (gi !== target && guesses.indexOf(gi) === -1) trees.push(gi);
-  }
-  trees.sort(function (a, b) { return peaks[b].height - peaks[a].height; });
-  var treeBuf = "";
-  for (var ti = 0; ti < trees.length; ti++) {
-    var tp = place(trees[ti]);
-    treeBuf += '<polygon class="tree" style="fill:' + fillFor(tp.G, false) + '" '
-      + shape(tp.xg, tp.wg, tp.G) + '/>';
-  }
-  out += treeBuf;
-
-  // guessed peaks; the selected one is drawn last so it appears on top
-  var others = [];
-  for (var oi = 0; oi < guesses.length; oi++) if (guesses[oi] !== target) others.push(guesses[oi]);
-  var selectedLast = [];
-  for (var si = 0; si < others.length; si++) if (others[si] !== selected) selectedLast.push(others[si]);
-  for (var sj = 0; sj < others.length; sj++) if (others[sj] === selected) selectedLast.push(others[sj]);
-
-  var guessPolys = "";
+  // All peaks in one pass, tallest first, so lower peaks are drawn in front of
+  // taller ones, the target included.
+  var all = [];
+  for (var gi = 0; gi < peaks.length; gi++) all.push(gi);
+  all.sort(function (a, b) { return peaks[b].height - peaks[a].height; });
+  var polys = "";
   var marks = "";
-  for (var li = 0; li < selectedLast.length; li++) {
-    var g = selectedLast[li];
+  for (var ai = 0; ai < all.length; ai++) {
+    var g = all[ai];
+    if (g === target) {
+      polys += '<polygon class="target" style="fill:' + fillFor(T, over()) + '"'
+        + ' ' + tri(cx, W, chartY(T.height)) + '/>';
+      continue;
+    }
     var pl = place(g);
+    if (guesses.indexOf(g) === -1) {
+      polys += '<polygon class="tree" style="fill:' + fillFor(pl.G, false) + '" '
+        + shape(pl.xg, pl.wg, pl.G) + '/>';
+      continue;
+    }
     var isSel = g === selected;
-    guessPolys += '<polygon' + (isSel ? ' class="sel"' : "")
+    polys += '<polygon' + (isSel ? ' class="sel"' : "")
       + ' fill="' + fillFor(pl.G, true) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col")
@@ -350,10 +346,7 @@ function drawChart() {
         + label(pl.xg, pl.G.name, g);
     }
   }
-  out += guessPolys;
-  out += '<polygon class="target" style="fill:' + fillFor(T, over()) + '"'
-    + ' points="' + pt(cx - W, base) + " " + pt(cx + W, base) + " " + pt(cx, chartY(T.height)) + '"/>';
-  out += marks + altitude(cx, T);
+  out += polys + marks + altitude(cx, T);
 
   out += label(cx, over() ? T.name : "?", over() ? target : undefined);
 
