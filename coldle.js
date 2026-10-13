@@ -552,6 +552,7 @@ function drawMap() {
     markers.push([peaks[mi].x - .87 * mr, peaks[mi].y - mr, peaks[mi].x + .87 * mr, peaks[mi].y + .5 * mr]);
   }
   var shown = {};
+  var flipped = {};
   var boxes = [];
   for (var oj = 0; oj < order.length; oj++) {
     var q = peaks[order[oj]];
@@ -559,6 +560,15 @@ function drawMap() {
     var bx1 = bx0 + q.name.length * .55 * fs;
     var by0 = q.y + 4 * px - fs;
     var by1 = q.y + 4 * px + .25 * fs;
+    // Stay inside the map's limits (date line and poles). The selected label is
+    // always shown, so at the date line it flips to the left of its marker.
+    var isSelLabel = order[oj] === selected;
+    if (bx1 > world.W && isSelLabel) {
+      bx1 = q.x - labelDx(order[oj]);
+      bx0 = bx1 - q.name.length * .55 * fs;
+      flipped[order[oj]] = true;
+    }
+    if (!isSelLabel && (bx0 < 0 || bx1 > world.W || by0 < 0 || by1 > world.H)) continue;
     if (bx1 < view.x || bx0 > view.x + view.w || by1 < view.y || by0 > view.y + view.h) continue;
     var clash = false;
     var obstacles = boxes.concat(markers);
@@ -586,8 +596,9 @@ function drawMap() {
       + (fill ? ' style="fill:' + fill + '"' : "") + tap
       + ' points="' + shape + '"/>';
     var label = shown[i]
-      ?'<a' + tap + ' href="#"><text' + (isSel ? ' class="sel"' : "")
-        + ' x="' + (p.x + labelDx(i)).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
+      ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="sel"' : "")
+        + (flipped[i] ? ' text-anchor="end"' : "")
+        + ' x="' + (p.x + (flipped[i] ? -1 : 1) * labelDx(i)).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
         + p.name + '</text></a>'
       : "";
     if (isSel) {
