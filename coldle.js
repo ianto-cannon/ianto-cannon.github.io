@@ -544,21 +544,30 @@ function drawMap() {
     if (b === selected) return 1;
     return peaks[b].prominence - peaks[a].prominence;
   });
+  function labelDx(i) { return (i === selected ? 14 : 9) * px; }
+  // Triangle markers are obstacles too (the selected one is drawn larger).
+  var markers = [];
+  for (var mi = 0; mi < peaks.length; mi++) {
+    var mr = (mi === selected ? 12.6 : 7) * px;
+    markers.push([peaks[mi].x - .87 * mr, peaks[mi].y - mr, peaks[mi].x + .87 * mr, peaks[mi].y + .5 * mr]);
+  }
   var shown = {};
   var boxes = [];
   for (var oj = 0; oj < order.length; oj++) {
     var q = peaks[order[oj]];
-    var bx0 = q.x + 9 * px;
+    var bx0 = q.x + labelDx(order[oj]);
     var bx1 = bx0 + q.name.length * .55 * fs;
     var by0 = q.y + 4 * px - fs;
     var by1 = q.y + 4 * px + .25 * fs;
     if (bx1 < view.x || bx0 > view.x + view.w || by1 < view.y || by0 > view.y + view.h) continue;
     var clash = false;
-    for (var bi = 0; bi < boxes.length; bi++) {
-      var b = boxes[bi];
+    var obstacles = boxes.concat(markers);
+    for (var bi = 0; bi < obstacles.length; bi++) {
+      if (markers[order[oj]] === obstacles[bi]) continue; // its own marker
+      var b = obstacles[bi];
       if (bx0 < b[2] && bx1 > b[0] && by0 < b[3] && by1 > b[1]) { clash = true; break; }
     }
-    if (clash) continue;
+    if (clash && order[oj] !== selected) continue; // the selected label is always shown
     boxes.push([bx0, by0, bx1, by1]);
     shown[order[oj]] = true;
   }
@@ -578,7 +587,7 @@ function drawMap() {
       + ' points="' + shape + '"/>';
     var label = shown[i]
       ?'<a' + tap + ' href="#"><text' + (isSel ? ' class="sel"' : "")
-        + ' x="' + (p.x + 9 * px).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
+        + ' x="' + (p.x + labelDx(i)).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
         + p.name + '</text></a>'
       : "";
     if (isSel) {
