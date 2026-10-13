@@ -38,35 +38,37 @@
   Each guess shows the <b>linking col</b>, which is the lowest point on the high route between the guessed peak and the mystery peak. The higher the linking col, the warmer you are.
 </p>
 <div id="status" role="status" aria-live="polite">
-  <h2 class="tag" data-v="heading">Hints</h2>
+  <h2 class="tag" data-field="heading">Hints</h2>
   <ol>
-    <li>The mystery peak is <b data-v="height">0,000 m</b> high.</li>
-    <li>The mystery peak has <b data-v="prominence">0,000 m</b> of prominence.</li>
-    <li data-vhtml="hint3">The mountain range will be revealed after your <b>third</b> guess.</li>
-    <li data-vhtml="hint4">The country will be revealed after your <b>fifth</b> guess.</li>
+    <li>The mystery peak is <b data-field="height">0,000 m</b> high.</li>
+    <li>The mystery peak has <b data-field="prominence">0,000 m</b> of prominence.</li>
+    <li data-field-html="hint3">The mountain range will be revealed after your <b>third</b> guess.</li>
+    <li data-field-html="hint4">The country will be revealed after your <b>fifth</b> guess.</li>
   </ol>
-  <p data-vhtml="tip1">Guess 1 of 8.</p>
-  <p data-vhtml="tip2">Tap a peak on the map, then press Guess.</p>
-  <div id="shm"></div>
+  <p>
+  <span data-field-html="tip1">Guess 1 of 8.</span>
+  <span data-field-html="tip2">Tap a peak on the map, then press Guess.</span>
+  </p>
+  <div id="share-output"></div>
 </div>
-<svg id="mp" viewBox="0 0 40030 12742">
-  <g id="bg"></g>
-  <g id="pk"></g>
+<svg id="map" viewBox="0 0 40030 12742">
+  <g id="basemap"></g>
+  <g id="markers"></g>
 </svg>
-<svg id="ch" viewBox="0 0 360 236"></svg>
+<svg id="chart" viewBox="0 0 360 236"></svg>
 <div class='foot' id="controls">
   <span>
     <label><input type="radio" name="mode" value="daily" checked>daily</label> 
     <label><input type="radio" name="mode" value="random">random</label>&nbsp;&nbsp;
   </span>
   <span>
-    <button id="go">guess</button>
+    <button id="action">guess</button>
   </span>
   <span>
     <button id="reset">reset</button>
   </span>
 </div>
-<table id="rows">
+<table id="guess-table">
   <thead>
     <tr>
       <th>Guess</th>

@@ -78,7 +78,7 @@ function guess() {
   guesses.push(selected);
   render();
   if (won()) confetti();
-  else if (over()) shake($("#go"));
+  else if (over()) shake($("#action"));
 }
 function prefersReducedMotion() {
   return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -133,17 +133,17 @@ function render() {
   drawChart();
   drawMap();
   renderStatus();
-  $("#go").textContent = over() ? "share results" : "guess";
+  $("#action").textContent = over() ? "share results" : "guess";
 }
 function renderTable() {
-  var tableRows = document.querySelectorAll("#rows tbody tr");
+  var tableRows = document.querySelectorAll("#guess-table tbody tr");
   for (var i = 0; i < tableRows.length; i++) {
     var tr = tableRows[i];
     if (i < guesses.length) {
       var g = guesses[i];
       var lt = linkToTarget(g);
-      tr.className = g === selected ? "sel" : "";
-      tr.cells[1].innerHTML = '<a href="#" data-i="' + g + '">' + peaks[g].name + '</a>';
+      tr.className = g === selected ? "selected" : "";
+      tr.cells[1].innerHTML = '<a href="#" data-peak="' + g + '">' + peaks[g].name + '</a>';
       tr.cells[2].textContent = peaks[g].range;
       tr.cells[3].textContent = peaks[g].country;
       tr.cells[4].textContent = g === target ? "🎯 Correct" : colLabel(lt.colAlt);
@@ -198,17 +198,17 @@ function renderStatus() {
   };
   setHidden(box, false);
 
-  var els = box.querySelectorAll("[data-v]");
+  var els = box.querySelectorAll("[data-field]");
   for (var i = 0; i < els.length; i++) {
-    els[i].textContent = values[els[i].getAttribute("data-v")];
+    els[i].textContent = values[els[i].getAttribute("data-field")];
   }
-  els = box.querySelectorAll("[data-vhtml]");
+  els = box.querySelectorAll("[data-field-html]");
   for (var j = 0; j < els.length; j++) {
-    els[j].innerHTML = values[els[j].getAttribute("data-vhtml")];
+    els[j].innerHTML = values[els[j].getAttribute("data-field-html")];
   }
 
   if (!end) {
-    var shm = $("#shm");
+    var shm = $("#share-output");
     while (shm.firstChild) shm.removeChild(shm.firstChild);
   }
 
@@ -222,11 +222,11 @@ function renderStatus() {
   }
 }
 function drawChart() {
-  var chart = $("#ch");
+  var chart = $("#chart");
   var key = [chart.clientWidth, chart.clientHeight, fontPx(), target,
              guesses.join(), selected, over(), peaks.length].join();
-  if (key === chart.getAttribute("data-key")) return;
-  chart.setAttribute("data-key", key);
+  if (key === chart.getAttribute("data-cache-key")) return;
+  chart.setAttribute("data-cache-key", key);
 
   var chartH = chart.clientHeight;
   if (!chartH) return;
@@ -259,8 +259,8 @@ function drawChart() {
   function altitude(x, p) { return text(x, chartY(p.height) - 3, metres(p.height)); }
   function label(x, t, i) {
     var h = t.length * .35 * font;
-    var tx = text(clamp(x, h, viewW - h), base + 1.1 * font, t, i === selected ? "sel" : "");
-    return i === undefined ? tx : '<a href="#" data-i="' + i + '">' + tx + '</a>';
+    var tx = text(clamp(x, h, viewW - h), base + 1.1 * font, t, i === selected ? "selected" : "");
+    return i === undefined ? tx : '<a href="#" data-peak="' + i + '">' + tx + '</a>';
   }
   var out = "";
   for (var alt = 0; alt <= 10000; alt += 2000) {
@@ -286,7 +286,7 @@ function drawChart() {
     for (var wi = 2; wi <= waveN; wi++) sea += " T" + pt(seaL + wi * halfWave, base);
     out += '<a><path class="sea" d="' + sea + '"/></a>';
   }
-  out += hline(chartY(T.height), "target-alt");
+  out += hline(chartY(T.height), "target-altitude");
 
   function place(g) {
     var G = peaks[g];
@@ -316,10 +316,10 @@ function drawChart() {
     var pl = place(g);
     var guessed = guesses.indexOf(g) !== -1;
     var isSel = g === selected;
-    polys += '<polygon' + (guessed ? (isSel ? ' class="sel"' : "") : ' class="tree"')
+    polys += '<polygon' + (guessed ? (isSel ? ' class="selected"' : "") : ' class="unguessed"')
       + ' style="fill:' + fillFor(pl.G, guessed) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (guessed && isSel) {
-      marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col")
+      marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col-altitude")
         + altitude(pl.xg, pl.G) + label(pl.xg, pl.G.name, g);
     }
   }
@@ -332,8 +332,8 @@ function drawChart() {
   } else {
     boxD += " L" + pt(x0, base);
   }
-  var box = '<path class="box" d="' + boxD + '"/>';
-  out += polys + box + marks + altitude(cx, T)
+  var chartBox = '<path class="chart-box" d="' + boxD + '"/>';
+  out += polys + chartBox + marks + altitude(cx, T)
     + label(cx, over() ? T.name : "?", over() ? target : undefined);
 
   chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + viewH.toFixed(1));
@@ -358,7 +358,7 @@ function confetti() {
   canvas.height = window.innerHeight * dpr;
   document.body.appendChild(canvas);
 
-  var btn = $("#go").getBoundingClientRect();
+  var btn = $("#action").getBoundingClientRect();
   var colors = ["#0072b2", "#e69f00", "#cc79a7", "#56b4e9", "#009e73", "#f0e442"];
   var particles = [];
   for (var i = 0; i < 160; i++) {
@@ -409,7 +409,7 @@ function confetti() {
 }
 var world = { W: 40030, H: 12742, R: 6371, lon0: 0 };
 var view = { x: 0, y: 0, w: 40030, h: 12742 };
-var mapSvg = $("#mp");
+var mapSvg = $("#map");
 
 function project(lat, lon) {
   return [
@@ -418,8 +418,8 @@ function project(lat, lon) {
   ];
 }
 function injectMap() {
-  var bg = document.getElementById("bg");
-  if (!bg || typeof MAP_SVG === "undefined") return;
+  var basemap = document.getElementById("basemap");
+  if (!basemap || typeof MAP_SVG === "undefined") return;
   if (!window.DOMParser) return;
   var doc = new DOMParser().parseFromString(MAP_SVG, "image/svg+xml");
   var root = doc.documentElement;
@@ -428,7 +428,7 @@ function injectMap() {
   while (next) {
     var following = next.nextSibling;
     var node = document.importNode ? document.importNode(next, true) : next.cloneNode(true);
-    bg.appendChild(node);
+    basemap.appendChild(node);
     next = following;
   }
 }
@@ -595,16 +595,16 @@ function drawMap() {
     var guessed = guesses.indexOf(i) !== -1;
     var isSel = i === selected;
     var revealed = !live && i === target;
-    var tap = live ? ' data-i="' + i + '"' : "";
+    var tap = live ? ' data-peak="' + i + '"' : "";
     var fill = revealed ? colGuess(100) : (guessed ? colGuess(linkToTarget(i).pct) : "");
-    var cls = isSel ? "sel" : "";
+    var cls = isSel ? "selected" : "";
     var shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
     var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
       + (fill ? ' style="fill:' + fill + '"' : "") + tap
       + ' points="' + shape + '"/>';
     var label = shown[i]
-      ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="sel"' : "")
+      ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="selected"' : "")
         + (flipped[i] ? ' text-anchor="end"' : "")
         + ' x="' + (p.x + (flipped[i] ? -1 : 1) * labelDx(i)).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
         + p.name + '</text></a>'
@@ -616,7 +616,7 @@ function drawMap() {
       labels += label;
     }
   }
-  var layer = $("#pk");
+  var layer = $("#markers");
   layer.setAttribute("font-size", (fontPx() * px).toFixed(2));
   layer.innerHTML = tiers[0].join("") + tiers[1].join("") + tiers[2].join("") + labels + top;
 }
@@ -631,9 +631,9 @@ function pointerValues() {
   for (var k in pointers) if (pointers.hasOwnProperty(k)) arr.push(pointers[k]);
   return arr;
 }
-function closestDataI(el) {
+function closestPeak(el) {
   while (el && el.getAttribute) {
-    if (el.getAttribute("data-i") !== null) return el;
+    if (el.getAttribute("data-peak") !== null) return el;
     el = el.parentNode;
   }
   return null;
@@ -678,10 +678,10 @@ function handleDown(id, cx, cy, target) {
   if (!peaks.length) return;
   pointers[id] = { x: cx, y: cy };
   if (pointerCount() === 1) {
-    var hit = closestDataI(target);
+    var hit = closestPeak(target);
     dragged = false;
     drag = { x: cx, y: cy, vx: view.x, vy: view.y,
-             hit: hit ? +hit.getAttribute("data-i") : -1 };
+             hit: hit ? +hit.getAttribute("data-peak") : -1 };
   } else if (pointerCount() === 2) {
     dragged = true;
     drag = null;
@@ -814,15 +814,15 @@ function shareResult() {
     area.value = text;
     area.readOnly = true;
     area.rows = 8;
-    var shm = $("#shm");
+    var shm = $("#share-output");
     while (shm.firstChild) shm.removeChild(shm.firstChild);
     shm.appendChild(area);
     area.select();
   }
   function onCopied() {
-    $("#go").textContent = "copied!";
+    $("#action").textContent = "copied!";
     setTimeout(function () {
-      if (over()) $("#go").textContent = "share results";
+      if (over()) $("#action").textContent = "share results";
     }, 2000);
   }
   function tryCopy() {
@@ -853,14 +853,14 @@ function shareResult() {
   setTimeout(tryCopy, 0);
 }
 function pickFromLink(e) {
-  var link = closestDataI(e.target);
+  var link = closestPeak(e.target);
   if (!link) return;
   e.preventDefault();
-  selectPeak(+link.getAttribute("data-i"));
+  selectPeak(+link.getAttribute("data-peak"));
 }
-$("#ch").addEventListener("click", pickFromLink, false);
-$("#rows").addEventListener("click", pickFromLink, false);
-$("#go").onclick = function () { return over() ? shareResult() : guess(); };
+$("#chart").addEventListener("click", pickFromLink, false);
+$("#guess-table").addEventListener("click", pickFromLink, false);
+$("#action").onclick = function () { return over() ? shareResult() : guess(); };
 $("#reset").onclick = function () {
   resetView();
   newRound();
