@@ -92,6 +92,10 @@ function newRound() {
 function guess() {
   if (over() || selected === null || guesses.indexOf(selected) !== -1) return;
   guesses.push(selected);
+  if (over() && !won()) {
+    selected = target;
+    ensureVisible(target);
+  }
   render();
   if (won()) confetti();
   else if (over()) {
@@ -162,7 +166,8 @@ function linkToTarget(g) {
   }
   return { colAlt: colAlt, pct: Math.round(100 * colAlt / peaks[target].height) };
 }
-function selectPeak(i) {
+function selectPeak(i, pan) {
+  if (pan) ensureVisible(i);
   selected = i;
   render();
 }
@@ -910,7 +915,7 @@ function pickFromLink(e) {
   var link = closestPeak(e.target);
   if (!link) return;
   e.preventDefault();
-  selectPeak(+link.getAttribute("data-peak"));
+  selectPeak(+link.getAttribute("data-peak"), true);
 }
 $("#chart").addEventListener("click", pickFromLink, false);
 $("#guess-table").addEventListener("click", pickFromLink, false);
@@ -973,8 +978,7 @@ function stepSelection(dir) {
   } else {
     next = order[(pos + dir + order.length) % order.length];
   }
-  ensureVisible(next);
-  selectPeak(next);
+  selectPeak(next, true);
 }
 document.addEventListener("keydown", function (e) {
   if (e.altKey || e.ctrlKey || e.metaKey) return;
