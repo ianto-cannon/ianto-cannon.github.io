@@ -9,7 +9,7 @@ body{
   fill:#aaa
 }#map{
   height: 318px;
-  max-height: 40svh;
+  max-height: 40vh;
   border: 1px solid;
   touch-action:none;
   user-select:none;
@@ -20,17 +20,13 @@ body{
 }#status{
   border-left:.2em solid;
   padding-left:.5em;
-}#status ol{
-  padding-left:1.5em
 }#status.flash{
   animation:flash 1s
 }@keyframes flash{
   from{
     background:color-mix(in srgb, gray 30%, transparent)
   }
-}#reset{
-  font-size:1.2em
-}#action{
+}#reset, #action{
   font-size:1.2em
 }#action.shake{
   animation:shake 1s
@@ -56,12 +52,11 @@ body{
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
-  stroke-width:1px
 }#markers [data-peak]{
   cursor:pointer
 }#markers text{
   fill:currentColor
-}#markers text.selected{
+} .selected{
   font-weight:bold
 }#chart{
   height:200px;
@@ -81,13 +76,9 @@ body{
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke
-}#chart text.selected{
-  font-weight:bold
-}#guess-table tr.selected{
-  font-weight:bold
 }#guess-table td:empty::after{
   content:"\00a0"
-}@media (max-width:600px){
+}@media (max-width:700px){
   #guess-table .wide{
     display:none
   }
@@ -97,17 +88,15 @@ body{
 }#chart .chart-box{
   fill:none;
   stroke:currentColor;
-  stroke-width:1pt;
   vector-effect:non-scaling-stroke
+  stroke-linejoin:round;
 }#chart .sea{
-  fill:none;
   stroke:currentColor;
   stroke-width:2px;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke
-}canvas.confetti{
+} .confetti{
   position:fixed;
-  inset:0;
   width:100%;
   height:100%;
   pointer-events:none;
@@ -124,6 +113,4 @@ body{
   display:flex;
   justify-content:space-between;
   align-items:center;
-}#map,#chart{
-  -webkit-tap-highlight-color:transparent
 }
