@@ -910,6 +910,69 @@ window.addEventListener("hashchange", function () {
   if (n !== count) applyCount(n, false);
 }, false);
 
+/* ------------------------------------------------ keyboard */
+// Tab still moves focus normally. Once the map has focus, the arrow keys step
+// the selection through the peaks from west to east, Enter or Space guesses
+// (or shares, once the game is over) and Escape clears the selection.
+mapSvg.setAttribute("tabindex", "0");
+mapSvg.setAttribute("role", "application");
+mapSvg.setAttribute("aria-label",
+  "Peak map. Arrow keys select a peak, Enter guesses, Escape clears the selection.");
+
+function ensureVisible(i) {
+  var p = peaks[i];
+  var mx = view.w * .1, my = view.h * .1;
+  if (p.x < view.x + mx || p.x > view.x + view.w - mx ||
+      p.y < view.y + my || p.y > view.y + view.h - my) {
+    view.x = p.x - view.w / 2;
+    view.y = p.y - view.h / 2;
+  }
+}
+function stepSelection(dir) {
+  var order = [];
+  for (var i = 0; i < peaks.length; i++) {
+    if (!over() && guesses.indexOf(i) !== -1) continue;   // skip peaks already guessed
+    order.push(i);
+  }
+  if (!order.length) return;
+  order.sort(function (a, b) { return peaks[a].x - peaks[b].x || peaks[a].y - peaks[b].y; });
+  var pos = order.indexOf(selected);
+  var next;
+  if (pos < 0) {
+    next = dir > 0 ? order[0] : order[order.length - 1];
+    // Selected peak was already guessed: continue from its place in the full order.
+    if (selected !== null) {
+      for (var k = 0; k < order.length; k++) {
+        var ahead = peaks[order[k]].x > peaks[selected].x;
+        if (dir > 0 && ahead) { next = order[k]; break; }
+        if (dir < 0 && !ahead) next = order[k];
+      }
+    }
+  } else {
+    next = order[(pos + dir + order.length) % order.length];
+  }
+  ensureVisible(next);
+  selectPeak(next);
+}
+document.addEventListener("keydown", function (e) {
+  if (e.altKey || e.ctrlKey || e.metaKey) return;
+  var t = e.target;
+  var onMap = t === mapSvg;
+  var idle = t === document.body || t === document.documentElement;
+  if (!peaks.length) return;
+  var k = e.key;
+  if (onMap && (k === "ArrowRight" || k === "ArrowDown")) {
+    e.preventDefault(); stepSelection(1);
+  } else if (onMap && (k === "ArrowLeft" || k === "ArrowUp")) {
+    e.preventDefault(); stepSelection(-1);
+  } else if (onMap && k === "Escape") {
+    selected = null; render();
+  } else if ((onMap || idle) && k === "Enter" || (onMap && (k === " " || k === "Spacebar"))) {
+    e.preventDefault();
+    $("#action").onclick();
+  }
+}, false);
+
 var radios = document.querySelectorAll("input[name=mode]");
 for (var r = 0; r < radios.length; r++) {
   (function (radio) {
