@@ -309,6 +309,13 @@ function drawChart() {
     minH = Math.min(minH, peaks[hi].height);
     maxH = Math.max(maxH, peaks[hi].height);
   }
+  // Lightness comes from height alone (40% to 80%, as in the peaks clock). Peaks
+  // that are still hidden stay gray; guessed ones and the revealed target gain the
+  // clock's hue and 30% saturation.
+  function fillFor(G, colored) {
+    var f = maxH > minH ? (G.height - minH) / (maxH - minH) : 1;
+    return "hsl(" + (colored ? hue + " 30%" : "0 0%") + " " + (40 + 40 * f).toFixed(0) + "%)";
+  }
   var trees = [];
   for (var gi = 0; gi < peaks.length; gi++) {
     if (gi !== target && guesses.indexOf(gi) === -1) trees.push(gi);
@@ -317,8 +324,7 @@ function drawChart() {
   var treeBuf = "";
   for (var ti = 0; ti < trees.length; ti++) {
     var tp = place(trees[ti]);
-    var frac = maxH > minH ? (tp.G.height - minH) / (maxH - minH) : 1;
-    treeBuf += '<polygon class="tree" style="fill:hsl(0 0% ' + (40 + 40 * frac).toFixed(0) + '%)" '
+    treeBuf += '<polygon class="tree" style="fill:' + fillFor(tp.G, false) + '" '
       + shape(tp.xg, tp.wg, tp.G) + '/>';
   }
   out += treeBuf;
@@ -337,7 +343,7 @@ function drawChart() {
     var pl = place(g);
     var isSel = g === selected;
     guessPolys += '<polygon' + (isSel ? ' class="sel"' : "")
-      + ' fill="' + colGuess(pl.pct, 1) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
+      + ' fill="' + fillFor(pl.G, true) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col")
         + altitude(pl.xg, pl.G)
@@ -345,7 +351,7 @@ function drawChart() {
     }
   }
   out += guessPolys;
-  out += '<polygon class="target"' + (over() ? ' style="fill:' + colGuess(100) + '"' : "")
+  out += '<polygon class="target" style="fill:' + fillFor(T, over()) + '"'
     + ' points="' + pt(cx - W, base) + " " + pt(cx + W, base) + " " + pt(cx, chartY(T.height)) + '"/>';
   out += marks + altitude(cx, T);
 
