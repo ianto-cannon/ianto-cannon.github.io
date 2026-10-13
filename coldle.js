@@ -269,11 +269,21 @@ function drawChart() {
       + text(2, chartY(alt) + 3, alt, "start");
   }).join("");
 
-  // Sea: a filled rectangle 4 pixels tall, sitting on top of sea level, no outline.
-  var seaH = 4 * k;
-  out += '<rect class="sea" x="60" y="' + (base - seaH).toFixed(1)
-    + '" width="' + (cx - W).toFixed(1)
-    + '" height="' + seaH.toFixed(1) + '"/>';
+  // Sea: a band sitting on sea level with a wavy surface, shading from light
+  // at the top to deep blue at the bottom, and a pale line along the crests.
+  var seaH = 8 * k;
+  var seaTop = base - seaH;
+  var seaX0 = 60;
+  var seaX1 = seaX0 + cx - W;
+  var waveN = Math.max(2, Math.round((seaX1 - seaX0) / (7 * k))); // number of half-waves
+  var half = (seaX1 - seaX0) / waveN;
+  var swell = "M" + pt(seaX0, seaTop) + " Q" + pt(seaX0 + half / 2, seaTop - 1.5 * k) + " " + pt(seaX0 + half, seaTop);
+  for (var wi = 2; wi <= waveN; wi++) swell += " T" + pt(seaX0 + wi * half, seaTop);
+  out += '<defs><linearGradient id="seaGrad" x1="0" y1="0" x2="0" y2="1">'
+    + '<stop offset="0" stop-color="#3fa0e0"/><stop offset="1" stop-color="#0a4a9a"/>'
+    + '</linearGradient></defs>'
+    + '<path class="sea" d="' + swell + " V" + base.toFixed(1) + " H" + seaX0 + ' Z"/>'
+    + '<path class="swell" d="' + swell + '"/>';
 
   var ty = chartY(T.height);
   out += '<line class="target-alt" x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + ty.toFixed(1) + '" y2="' + ty.toFixed(1) + '"/>';
