@@ -236,11 +236,9 @@ function drawChart() {
   var viewH = k * chartH;
   var font = fontPx() * k;
 
-  // The plot is a box from 0 m to 9000 m. Altitude labels are right-aligned at
-  // axisR, outside the box, which starts at x0.
-  var axisR = 4 * .6 * font + 2;
-  var x0 = axisR + 4;
-  var x1 = viewW - 4;
+  var axisR = 3 * .6 * font + 2;
+  var x0 = axisR + 3;
+  var x1 = viewW - 1;
   var plotL = x0 + 8;
   var cx = plotL + .93 * (x1 - plotL);
   var wgMax = (x1 - plotL) / 20;
@@ -250,7 +248,7 @@ function drawChart() {
   var base = viewH - 1.5 * font;
   var plotH = 0.848 * base;
 
-  function chartY(alt) { return base - alt / 9000 * plotH; }
+  function chartY(alt) { return base - alt / 10000 * plotH; }
   function text(x, y, t, cls) {
     return '<text class="' + (cls || "") + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '">' + t + '</text>';
   }
@@ -258,26 +256,37 @@ function drawChart() {
     return '<line' + (cls ? ' class="' + cls + '"' : "") + ' x1="' + x0.toFixed(1) + '" x2="' + x1.toFixed(1)
       + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '"/>';
   }
-  // Height label above a peak, never lower than just above the top of the box.
-  function altitude(x, p) { return text(x, Math.min(chartY(p.height), chartY(9000)) - 3, metres(p.height)); }
-  // Name under the box, kept inside the chart. i is the peak index if the name is a link.
+  function altitude(x, p) { return text(x, chartY(p.height) - 3, metres(p.height)); }
   function label(x, t, i) {
     var h = t.length * .35 * font;
     var tx = text(clamp(x, h, viewW - h), base + 1.1 * font, t, i === selected ? "sel" : "");
     return i === undefined ? tx : '<a href="#" data-i="' + i + '">' + tx + '</a>';
   }
-
   var out = "";
-  for (var alt = 0; alt <= 8000; alt += 2000) {
-    out += (alt ? hline(chartY(alt)) : "") + text(axisR, chartY(alt) + .35 * font, alt, "end");
+  for (var alt = 0; alt <= 10000; alt += 2000) {
+    out += (alt ? hline(chartY(alt)) : "") + text(axisR, chartY(alt) + .35 * font, alt/1000+'k', "end");
   }
+  var seaL = null, seaR = null;
+  for (var si = 0; si < peaks.length; si++) {
+    var sp = (si === target) ? { col: T.height, xg: cx, wg: W } : place(si);
+    if (sp.col > 0) {
+      if (seaR === null || sp.xg - sp.wg < seaR) seaR = sp.xg - sp.wg;
+    } else if (seaL === null || sp.xg + sp.wg > seaL) {
+      seaL = sp.xg + sp.wg;
+    }
+  }
+  if (seaL !== null) seaL = clamp(seaL, x0, x1);
+  if (seaR !== null) seaR = clamp(seaR, x0, x1);
+  var hasSea = seaL !== null && seaR !== null && seaR > seaL;
 
-  // Sea: a single wavy blue line at 0 m, behind the peaks and across the whole chart.
-  var waveN = Math.max(2, Math.round((x1 - x0) / (7 * k))); // number of half-waves
-  var halfWave = (x1 - x0) / waveN;
-  var sea = "M" + pt(x0, base) + " Q" + pt(x0 + halfWave / 2, base - 1.5 * k) + " " + pt(x0 + halfWave, base);
-  for (var wi = 2; wi <= waveN; wi++) sea += " T" + pt(x0 + wi * halfWave, base);
-  out += '<path class="sea" d="' + sea + '"/>' + hline(chartY(T.height), "target-alt");
+  if (hasSea) {
+    var waveN = Math.max(2, Math.round((seaR - seaL) / (7 * k))); // number of half-waves
+    var halfWave = (seaR - seaL) / waveN;
+    var sea = "M" + pt(seaL, base) + " Q" + pt(seaL + halfWave / 2, base - 1.5 * k) + " " + pt(seaL + halfWave, base);
+    for (var wi = 2; wi <= waveN; wi++) sea += " T" + pt(seaL + wi * halfWave, base);
+    out += '<a><path class="sea" d="' + sea + '"/></a>';
+  }
+  out += hline(chartY(T.height), "target-alt");
 
   function place(g) {
     var G = peaks[g];
@@ -290,10 +299,6 @@ function drawChart() {
   function shape(x, w, G) {
     return 'points="' + pt(x - w, base) + " " + pt(x + w, base) + " " + pt(x, chartY(G.height)) + '"';
   }
-
-  // Lightness comes from height alone (40% to 80%, as in the peaks clock). Hidden
-  // peaks stay gray; guessed ones and the revealed target gain the clock's hue and
-  // 30% saturation.
   var heights = peaks.map(function (p) { return p.height; });
   var minH = Math.min.apply(null, heights);
   var maxH = Math.max.apply(null, heights);
@@ -301,9 +306,6 @@ function drawChart() {
     var f = maxH > minH ? (G.height - minH) / (maxH - minH) : 1;
     return "hsl(" + (colored ? hue + " 30%" : "0 0%") + " " + (40 + 40 * f).toFixed(0) + "%)";
   }
-
-  // Tallest first, so lower peaks are drawn in front of taller ones; the target
-  // is drawn after all of them.
   var order = [];
   for (var gi = 0; gi < peaks.length; gi++) if (gi !== target) order.push(gi);
   order.sort(function (a, b) { return peaks[b].height - peaks[a].height; });
@@ -322,8 +324,15 @@ function drawChart() {
     }
   }
   polys += '<polygon class="target" style="fill:' + fillFor(T, over()) + '" ' + shape(cx, W, T) + '/>';
-  var box = '<rect class="box" x="' + x0.toFixed(1) + '" y="' + chartY(9000).toFixed(1)
-    + '" width="' + (x1 - x0).toFixed(1) + '" height="' + plotH.toFixed(1) + '"/>';
+  var boxTop = chartY(10000);
+  var boxD = "M" + pt(x0, base) + " L" + pt(x0, boxTop) + " L" + pt(x1, boxTop) + " L" + pt(x1, base);
+  if (hasSea) {
+    if (seaL > x0) boxD += " M" + pt(x0, base) + " L" + pt(seaL, base);
+    if (seaR < x1) boxD += " M" + pt(seaR, base) + " L" + pt(x1, base);
+  } else {
+    boxD += " L" + pt(x0, base);
+  }
+  var box = '<path class="box" d="' + boxD + '"/>';
   out += polys + box + marks + altitude(cx, T)
     + label(cx, over() ? T.name : "?", over() ? target : undefined);
 

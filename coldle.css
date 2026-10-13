@@ -7,6 +7,8 @@ th,td{padding:4px 6px;text-align:left}
 #mp{
   width: 100%;
   height: 318px;
+  max-height: 40vh;
+  max-height: 40svh;
   border: 1px solid;
   touch-action:none;
   user-select:none;
@@ -16,8 +18,7 @@ th,td{padding:4px 6px;text-align:left}
   border-left:.2em solid;
   padding-left:.5em;
 }
-#status ol{margin:0;padding-left:1.5em}
-#status p{margin:0}
+#status ol{padding-left:1.5em}
 #status.flash{animation:flash 1s}
 @keyframes flash{
   from{background:color-mix(in srgb, gray 30%, transparent)}
@@ -30,11 +31,13 @@ th,td{padding:4px 6px;text-align:left}
   20%,80%{transform:translateX(4px)}
   30%,50%,70%{transform:translateX(-8px)}
   40%,60%{transform:translateX(8px)}
-}
-:where(svg) a,:where(svg) a:visited{color:blue}
-#pk polygon{fill:gray}
-#pk polygon{stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-width:1px}
-#pk [data-i]{cursor:pointer}
+} :where(svg) a,:where(svg) a:visited {
+  color:blue
+} #pk polygon {
+  fill:gray
+} #pk polygon{
+  stroke:currentColor;stroke-linejoin:round;vector-effect:non-scaling-stroke;stroke-width:1px
+} #pk [data-i]{cursor:pointer}
 #pk text{fill:currentColor}
 #pk text.sel{font-weight:bold}
 #ch{height:200px}
@@ -54,7 +57,7 @@ th,td{padding:4px 6px;text-align:left}
 }
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
 #ch .box{fill:none;stroke:currentColor;stroke-width:1pt;vector-effect:non-scaling-stroke}
-#ch .sea{fill:none;stroke:blue;stroke-width:2px;stroke-linecap:round;vector-effect:non-scaling-stroke}
+#ch .sea{fill:none;stroke:currentColor;stroke-width:2px;stroke-linecap:round;vector-effect:non-scaling-stroke}
 canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}
 #shm textarea{width:100%}
 #shm:empty{display:none}
@@ -62,7 +65,6 @@ canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:non
 #controls{
   position:sticky;bottom:0;z-index:5;
   display:flex;justify-content:space-between;align-items:center;
-  background:Canvas;
 }
 #mp,#ch{-webkit-tap-highlight-color:transparent}
 #shm textarea{font-size:16px}
