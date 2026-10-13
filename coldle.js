@@ -529,11 +529,40 @@ function drawMap() {
   mapSvg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
   mapSvg.style.touchAction = view.h < world.H - .5 ? "none" : "pan-y";
   var px = view.w / mapSvg.clientWidth;
-  var zoomFrac = view.w / world.W;
   var live = !over();
   var tiers = [[], [], []];
   var labels = "";
   var top = "";
+
+  // Greedy label placement: the selected peak first, then by descending prominence.
+  // A label is shown only if its box doesn't overlap a label already placed.
+  var fs = fontPx() * px;
+  var order = [];
+  for (var oi = 0; oi < peaks.length; oi++) order.push(oi);
+  order.sort(function (a, b) {
+    if (a === selected) return -1;
+    if (b === selected) return 1;
+    return peaks[b].prominence - peaks[a].prominence;
+  });
+  var shown = {};
+  var boxes = [];
+  for (var oj = 0; oj < order.length; oj++) {
+    var q = peaks[order[oj]];
+    var bx0 = q.x + 9 * px;
+    var bx1 = bx0 + q.name.length * .55 * fs;
+    var by0 = q.y + 4 * px - fs;
+    var by1 = q.y + 4 * px + .25 * fs;
+    if (bx1 < view.x || bx0 > view.x + view.w || by1 < view.y || by0 > view.y + view.h) continue;
+    var clash = false;
+    for (var bi = 0; bi < boxes.length; bi++) {
+      var b = boxes[bi];
+      if (bx0 < b[2] && bx1 > b[0] && by0 < b[3] && by1 > b[1]) { clash = true; break; }
+    }
+    if (clash) continue;
+    boxes.push([bx0, by0, bx1, by1]);
+    shown[order[oj]] = true;
+  }
+
   for (var i = 0; i < peaks.length; i++) {
     var p = peaks[i];
     var guessed = guesses.indexOf(i) !== -1;
@@ -547,8 +576,8 @@ function drawMap() {
     var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
       + (fill ? ' style="fill:' + fill + '"' : "") + tap
       + ' points="' + shape + '"/>';
-    var label = (zoomFrac <= .28 || isSel)
-      ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="sel"' : "")
+    var label = shown[i]
+      ?'<a' + tap + ' href="#"><text' + (isSel ? ' class="sel"' : "")
         + ' x="' + (p.x + 9 * px).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
         + p.name + '</text></a>'
       : "";
