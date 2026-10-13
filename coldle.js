@@ -542,6 +542,7 @@ function minW() { return world.W / MAX_ZOOM; }
 function maxW() { return Math.min(world.W, world.H * aspect()); }
 
 function resetView() {
+  panAnim = null;
   var w = maxW();
   var h = w / aspect();
   view = { x: project(0, 60)[0] - w / 2, y: (world.H - h) / 2, w: w, h: h };
@@ -569,6 +570,7 @@ function toWorld(cx, cy) {
   return [view.x + (cx - r.left) / r.width * view.w, view.y + (cy - r.top) / r.height * view.h];
 }
 function zoomTo(w, wx, wy, cx, cy) {
+  panAnim = null;
   var r = mapSvg.getBoundingClientRect();
   view.w = clamp(w, minW(), maxW());
   view.h = view.w / aspect();
@@ -728,6 +730,7 @@ function startPinch() {
 }
 function handleDown(id, cx, cy, target) {
   if (!peaks.length) return;
+  panAnim = null;
   pointers[id] = { x: cx, y: cy };
   if (pointerCount() === 1) {
     var hit = closestPeak(target);
@@ -946,14 +949,40 @@ mapSvg.setAttribute("role", "application");
 mapSvg.setAttribute("aria-label",
   "Peak map. Arrow keys select a peak, Enter guesses, Escape clears the selection.");
 
+var panAnim = null;
 function ensureVisible(i) {
   var p = peaks[i];
   var mx = view.w * .1, my = view.h * .1;
   if (p.x < view.x + mx || p.x > view.x + view.w - mx ||
       p.y < view.y + my || p.y > view.y + view.h - my) {
-    view.x = p.x - view.w / 2;
-    view.y = p.y - view.h / 2;
+    var to = {
+      x: clamp(p.x - view.w / 2, 0, world.W - view.w),
+      y: clamp(p.y - view.h / 2, 0, world.H - view.h)
+    };
+    if (prefersReducedMotion()) {
+      panAnim = null;
+      view.x = to.x;
+      view.y = to.y;
+      return;
+    }
+    if (!panAnim) raf(panFrame);
+    panAnim = { t0: nowMs(), from: { x: view.x, y: view.y }, to: to };
   }
+}
+function panFrame() {
+  if (!panAnim) return;
+  var dt = (nowMs() - panAnim.t0) / 400;
+  if (dt >= 1) {
+    view.x = panAnim.to.x;
+    view.y = panAnim.to.y;
+    panAnim = null;
+  } else {
+    var e = 1 - Math.pow(1 - dt, 3);
+    view.x = panAnim.from.x + (panAnim.to.x - panAnim.from.x) * e;
+    view.y = panAnim.from.y + (panAnim.to.y - panAnim.from.y) * e;
+    raf(panFrame);
+  }
+  drawMap();
 }
 function stepSelection(dir) {
   var order = [];
