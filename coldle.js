@@ -49,33 +49,71 @@ function getJSON(url, cb) {
   }
 }
 function peakImage(p) {
-  if (!p.wiki || (p.imgTried && !p.imgFile)) return;
-  if (p.imgFile) {
+  if (!p.wiki) return;
+  if (p.imgUrl) {
     showPeakImage(p);
     return;
   }
+  if (p.imgTried) return;
   p.imgTried = true;
+  reservePeakImage();
   getJSON("https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&origin=*"
     + "&entity=" + p.wiki + "&property=P18", function (j) {
     var c = j && j.claims && j.claims.P18 && j.claims.P18[0];
     var v = c && c.mainsnak && c.mainsnak.datavalue && c.mainsnak.datavalue.value;
-    if (typeof v !== "string") return;
-    p.imgFile = encodeURIComponent(v).replace(/%20/g, "_");
-    showPeakImage(p);
+    if (typeof v !== "string") {
+      clearPeakImage();
+      return;
+    }
+    p.imgFile = v;
+    commonsThumb(p);
   });
 }
-function showPeakImage(p) {
+function commonsThumb(p) {
+  getJSON("https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*"
+    + "&prop=imageinfo&iiprop=url&iiurlwidth=480&titles=File:" + encodeURIComponent(p.imgFile),
+    function (j) {
+      var pages = j && j.query && j.query.pages;
+      var page = pages && pages[Object.keys(pages)[0]];
+      var ii = page && page.imageinfo && page.imageinfo[0];
+      if (!ii || !ii.thumburl) {
+        clearPeakImage();
+        return;
+      }
+      p.imgUrl = ii.thumburl;
+      var ph = $("#peak-image .ph");
+      if (ph) ph.style.aspectRatio = ii.thumbwidth + " / " + ii.thumbheight;
+      showPeakImage(p);
+    });
+}
+function reservePeakImage() {
   var box = $("#peak-image");
   if (!box) return;
   while (box.firstChild) box.removeChild(box.firstChild);
+  box.removeAttribute("data-img");
+  var ph = document.createElement("div");
+  ph.className = "ph";
+  box.appendChild(ph);
+}
+function clearPeakImage() {
+  var box = $("#peak-image");
+  if (!box) return;
+  while (box.firstChild) box.removeChild(box.firstChild);
+  box.removeAttribute("data-img");
+}
+function showPeakImage(p) {
+  var box = $("#peak-image");
+  if (!box || !over() || box.getAttribute("data-img") === p.imgUrl) return;
+  while (box.firstChild) box.removeChild(box.firstChild);
+  box.setAttribute("data-img", p.imgUrl);
   var a = document.createElement("a");
-  a.href = "https://commons.wikimedia.org/wiki/File:" + p.imgFile;
+  a.href = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(p.imgFile);
   var img = document.createElement("img");
   img.alt = p.name;
   img.onerror = function () {
     if (img.parentNode) img.parentNode.removeChild(img);
   };
-  img.src = "https://commons.wikimedia.org/wiki/Special:FilePath/" + p.imgFile + "?width=480";
+  img.src = p.imgUrl;
   a.appendChild(img);
   box.appendChild(a);
 }
@@ -300,9 +338,8 @@ function renderStatus() {
     var shm = $("#share-output");
     while (shm.firstChild) shm.removeChild(shm.firstChild);
   }
-  var pim = $("#peak-image");
-  while (pim.firstChild) pim.removeChild(pim.firstChild);
   if (end) peakImage(p);
+  else clearPeakImage();
 
   var state = box.textContent;
   if (state === lastStatus) return;

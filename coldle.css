@@ -112,13 +112,38 @@ body{
 }#share-output textarea{
   width:100%;
   font-size:16px
+}#status::after{
+  content:"";
+  display:block;
+  clear:both
+}#peak-image{
+  float:right;
+  margin:0 0 .5em 1em
+}#peak-image .ph{
+  width:320px;
+  max-width:100%;
+  aspect-ratio:4/3;
+  border:1px solid;
+  box-sizing:border-box;
+  background:color-mix(in srgb, gray 30%, transparent)
 }#peak-image img{
   width:320px;
   max-width:100%;
   height:auto;
+  display:block;
   border:1px solid
 }#peak-image:empty{
   display:none
+}@media (max-width:700px){
+  #peak-image{
+    float:none;
+    margin:.5em 0
+  }#peak-image .ph{
+    width:100%
+  }#peak-image img{
+    width:100%
+  }
+}
 }#share-output:empty{
   display:none
 }#coldle-controls{
