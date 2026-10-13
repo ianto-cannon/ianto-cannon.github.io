@@ -28,6 +28,11 @@ function removeClass(el, c) {
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function metres(m) { return m.toLocaleString() + " m"; }
 function colLabel(m) { return m ? metres(m) : "sea level"; }
+function wikiLink(p) {
+  return p.wiki
+    ? '<a href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/' + p.wiki + '"><b>' + p.name + "</b></a>"
+    : "<b>" + p.name + "</b>";
+}
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
 function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
 function colGuess(pct, alpha) {
@@ -223,8 +228,8 @@ function renderStatus() {
       : "The country will be revealed after your <b>fifth</b> guess.",
     tip1: end
       ? (won()
-          ? "Got it in " + made + "! The mystery peak is <b>" + p.name + "</b>."
-          : "Out of guesses. The mystery peak is <b>" + p.name + "</b>.")
+          ? "Got it in " + made + "! The mystery peak is " + wikiLink(p) + "."
+          : "Out of guesses. The mystery peak is " + wikiLink(p) + ".")
       : "Guess " + (made + 1) + " of " + MAX_GUESSES + ".",
     tip2: end
       ? "Select random and click reset for another peak."
@@ -479,6 +484,7 @@ function load() {
       parent: f[3],
       range: f[6],
       country: f[7],
+      wiki: f[8],
       lat: +f[4],
       lon: +f[5],
       height: +f[1],
