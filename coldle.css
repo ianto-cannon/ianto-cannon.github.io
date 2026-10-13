@@ -22,10 +22,17 @@ body{
   padding-left:.5em;
 }.flash{
   animation:flash 1s
+}.flash-dark{
+  animation:flash-dark 1s
 }
 @keyframes flash{
   from{
     background-color:color-mix(in srgb, gray 30%, transparent)
+  }
+}
+@keyframes flash-dark{
+  from{
+    background-color:color-mix(in srgb, gray 70%, transparent)
   }
 }#reset, #action{
   font-size:1.2em
@@ -89,7 +96,7 @@ body{
 }#chart .chart-box{
   fill:none;
   stroke:currentColor;
-  vector-effect:non-scaling-stroke
+  vector-effect:non-scaling-stroke;
   stroke-linejoin:round;
 }#chart .sea{
   stroke:currentColor;
@@ -113,7 +120,6 @@ body{
   z-index:5;
   display:flex;
   justify-content:space-between;
-  align-items:center;
   align-items:center;
   background-color:white;
 }

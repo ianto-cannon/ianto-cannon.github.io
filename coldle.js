@@ -113,17 +113,22 @@ function shake(el) {
   };
   el.addEventListener("animationend", handler, false);
 }
-// Full-screen grey flash, reusing the generic .flash class. Applied to the
-// root element so it covers the viewport (body is capped at max-width).
+function darkTheme() {
+  return getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 0)";
+}
 function flashScreen() {
   if (prefersReducedMotion()) return;
-  var el = document.documentElement;
+  var el = document.body;
+  var cls = darkTheme() ? "flash-dark" : "flash";
   removeClass(el, "flash");
+  removeClass(el, "flash-dark");
   void el.offsetWidth;
-  addClass(el, "flash");
-  var handler = function () {
+  addClass(el, cls);
+  var handler = function (e) {
+    if (e.target !== el) return;
     removeClass(el, "flash");
-    el.removeEventListener("animationend", handler, false);
+    removeClass(el, "flash-dark");
+    if (el.removeEventListener) el.removeEventListener("animationend", handler, false);
   };
   el.addEventListener("animationend", handler, false);
 }
