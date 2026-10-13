@@ -53,6 +53,7 @@ th,td{padding:4px 6px;text-align:left}
   #rows .wide{display:none}
 }
 #ch .target-alt{stroke-width:2px;stroke-dasharray:4 3}
+#ch .box{fill:none;stroke:currentColor;stroke-width:1pt;vector-effect:non-scaling-stroke}
 #ch .sea{fill:none;stroke:blue;stroke-width:2px;stroke-linecap:round;vector-effect:non-scaling-stroke}
 canvas.confetti{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:99}
 #shm textarea{width:100%}
