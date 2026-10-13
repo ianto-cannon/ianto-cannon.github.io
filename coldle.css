@@ -19,6 +19,8 @@ body{
   user-select:none;
   -webkit-user-select:none;
   cursor:grab;
+}#map.pan-y{
+  touch-action:pan-y
 }#status{
   border-left:.2em solid;
   padding-left:.5em;
@@ -51,9 +53,10 @@ body{
   }
 }:where(svg) a,:where(svg) a:visited{
   color:blue
+}#markers{
+  font-size:var(--font-size,16px)
 }#markers polygon{
-  fill:gray
-}#markers polygon{
+  fill:var(--fill, gray);
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
@@ -65,7 +68,8 @@ body{
 }#markers text.selected{
   font-weight:bold
 }#chart{
-  height:200px
+  height:200px;
+  font-size:var(--font-size,16px)
 }#chart line{
   stroke:gray
 }#chart text{
@@ -77,10 +81,8 @@ body{
   text-anchor:end
 }#chart text.col-altitude{
   text-anchor:start
-}#chart polygon.target{
-  fill:gray
-}#chart polygon.unguessed{
-  fill:gray
+}#chart polygon{
+  fill:var(--fill, gray)
 }#chart polygon.selected{
   stroke:currentColor;
   stroke-linejoin:round;
@@ -117,7 +119,8 @@ body{
   pointer-events:none;
   z-index:99
 }#share-output textarea{
-  width:100%
+  width:100%;
+  font-size:16px
 }#share-output:empty{
   display:none
 }#controls{
@@ -129,6 +132,4 @@ body{
   align-items:center;
 }#map,#chart{
   -webkit-tap-highlight-color:transparent
-}#share-output textarea{
-  font-size:16px
 }

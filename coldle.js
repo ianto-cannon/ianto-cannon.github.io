@@ -25,11 +25,6 @@ function removeClass(el, c) {
   for (var i = 0; i < parts.length; i++) if (parts[i] && parts[i] !== c) out.push(parts[i]);
   el.className = out.join(" ");
 }
-var supportsHidden = (function () {
-  var d = document.createElement("div");
-  d.hidden = true;
-  return d.hidden === true;
-})();
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function metres(m) { return m.toLocaleString() + " m"; }
 function colLabel(m) { return m ? metres(m) : "sea level"; }
@@ -159,11 +154,6 @@ function renderTable() {
   }
 }
 function setHidden(el, hide) {
-  if (supportsHidden) {
-    el.hidden = hide;
-  } else {
-    el.style.display = hide ? "none" : "";
-  }
   if (hide) el.setAttribute("hidden", "");
   else el.removeAttribute("hidden");
 }
@@ -317,13 +307,13 @@ function drawChart() {
     var guessed = guesses.indexOf(g) !== -1;
     var isSel = g === selected;
     polys += '<polygon' + (guessed ? (isSel ? ' class="selected"' : "") : ' class="unguessed"')
-      + ' style="fill:' + fillFor(pl.G, guessed) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
+      + ' style="--fill:' + fillFor(pl.G, guessed) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (guessed && isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col-altitude")
         + altitude(pl.xg, pl.G) + label(pl.xg, pl.G.name, g);
     }
   }
-  polys += '<polygon class="target" style="fill:' + fillFor(T, over()) + '" ' + shape(cx, W, T) + '/>';
+  polys += '<polygon class="target" style="--fill:' + fillFor(T, over()) + '" ' + shape(cx, W, T) + '/>';
   var boxTop = chartY(10000);
   var boxD = "M" + pt(x0, base) + " L" + pt(x0, boxTop) + " L" + pt(x1, boxTop) + " L" + pt(x1, base);
   if (hasSea) {
@@ -337,7 +327,7 @@ function drawChart() {
     + label(cx, over() ? T.name : "?", over() ? target : undefined);
 
   chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + viewH.toFixed(1));
-  chart.setAttribute("font-size", font.toFixed(2));
+  chart.style.setProperty("--font-size", font.toFixed(2) + "px");
   chart.innerHTML = out;
 }
 var raf = window.requestAnimationFrame
@@ -535,7 +525,8 @@ function triangle(x, y, r) {
 function drawMap() {
   clampView();
   mapSvg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
-  mapSvg.style.touchAction = view.h < world.H - .5 ? "none" : "pan-y";
+  if (view.h < world.H - .5) removeClass(mapSvg, "pan-y");
+  else addClass(mapSvg, "pan-y");
   var px = view.w / mapSvg.clientWidth;
   var live = !over();
   var tiers = [[], [], []];
@@ -601,7 +592,7 @@ function drawMap() {
     var shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
     var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
-      + (fill ? ' style="fill:' + fill + '"' : "") + tap
+      + (fill ? ' style="--fill:' + fill + '"' : "") + tap
       + ' points="' + shape + '"/>';
     var label = shown[i]
       ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="selected"' : "")
@@ -617,7 +608,7 @@ function drawMap() {
     }
   }
   var layer = $("#markers");
-  layer.setAttribute("font-size", (fontPx() * px).toFixed(2));
+  layer.style.setProperty("--font-size", (fontPx() * px).toFixed(2) + "px");
   layer.innerHTML = tiers[0].join("") + tiers[1].join("") + tiers[2].join("") + labels + top;
 }
 var pointers = {};
