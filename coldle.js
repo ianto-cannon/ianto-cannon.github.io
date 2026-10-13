@@ -94,7 +94,10 @@ function guess() {
   guesses.push(selected);
   render();
   if (won()) confetti();
-  else if (over()) shake($("#action"));
+  else if (over()) {
+    shake($("#action"));
+    flashScreen();
+  }
 }
 function prefersReducedMotion() {
   return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
@@ -107,6 +110,20 @@ function shake(el) {
   var handler = function () {
     removeClass(el, "shake");
     if (el.removeEventListener) el.removeEventListener("animationend", handler, false);
+  };
+  el.addEventListener("animationend", handler, false);
+}
+// Full-screen grey flash, reusing the generic .flash class. Applied to the
+// root element so it covers the viewport (body is capped at max-width).
+function flashScreen() {
+  if (prefersReducedMotion()) return;
+  var el = document.documentElement;
+  removeClass(el, "flash");
+  void el.offsetWidth;
+  addClass(el, "flash");
+  var handler = function () {
+    removeClass(el, "flash");
+    el.removeEventListener("animationend", handler, false);
   };
   el.addEventListener("animationend", handler, false);
 }

@@ -20,11 +20,12 @@ body{
 }#status{
   border-left:.2em solid;
   padding-left:.5em;
-}#status.flash{
+}.flash{
   animation:flash 1s
-}@keyframes flash{
+}
+@keyframes flash{
   from{
-    background:color-mix(in srgb, gray 30%, transparent)
+    background-color:color-mix(in srgb, gray 30%, transparent)
   }
 }#reset, #action{
   font-size:1.2em
