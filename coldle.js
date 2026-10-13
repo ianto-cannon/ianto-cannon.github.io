@@ -236,7 +236,6 @@ function drawChart() {
   var k = 236 / 200;
   var viewW = k * chart.clientWidth;
   var viewH = k * chartH;
-  var small = chart.clientWidth < 500; // numbers instead of names on narrow charts
 
   var plotL = 36;
   var plotR = viewW - 4;
@@ -246,25 +245,24 @@ function drawChart() {
   var T = peaks[target];
 
   var font = fontPx() * k;
-  var rowH = 1.2 * font;
-  var MAX_LABEL_ROWS = 3;
-  var labelArea = 1.1 * font + (MAX_LABEL_ROWS - 1) * rowH + .4 * font;
+  var labelArea = 1.5 * font;
 
   var base = viewH - labelArea;
   var plotH = 0.848 * base;
 
   function chartY(alt) { return base - alt / 9000 * plotH; }
-  function half(t) { return t.length * .35 * font; }
-  var labels = [];
-  // prio = true for the selected peak and the target: never truncated, never dropped
-  function addName(x, t, i, prio) {
-    labels.push([x, (t.length > 17 && !prio) ? t.slice(0, 16) + "…" : t, i, prio]);
-  }
   function text(x, y, t, cls) {
     if (cls === undefined) cls = "";
     return '<text class="' + cls + '" x="' + x.toFixed(1) + '" y="' + y.toFixed(1) + '">' + t + '</text>';
   }
   function altitude(x, p) { return text(x, chartY(p.height) - 3, metres(p.height)); }
+  // Name under the baseline, kept inside the chart. i is the peak index if the name is a link.
+  function label(x, t, i) {
+    var h = t.length * .35 * font;
+    var y = base + 1.1 * font;
+    var tx = text(clamp(x, h, viewW - h), y, t, i === selected ? "sel" : "");
+    return i === undefined ? tx : '<a href="#" data-i="' + i + '">' + tx + '</a>';
+  }
 
   var out = [0, 2000, 4000, 6000, 8000].map(function (alt) {
     return '<line x1="28" x2="' + (viewW - 4).toFixed(1) + '" y1="' + chartY(alt) + '" y2="' + chartY(alt) + '"/>'
@@ -319,67 +317,16 @@ function drawChart() {
       + ' fill="' + colGuess(pl.pct, 1) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col")
-        + altitude(pl.xg, pl.G);
+        + altitude(pl.xg, pl.G)
+        + label(pl.xg, pl.G.name, g);
     }
-    var labelText = small ? String(guesses.indexOf(g) + 1) : pl.G.name;
-    addName(pl.xg, labelText, g, isSel);
   }
   out += guessPolys;
   out += '<polygon class="target"' + (over() ? ' style="fill:' + colGuess(100) + '"' : "")
     + ' points="' + pt(cx - W, base) + " " + pt(cx + W, base) + " " + pt(cx, chartY(T.height)) + '"/>';
   out += marks + altitude(cx, T);
 
-  var targetLabel;
-  if (small) {
-    var tIdx = guesses.indexOf(target);
-    targetLabel = tIdx >= 0 ? String(tIdx + 1) : (over() ? "★" : "?");
-  } else {
-    targetLabel = over() ? T.name : "?";
-  }
-  addName(cx, targetLabel, over() ? target : undefined, true);
-
-  // label layout: first row that doesn't overlap the previous name there.
-  // Priority labels (selected, target) are never dropped and never truncated.
-  labels.sort(function (a, b) { return a[0] - b[0]; });
-  var rowEnds = [];
-  var placed = [];
-  for (var li2 = 0; li2 < labels.length; li2++) {
-    var lab = labels[li2];
-    var x0 = lab[0], t = lab[1], idx = lab[2], prio = lab[3];
-    var h = half(t);
-    var lx = clamp(x0, h, viewW - h);
-    var row = -1;
-    for (var ri = 0; ri < rowEnds.length; ri++) {
-      if (lx - h > rowEnds[ri] + 6) { row = ri; break; }
-    }
-    if (row < 0) {
-      if (rowEnds.length < MAX_LABEL_ROWS) {
-        row = rowEnds.length;
-      } else if (prio) {
-        // every row is full here; force the priority label into the row with
-        // the most space to the left of its x, so it overlaps as little as possible
-        row = 0;
-        for (var rj = 1; rj < rowEnds.length; rj++) {
-          if (rowEnds[rj] < rowEnds[row]) row = rj;
-        }
-      } else {
-        continue; // all three rows are full at this x: drop this label
-      }
-    }
-    rowEnds[row] = lx + h;
-    placed.push({ x: x0, lx: lx, t: t, i: idx, row: row });
-  }
-  for (var pi = 0; pi < placed.length; pi++) {
-    var pp = placed[pi];
-    var y = base + 1.1 * font + pp.row * rowH;
-    if (pp.row) {
-      out += '<line x1="' + pp.x.toFixed(1) + '" x2="' + pp.x.toFixed(1)
-        + '" y1="' + base + '" y2="' + (y - font).toFixed(1) + '"/>';
-    }
-    out += pp.i === undefined
-      ? text(pp.lx, y, pp.t)
-      : '<a href="#" data-i="' + pp.i + '">' + text(pp.lx, y, pp.t, pp.i === selected ? "sel" : "") + '</a>';
-  }
+  out += label(cx, over() ? T.name : "?", over() ? target : undefined);
 
   chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + viewH.toFixed(1));
   chart.setAttribute("font-size", font.toFixed(2));
