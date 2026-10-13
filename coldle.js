@@ -33,6 +33,52 @@ function wikiLink(p) {
     ? '<a href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/' + p.wiki + '"><b>' + p.name + "</b></a>"
     : "<b>" + p.name + "</b>";
 }
+function getJSON(url, cb) {
+  if (window.fetch) {
+    fetch(url).then(function (r) { return r.json(); }).then(cb, function () { cb(null); });
+  } else {
+    var x = new XMLHttpRequest();
+    x.onreadystatechange = function () {
+      if (x.readyState !== 4) return;
+      var j = null;
+      try { j = x.status === 200 ? JSON.parse(x.responseText) : null; } catch (e) {}
+      cb(j);
+    };
+    x.open("GET", url);
+    x.send();
+  }
+}
+function peakImage(p) {
+  if (!p.wiki || (p.imgTried && !p.imgFile)) return;
+  if (p.imgFile) {
+    showPeakImage(p);
+    return;
+  }
+  p.imgTried = true;
+  getJSON("https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&origin=*"
+    + "&entity=" + p.wiki + "&property=P18", function (j) {
+    var c = j && j.claims && j.claims.P18 && j.claims.P18[0];
+    var v = c && c.mainsnak && c.mainsnak.datavalue && c.mainsnak.datavalue.value;
+    if (typeof v !== "string") return;
+    p.imgFile = encodeURIComponent(v).replace(/%20/g, "_");
+    showPeakImage(p);
+  });
+}
+function showPeakImage(p) {
+  var box = $("#peak-image");
+  if (!box) return;
+  while (box.firstChild) box.removeChild(box.firstChild);
+  var a = document.createElement("a");
+  a.href = "https://commons.wikimedia.org/wiki/File:" + p.imgFile;
+  var img = document.createElement("img");
+  img.alt = p.name;
+  img.onerror = function () {
+    if (img.parentNode) img.parentNode.removeChild(img);
+  };
+  img.src = "https://commons.wikimedia.org/wiki/Special:FilePath/" + p.imgFile + "?width=480";
+  a.appendChild(img);
+  box.appendChild(a);
+}
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
 function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
 function colGuess(pct, alpha) {
@@ -254,6 +300,9 @@ function renderStatus() {
     var shm = $("#share-output");
     while (shm.firstChild) shm.removeChild(shm.firstChild);
   }
+  var pim = $("#peak-image");
+  while (pim.firstChild) pim.removeChild(pim.firstChild);
+  if (end) peakImage(p);
 
   var state = box.textContent;
   if (state === lastStatus) return;

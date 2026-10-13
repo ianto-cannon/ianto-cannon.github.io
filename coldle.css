@@ -112,6 +112,13 @@ body{
 }#share-output textarea{
   width:100%;
   font-size:16px
+}#peak-image img{
+  width:320px;
+  max-width:100%;
+  height:auto;
+  border:1px solid
+}#peak-image:empty{
+  display:none
 }#share-output:empty{
   display:none
 }#coldle-controls{
