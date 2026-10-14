@@ -89,33 +89,29 @@ function commonsThumb(p) {
 function reservePeakImage() {
   var box = $("#peak-image");
   if (!box) return;
-  while (box.firstChild) box.removeChild(box.firstChild);
   box.removeAttribute("data-img");
-  var ph = document.createElement("div");
-  ph.className = "ph";
-  box.appendChild(ph);
+  removeClass(box, "ready");
+  addClass(box, "loading");
 }
 function clearPeakImage() {
   var box = $("#peak-image");
   if (!box) return;
-  while (box.firstChild) box.removeChild(box.firstChild);
   box.removeAttribute("data-img");
+  removeClass(box, "ready");
+  removeClass(box, "loading");
 }
 function showPeakImage(p) {
   var box = $("#peak-image");
   if (!box || !over() || box.getAttribute("data-img") === p.imgUrl) return;
-  while (box.firstChild) box.removeChild(box.firstChild);
   box.setAttribute("data-img", p.imgUrl);
-  var a = document.createElement("a");
+  var a = box.querySelector("a");
+  var img = box.querySelector("img");
   a.href = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(p.imgFile);
-  var img = document.createElement("img");
   img.alt = p.name;
-  img.onerror = function () {
-    if (img.parentNode) img.parentNode.removeChild(img);
-  };
+  img.onerror = clearPeakImage;
   img.src = p.imgUrl;
-  a.appendChild(img);
-  box.appendChild(a);
+  removeClass(box, "loading");
+  addClass(box, "ready");
 }
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
 function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
@@ -335,8 +331,8 @@ function renderStatus() {
   }
 
   if (!end) {
-    var shm = $("#share-output");
-    while (shm.firstChild) shm.removeChild(shm.firstChild);
+    removeClass($("#share-output"), "show");
+    $("#share-text").value = "";
   }
   if (end) peakImage(p);
   else clearPeakImage();
@@ -409,7 +405,7 @@ function drawChart() {
   var hasSea = seaL !== null && seaR !== null && seaR > seaL;
 
   if (hasSea) {
-    var waveN = Math.max(2, Math.round((seaR - seaL) / (7 * k))); // number of half-waves
+    var waveN = Math.max(2, Math.round((seaR - seaL) / (7 * k)));
     var halfWave = (seaR - seaL) / waveN;
     var sea = "M" + pt(seaL, base) + " Q" + pt(seaL + halfWave / 2, base - 1.5 * k) + " " + pt(seaL + halfWave, base);
     for (var wi = 2; wi <= waveN; wi++) sea += " T" + pt(seaL + wi * halfWave, base);
@@ -480,12 +476,11 @@ var nowMs = (window.performance && window.performance.now)
 function confetti() {
   if (prefersReducedMotion()) return;
   var dpr = window.devicePixelRatio || 1;
-  var canvas = document.createElement("canvas");
+  var canvas = $("#confetti");
   var ctx = canvas.getContext("2d");
-  canvas.className = "confetti";
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
-  document.body.appendChild(canvas);
+  addClass(canvas, "on");
 
   var btn = $("#action").getBoundingClientRect();
   var colors = ["#0072b2", "#e69f00", "#cc79a7", "#56b4e9", "#009e73", "#f0e442"];
@@ -532,7 +527,10 @@ function confetti() {
       }
     }
     if (alive) raf(tick);
-    else if (canvas.parentNode) canvas.parentNode.removeChild(canvas);
+    else {
+      removeClass(canvas, "on");
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+    }
   }
   raf(tick);
 }
@@ -646,10 +644,8 @@ function clampView() {
   view.x = clamp(view.x, 0, world.W - view.w);
   view.y = clamp(view.y, 0, world.H - view.h);
 }
-// Whether the browser is allowed to handle vertical panning on the map. Hand
-// it back only when the view has no vertical range, or when the user has just
-// dragged past a vertical limit and is still pulling outward — that way the
-// *next* gesture over the map scrolls the page.
+// Hand vertical panning back to the browser only when the view has no vertical
+// range, or when the user has dragged past a limit and is still pulling outward.
 function updateTouchAction() {
   var maxY = world.H - view.h;
   var hasRange = view.h < world.H - .5;
@@ -687,8 +683,7 @@ function drawMap() {
   var labels = "";
   var top = "";
 
-  // Greedy label placement: the selected peak first, then by descending prominence.
-  // A label is shown only if its box doesn't overlap a label already placed.
+  // Greedy label placement: selected peak first, then by descending prominence.
   var fs = fontPx() * px;
   var order = [];
   for (var oi = 0; oi < peaks.length; oi++) order.push(oi);
@@ -698,7 +693,6 @@ function drawMap() {
     return peaks[b].prominence - peaks[a].prominence;
   });
   function labelDx(i) { return (i === selected ? 14 : 9) * px; }
-  // Triangle markers are obstacles too (the selected one is drawn larger).
   var markers = [];
   for (var mi = 0; mi < peaks.length; mi++) {
     var mr = (mi === selected ? 12.6 : 7) * px;
@@ -713,8 +707,6 @@ function drawMap() {
     var bx1 = bx0 + q.name.length * .55 * fs;
     var by0 = q.y + 4 * px - fs;
     var by1 = q.y + 4 * px + .25 * fs;
-    // Stay inside the map's limits (date line and poles). The selected label is
-    // always shown, so at the date line it flips to the left of its marker.
     var isSelLabel = order[oj] === selected;
     if (bx1 > world.W && isSelLabel) {
       bx1 = q.x - labelDx(order[oj]);
@@ -726,11 +718,11 @@ function drawMap() {
     var clash = false;
     var obstacles = boxes.concat(markers);
     for (var bi = 0; bi < obstacles.length; bi++) {
-      if (markers[order[oj]] === obstacles[bi]) continue; // its own marker
+      if (markers[order[oj]] === obstacles[bi]) continue;
       var b = obstacles[bi];
       if (bx0 < b[2] && bx1 > b[0] && by0 < b[3] && by1 > b[1]) { clash = true; break; }
     }
-    if (clash && order[oj] !== selected) continue; // the selected label is always shown
+    if (clash && order[oj] !== selected) continue;
     boxes.push([bx0, by0, bx1, by1]);
     shown[order[oj]] = true;
   }
@@ -793,7 +785,7 @@ function closestAnchor(el) {
 var drag = null;
 var pinch = null;
 var dragged = false;
-var dragOutward = false;   // last drag pushed past a vertical limit
+var dragOutward = false;
 
 function nearestPeak(cx, cy) {
   var w = toWorld(cx, cy);
@@ -851,8 +843,6 @@ function handleMove(id, cx, cy) {
       var maxY = world.H - view.h;
       view.x = drag.vx - dx * k;
       view.y = clamp(wantY, 0, maxY);
-      // Track whether this drag is pulling outward past a limit. Only then is
-      // the page allowed to take over the next vertical gesture on the map.
       if (wantY < 0) dragOutward = dy > 0;
       else if (wantY > maxY) dragOutward = dy < 0;
       else dragOutward = false;
@@ -874,7 +864,6 @@ function handleUp(id, cx, cy, isCancel) {
     var hit = drag ? drag.hit : -1;
     drag = pinch = null;
     if (!isCancel && !dragged) {
-      // nearest peak to the tap wins; the polygon that was hit is only a fallback
       var i = nearestPeak(cx, cy);
       if (i < 0) i = hit;
       if (i >= 0) selectPeak(i);
@@ -913,7 +902,6 @@ if ("onpointerdown" in window) {
     return function (e) {
       var t = e.changedTouches;
       for (var i = 0; i < t.length; i++) handleUp(t[i].identifier, t[i].clientX, t[i].clientY, cancel);
-      // stop the browser from also firing synthesized mouse events (double select)
       if (!cancel && e.cancelable) e.preventDefault();
     };
   };
@@ -964,13 +952,9 @@ function shareResult() {
   var text = head + "\n" + summary + "\n" + blocks + "\n" + url;
 
   function showText() {
-    var area = document.createElement("textarea");
+    var area = $("#share-text");
     area.value = text;
-    area.readOnly = true;
-    area.rows = 8;
-    var shm = $("#share-output");
-    while (shm.firstChild) shm.removeChild(shm.firstChild);
-    shm.appendChild(area);
+    addClass($("#share-output"), "show");
     area.select();
   }
   function onCopied() {
@@ -997,7 +981,6 @@ function shareResult() {
       var sp = navigator.share({ text: text });
       if (sp && typeof sp.then === "function") {
         sp.then(function () {}, function (err) {
-          // user dismissed the sheet: do nothing; any other failure: fall back
           if (!err || err.name !== "AbortError") tryCopy();
         });
       }
@@ -1033,14 +1016,8 @@ window.addEventListener("hashchange", function () {
 }, false);
 
 /* ------------------------------------------------ keyboard */
-// Tab still moves focus normally. Once the map has focus, the arrow keys step
-// the selection through the peaks from west to east, Enter or Space guesses
-// (or shares, once the game is over) and Escape clears the selection.
-mapSvg.setAttribute("tabindex", "0");
-mapSvg.setAttribute("role", "application");
-mapSvg.setAttribute("aria-label",
-  "Peak map. Arrow keys select a peak, Enter guesses, Escape clears the selection.");
-
+// Arrow keys step the selection west to east, Enter or Space guesses (or
+// shares, once the game is over), Escape clears the selection.
 var panAnim = null;
 function ensureVisible(i) {
   var p = peaks[i];
@@ -1079,7 +1056,7 @@ function panFrame() {
 function stepSelection(dir) {
   var order = [];
   for (var i = 0; i < peaks.length; i++) {
-    if (!over() && guesses.indexOf(i) !== -1) continue;   // skip peaks already guessed
+    if (!over() && guesses.indexOf(i) !== -1) continue;
     order.push(i);
   }
   if (!order.length) return;
@@ -1088,7 +1065,6 @@ function stepSelection(dir) {
   var next;
   if (pos < 0) {
     next = dir > 0 ? order[0] : order[order.length - 1];
-    // Selected peak was already guessed: continue from its place in the full order.
     if (selected !== null) {
       for (var k = 0; k < order.length; k++) {
         var ahead = peaks[order[k]].x > peaks[selected].x;

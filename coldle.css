@@ -1,28 +1,41 @@
 body{
   max-width:1000px
-}svg,table{
+}
+svg,table{
   width:100%;
-}th,td{
+}
+th,td{
   padding:4px 6px;
   text-align:left
-}#land{
+}
+#land{
   fill:#aaa
-}#map{
-  height: 318px;
-  max-height: 40vh;
-  border: 1px solid;
+}
+#map{
+  height:318px;
+  max-height:40vh;
+  border:1px solid;
   touch-action:none;
   user-select:none;
   -webkit-user-select:none;
   cursor:grab;
-}#map.pan-y{
+}
+#map.pan-y{
   touch-action:pan-y
-}#status{
+}
+#status{
   border-left:.2em solid;
   padding-left:.5em;
-}.flash{
+}
+#status::after{
+  content:"";
+  display:block;
+  clear:both
+}
+.flash{
   animation:flash 1s
-}.flash-dark{
+}
+.flash-dark{
   animation:flash-dark 1s
 }
 @keyframes flash{
@@ -34,11 +47,14 @@ body{
   from{
     background-color:color-mix(in srgb, gray 70%, transparent)
   }
-}#reset, #action{
+}
+#reset,#action{
   font-size:1.2em
-}#action.shake{
+}
+#action.shake{
   animation:shake 1s
-}@keyframes shake{
+}
+@keyframes shake{
   10%,90%{
     transform:translateX(-2px)
   }
@@ -51,102 +67,140 @@ body{
   40%,60%{
     transform:translateX(8px)
   }
-}:where(svg) a,:where(svg) a:visited{
+}
+:where(svg) a,:where(svg) a:visited{
   color:blue
-}#markers{
+}
+#markers{
   font-size:var(--font-size)
-}#markers polygon{
+}
+#markers polygon{
   fill:var(--fill, gray);
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
-}#markers [data-peak]{
+}
+#markers [data-peak]{
   cursor:pointer
-}#markers text{
+}
+#markers text{
   fill:currentColor
-} .selected{
+}
+.selected{
   font-weight:bold
-}#chart{
+}
+#chart{
   height:200px;
   font-size:var(--font-size)
-}#chart line{
+}
+#chart line{
   stroke:gray
-}#chart text{
+}
+#chart text{
   fill:currentColor;
   text-anchor:middle
-}#chart text.end{
+}
+#chart text.end{
   text-anchor:end
-}#chart text.col-altitude{
+}
+#chart text.col-altitude{
   text-anchor:start
-}#chart polygon{
+}
+#chart polygon{
   fill:var(--fill)
-}#chart polygon.selected{
+}
+#chart polygon.selected{
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke
-}#guess-table td:empty::after{
-  content:"\00a0"
-}@media (max-width:700px){
-  #guess-table .wide{
-    display:none
-  }
-}#chart .target-altitude{
+}
+#chart .target-altitude{
   stroke-width:2px;
   stroke-dasharray:4 3
-}#chart .chart-box{
+}
+#chart .chart-box{
   fill:none;
   stroke:currentColor;
   vector-effect:non-scaling-stroke;
   stroke-linejoin:round;
-}#chart .sea{
+}
+#chart .sea{
   stroke:currentColor;
   stroke-width:2px;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke
-} .confetti{
+}
+#guess-table td:empty::after{
+  content:"\00a0"
+}
+@media (max-width:700px){
+  #guess-table .wide{
+    display:none
+  }
+}
+.confetti{
+  display:none;
   position:fixed;
   width:100%;
   height:100%;
   pointer-events:none;
   z-index:99
-}#share-output textarea{
+}
+.confetti.on{
+  display:block
+}
+#share-output{
+  display:none
+}
+#share-output.show{
+  display:block
+}
+#share-output textarea{
   width:100%;
   font-size:16px
-}#status::after{
-  content:"";
-  display:block;
-  clear:both
-}#peak-image{
+}
+#peak-image{
+  display:none;
   float:right;
   margin:0 0 .5em 1em
-}#peak-image .ph{
+}
+#peak-image.loading,#peak-image.ready{
+  display:block
+}
+#peak-image .ph{
   width:320px;
   max-width:100%;
   aspect-ratio:4/3;
   border:1px solid;
   box-sizing:border-box;
   background:color-mix(in srgb, gray 30%, transparent)
-}#peak-image img{
+}
+#peak-image a{
+  display:none
+}
+#peak-image.ready a{
+  display:block
+}
+#peak-image.ready .ph{
+  display:none
+}
+#peak-image img{
   width:320px;
   max-width:100%;
   height:auto;
   display:block;
   border:1px solid
-}#peak-image:empty{
-  display:none
-}@media (max-width:700px){
+}
+@media (max-width:700px){
   #peak-image{
     float:none;
     margin:.5em 0
-  }#peak-image .ph{
-    width:100%
-  }#peak-image img{
+  }
+  #peak-image .ph,#peak-image img{
     width:100%
   }
 }
-}#share-output:empty{
-  display:none
-}#coldle-controls{
+#coldle-controls{
   position:sticky;
   bottom:0;
   z-index:5;
