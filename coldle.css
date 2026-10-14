@@ -40,9 +40,15 @@ ol {
 #peak-image{
   float:right;
   border:1px solid;
-  width:200px;
+  width:210px;
   max-width:100%;
   aspect-ratio:4/3;
+}
+@media (max-width:350px){
+  #peak-image{
+    float:none;
+    width:100%;
+  }
 }
 #peak-image img{
   display:block;
@@ -94,7 +100,6 @@ ol {
 }
 #markers polygon{
   fill:var(--fill, gray);
-  fill:none;
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
