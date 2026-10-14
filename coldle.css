@@ -43,6 +43,15 @@ ol {
   width:210px;
   max-width:100%;
   aspect-ratio:4/3;
+  position:relative;      /* ← makes this the containing block for ::before */
+}
+#peak-image:empty::before{
+  content:"?";
+  position:absolute;
+  inset:0;
+  display:grid;
+  place-items:center;
+  font-size:4em;
 }
 @media (max-width:350px){
   #peak-image{
