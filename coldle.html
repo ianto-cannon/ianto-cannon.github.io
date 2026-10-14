@@ -77,7 +77,7 @@
 <main>
 <h1>Coldle</h1>
 <noscript><p>Coldle is an interactive map game and needs JavaScript to run.</p></noscript>
-<p class="sub">
+<p>
   Guess the mystery peak among the
   <label><input type="radio" name="count" value="50" checked> 50</label>
   <label><input type="radio" name="count" value="125"> 125</label>
@@ -87,18 +87,20 @@
 </p>
 <div id="status" role="status" aria-live="polite">
   <div id="peak-image"></div>
-  <h2 class="tag" data-field="heading">Hints</h2>
-  <ol>
-    <li>The mystery peak is <b data-field="height">0,000 m</b> high.</li>
-    <li>The mystery peak has <b data-field="prominence">0,000 m</b> of prominence.</li>
-    <li data-field-html="hint3">The mountain range will be revealed after your <b>third</b> guess.</li>
-    <li data-field-html="hint4">The country will be revealed after your <b>fifth</b> guess.</li>
-  </ol>
-  <p>
-  <span data-field-html="tip1">Guess 1 of 8.</span>
-  <span data-field-html="tip2">Tap a peak on the map, then press Guess.</span>
-  </p>
-  <div id="share-output" hidden><textarea id="share-text" readonly rows="8"></textarea></div>
+    <div id="status-text">
+    <h2 data-field="heading">Hints</h2>
+    <ol>
+      <li>The mystery peak is <b data-field="height">0,000 m</b> high.</li>
+      <li>The mystery peak has <b data-field="prominence">0,000 m</b> of prominence.</li>
+      <li data-field-html="hint3">The mountain range will be revealed after your <b>third</b> guess.</li>
+      <li data-field-html="hint4">The country will be revealed after your <b>fifth</b> guess.</li>
+    </ol>
+    <p>
+    <span data-field-html="tip1">Guess 1 of 8.</span>
+    <span data-field-html="tip2">Tap a peak on the map, then press Guess.</span>
+    </p>
+    <div id="share-output" hidden><textarea id="share-text" readonly rows="8"></textarea></div>
+  </div>
 </div>
 <svg id="map" viewBox="0 0 40030 12742" tabindex="0" role="application"
      aria-label="Peak map. Arrow keys select a peak, Enter guesses, Escape clears the selection.">

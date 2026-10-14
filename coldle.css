@@ -28,7 +28,7 @@ ol {
 #map.pan-y{
   touch-action:pan-y
 }
-#status{
+#status-text{
   border-left:.2em solid;
   padding-left:.5em;
 }
