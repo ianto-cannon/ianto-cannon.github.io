@@ -9,11 +9,11 @@ th,td{
   text-align:left
 }
 ol {
-  padding-left: 1em;
-  margin:0
+  padding-left:0;
+  list-style-position:inside;
 }
 #land{
-  fill:#aaa
+  fill:#bbb;
 }
 #map{
   background: hsl(207 51% 95%);
@@ -94,6 +94,7 @@ ol {
 }
 #markers polygon{
   fill:var(--fill, gray);
+  fill:none;
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
@@ -102,7 +103,11 @@ ol {
   cursor:pointer
 }
 #markers text{
-  fill:currentColor
+  fill:currentColor;
+  stroke:white;
+  stroke-width:.2em;
+  paint-order:stroke fill;
+  stroke-linejoin:round;
 }
 .selected{
   font-weight:bold

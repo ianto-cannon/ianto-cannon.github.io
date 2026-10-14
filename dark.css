@@ -1,6 +1,3 @@
-html {
-  background-color: black;
-}
 body {
   background-color: black;
   color: white;
@@ -21,3 +18,10 @@ body .zodiac text {
 #map{
   background: hsl(207 51% 15%);
 }
+#land{
+  fill:#666
+}
+#markers text{
+  stroke:black;
+}
+
