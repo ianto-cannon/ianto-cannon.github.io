@@ -168,8 +168,8 @@ th,td{
   display:block
 }
 #peak-image .ph{
-  width:320px;
-  max-width:100%;
+  width:200px;
+  max-width:50%;
   aspect-ratio:4/3;
   border:1px solid;
   box-sizing:border-box;
