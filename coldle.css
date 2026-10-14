@@ -9,12 +9,14 @@ th,td{
   text-align:left
 }
 ol {
+  padding-left: 1em;
   margin:0
 }
 #land{
   fill:#aaa
 }
 #map{
+  background: hsl(207 51% 95%);
   height:318px;
   max-height:40vh;
   border:1px solid;
@@ -34,6 +36,19 @@ ol {
   content:"";
   display:block;
   clear:both
+}
+#peak-image{
+  float:right;
+  border:1px solid;
+  width:200px;
+  max-width:100%;
+  aspect-ratio:4/3;
+}
+#peak-image img{
+  display:block;
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 .flash{
   animation:flash 1s
@@ -151,19 +166,6 @@ ol {
 #share-output textarea{
   width:100%;
   font-size:16px
-}
-#peak-image{
-  float:right;
-  border:1px solid;
-  height:100%;
-  max-width:30%;
-  aspect-ratio:4/3;
-}
-#peak-image img{
-  display:block;
-  width:100%;
-  height:100%;
-  object-fit:cover;
 }
 #coldle-controls{
   position:sticky;
