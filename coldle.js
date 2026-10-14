@@ -56,15 +56,11 @@ function peakImage(p) {
   }
   if (p.imgTried) return;
   p.imgTried = true;
-  reservePeakImage();
   getJSON("https://www.wikidata.org/w/api.php?action=wbgetclaims&format=json&origin=*"
     + "&entity=" + p.wiki + "&property=P18", function (j) {
     var c = j && j.claims && j.claims.P18 && j.claims.P18[0];
     var v = c && c.mainsnak && c.mainsnak.datavalue && c.mainsnak.datavalue.value;
-    if (typeof v !== "string") {
-      clearPeakImage();
-      return;
-    }
+    if (typeof v !== "string") return;
     p.imgFile = v;
     commonsThumb(p);
   });
@@ -76,42 +72,30 @@ function commonsThumb(p) {
       var pages = j && j.query && j.query.pages;
       var page = pages && pages[Object.keys(pages)[0]];
       var ii = page && page.imageinfo && page.imageinfo[0];
-      if (!ii || !ii.thumburl) {
-        clearPeakImage();
-        return;
-      }
+      if (!ii || !ii.thumburl) return;
       p.imgUrl = ii.thumburl;
-      var ph = $("#peak-image .ph");
-      if (ph) ph.style.aspectRatio = ii.thumbwidth + " / " + ii.thumbheight;
       showPeakImage(p);
     });
-}
-function reservePeakImage() {
-  var box = $("#peak-image");
-  if (!box) return;
-  box.removeAttribute("data-img");
-  removeClass(box, "ready");
-  addClass(box, "loading");
-}
-function clearPeakImage() {
-  var box = $("#peak-image");
-  if (!box) return;
-  box.removeAttribute("data-img");
-  removeClass(box, "ready");
-  removeClass(box, "loading");
 }
 function showPeakImage(p) {
   var box = $("#peak-image");
   if (!box || !over() || box.getAttribute("data-img") === p.imgUrl) return;
   box.setAttribute("data-img", p.imgUrl);
-  var a = box.querySelector("a");
-  var img = box.querySelector("img");
+  while (box.firstChild) box.removeChild(box.firstChild);
+  var a = document.createElement("a");
   a.href = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(p.imgFile);
+  var img = document.createElement("img");
   img.alt = p.name;
   img.onerror = clearPeakImage;
   img.src = p.imgUrl;
-  removeClass(box, "loading");
-  addClass(box, "ready");
+  a.appendChild(img);
+  box.appendChild(a);
+}
+function clearPeakImage() {
+  var box = $("#peak-image");
+  if (!box) return;
+  box.removeAttribute("data-img");
+  while (box.firstChild) box.removeChild(box.firstChild);
 }
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
 function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
@@ -331,7 +315,7 @@ function renderStatus() {
   }
 
   if (!end) {
-    removeClass($("#share-output"), "show");
+    setHidden($("#share-output"), true);
     $("#share-text").value = "";
   }
   if (end) peakImage(p);
@@ -480,7 +464,7 @@ function confetti() {
   var ctx = canvas.getContext("2d");
   canvas.width = window.innerWidth * dpr;
   canvas.height = window.innerHeight * dpr;
-  addClass(canvas, "on");
+  setHidden(canvas, false);
 
   var btn = $("#action").getBoundingClientRect();
   var colors = ["#0072b2", "#e69f00", "#cc79a7", "#56b4e9", "#009e73", "#f0e442"];
@@ -528,7 +512,7 @@ function confetti() {
     }
     if (alive) raf(tick);
     else {
-      removeClass(canvas, "on");
+      setHidden(canvas, true);
       ctx.clearRect(0, 0, canvas.width, canvas.height);
     }
   }
@@ -954,7 +938,7 @@ function shareResult() {
   function showText() {
     var area = $("#share-text");
     area.value = text;
-    addClass($("#share-output"), "show");
+    setHidden($("#share-output"), false);
     area.select();
   }
   function onCopied() {

@@ -139,65 +139,33 @@ th,td{
   }
 }
 .confetti{
-  display:none;
   position:fixed;
   width:100%;
   height:100%;
   pointer-events:none;
   z-index:99
 }
-.confetti.on{
-  display:block
-}
-#share-output{
-  display:none
-}
-#share-output.show{
-  display:block
-}
 #share-output textarea{
   width:100%;
   font-size:16px
 }
 #peak-image{
-  display:none;
   float:right;
-  margin:0 0 .5em 1em
-}
-#peak-image.loading,#peak-image.ready{
-  display:block
-}
-#peak-image .ph{
   width:200px;
-  max-width:50%;
   aspect-ratio:4/3;
-  border:1px solid;
-  box-sizing:border-box;
-  background:color-mix(in srgb, gray 30%, transparent)
-}
-#peak-image a{
-  display:none
-}
-#peak-image.ready a{
-  display:block
-}
-#peak-image.ready .ph{
-  display:none
+  margin-left:1em;
 }
 #peak-image img{
-  width:320px;
-  max-width:100%;
-  height:auto;
   display:block;
-  border:1px solid
+  width:100%;
+  height:100%;
+  object-fit:cover;
 }
 @media (max-width:700px){
   #peak-image{
     float:none;
-    margin:.5em 0
-  }
-  #peak-image .ph,#peak-image img{
-    width:100%
+    width:100%;
+    margin-left:0
   }
 }
 #coldle-controls{
