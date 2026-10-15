@@ -1,5 +1,8 @@
 body {
   font-family: Verdana;
+  min-height:100vh;
+  display:flex;
+  flex-direction:column;
 }
 h1, h2, h3, li {
   margin-bottom: 0.2em;
@@ -26,16 +29,19 @@ a {
 button {
   cursor: pointer;
 }
-.license {
-  height: 1em;
-  width: 1em;
-  aspect-ratio: 1;
+.banner{
+  margin-top:auto;
 }
 .foot {
   display: block; /*on old browsers*/
   display: flex;
   justify-content: space-between;
   align-items: center;
+}
+.license {
+  height: 1em;
+  width: 1em;
+  aspect-ratio: 1;
 }
 .theme-toggle {/*hide the buttons if no javascript*/
   display: none;
