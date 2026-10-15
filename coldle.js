@@ -418,7 +418,11 @@ function drawChart() {
   }
   var order = [];
   for (var gi = 0; gi < peaks.length; gi++) if (gi !== target) order.push(gi);
-  order.sort(function (a, b) { return peaks[b].height - peaks[a].height; });
+  // Unguessed peaks first, so guessed peaks are drawn on top; tallest first within each group.
+  order.sort(function (a, b) {
+    return (guesses.indexOf(a) !== -1) - (guesses.indexOf(b) !== -1)
+      || peaks[b].height - peaks[a].height;
+  });
   var polys = "";
   var marks = "";
   for (var oi = 0; oi < order.length; oi++) {
@@ -940,7 +944,7 @@ function shareResult() {
     var area = $("#share-text");
     area.value = text;
     setHidden($("#share-output"), false);
-    area.select();
+    if (document.activeElement !== mapSvg) area.select();
   }
   function onCopied() {
     $("#action").textContent = "copied!";
