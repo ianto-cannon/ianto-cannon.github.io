@@ -70,7 +70,8 @@ function commonsThumb(p) {
     + "&prop=imageinfo&iiprop=url&iiurlwidth=480&titles=File:" + encodeURIComponent(p.imgFile),
     function (j) {
       var pages = j && j.query && j.query.pages;
-      var page = pages && pages[Object.keys(pages)[0]];
+      var page;
+      for (var id in pages) { page = pages[id]; break; }
       var ii = page && page.imageinfo && page.imageinfo[0];
       if (!ii || !ii.thumburl) return;
       p.imgUrl = ii.thumburl;
@@ -99,14 +100,28 @@ function clearPeakImage() {
   if (a) box.removeChild(a);
 }
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
+function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
+// Old WebKit has no innerHTML on SVG elements, so parse the markup and import the nodes.
+function setSvg(el, markup) {
+  while (el.firstChild) el.removeChild(el.firstChild);
+  var doc = new DOMParser().parseFromString(
+    '<svg xmlns="http://www.w3.org/2000/svg">' + markup + "</svg>", "image/svg+xml");
+  for (var n = doc.documentElement.firstChild; n; n = n.nextSibling) {
+    el.appendChild(document.importNode(n, true));
+  }
+}
+function isoDate() {
+  var d = new Date();
+  return d.getUTCFullYear() + "-" + ("0" + (d.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + d.getUTCDate()).slice(-2);
+}
 function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
 function colGuess(pct, alpha) {
   if (alpha === undefined) alpha = 1;
-  return "hsl(" + hue + " 65% " + (20 + 70 * Math.pow(pct / 100, .25)) + "% / " + alpha + ")";
+  return "hsla(" + hue + ",65%," + (20 + 70 * Math.pow(pct / 100, .25)) + "%," + alpha + ")";
 }
 var CSV_RE = /(?:^|,)("(?:[^"]|"")*"|[^,]*)/g;
 function parseCSV(text) {
-  return text.trim().split(/\r?\n/).map(function (line) {
+  return text.replace(/^\s+|\s+$/g, "").split(/\r?\n/).map(function (line) {
     CSV_RE.lastIndex = 0;
     var fields = [];
     var m;
@@ -169,42 +184,24 @@ function guess() {
   render();
   if (won()) confetti();
   else if (over()) {
-    shake($("#action"));
-    flashScreen();
+    play($("#action"), "shake");
+    play(document.body, darkTheme() ? "flash-dark" : "flash");
   }
 }
 function prefersReducedMotion() {
   return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
-function shake(el) {
+// Restart a CSS animation class on el (the old class is removed first, so no cleanup handler is needed).
+function play(el, cls) {
   if (prefersReducedMotion()) return;
+  removeClass(el, "flash");
+  removeClass(el, "flash-dark");
   removeClass(el, "shake");
   void el.offsetWidth;
-  addClass(el, "shake");
-  var handler = function () {
-    removeClass(el, "shake");
-    if (el.removeEventListener) el.removeEventListener("animationend", handler, false);
-  };
-  el.addEventListener("animationend", handler, false);
+  addClass(el, cls);
 }
 function darkTheme() {
   return getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 0)";
-}
-function flashScreen() {
-  if (prefersReducedMotion()) return;
-  var el = document.body;
-  var cls = darkTheme() ? "flash-dark" : "flash";
-  removeClass(el, "flash");
-  removeClass(el, "flash-dark");
-  void el.offsetWidth;
-  addClass(el, cls);
-  var handler = function (e) {
-    if (e.target !== el) return;
-    removeClass(el, "flash");
-    removeClass(el, "flash-dark");
-    if (el.removeEventListener) el.removeEventListener("animationend", handler, false);
-  };
-  el.addEventListener("animationend", handler, false);
 }
 function chain(i) {
   if (i < 0) return [];
@@ -325,24 +322,21 @@ function renderStatus() {
   var state = box.textContent;
   if (state === lastStatus) return;
   lastStatus = state;
-  if (!prefersReducedMotion()) {
-    removeClass(box, "flash");
-    void box.offsetWidth;
-    addClass(box, "flash");
-  }
+  play(box, "flash");
 }
 function drawChart() {
   var chart = $("#chart");
-  var key = [chart.clientWidth, chart.clientHeight, fontPx(), target,
+  var rect = chart.getBoundingClientRect();
+  var key = [rect.width, rect.height, fontPx(), target,
              guesses.join(), selected, over(), peaks.length].join();
   if (key === chart.getAttribute("data-cache-key")) return;
   chart.setAttribute("data-cache-key", key);
 
-  var chartH = chart.clientHeight;
+  var chartH = rect.height;
   if (!chartH) return;
 
   var k = 236 / 200;
-  var viewW = k * chart.clientWidth;
+  var viewW = k * rect.width;
   var viewH = k * chartH;
   var font = fontPx() * k;
 
@@ -369,7 +363,7 @@ function drawChart() {
   function altitude(x, p) { return text(x, chartY(p.height) - 3, metres(p.height)); }
   function label(x, t, i) {
     var h = t.length * .35 * font;
-    var tx = text(clamp(x, h, viewW - h), base + 1.1 * font, t, i === selected ? "selected" : "");
+    var tx = text(clamp(x, h, viewW - h), base + 1.1 * font, esc(t), i === selected ? "selected" : "");
     return i === undefined ? tx : '<a href="#" data-peak="' + i + '">' + tx + '</a>';
   }
   var out = "";
@@ -414,7 +408,7 @@ function drawChart() {
   var maxH = Math.max.apply(null, heights);
   function fillFor(G, colored) {
     var f = maxH > minH ? (G.height - minH) / (maxH - minH) : 1;
-    return "hsl(" + (colored ? hue + " 30%" : "0 0%") + " " + (40 + 40 * f).toFixed(0) + "%)";
+    return "hsl(" + (colored ? hue + ",30%" : "0,0%") + "," + (40 + 40 * f).toFixed(0) + "%)";
   }
   var order = [];
   for (var gi = 0; gi < peaks.length; gi++) if (gi !== target) order.push(gi);
@@ -431,13 +425,13 @@ function drawChart() {
     var guessed = guesses.indexOf(g) !== -1;
     var isSel = g === selected;
     polys += '<polygon' + (guessed ? (isSel ? ' class="selected"' : "") : ' class="unguessed"')
-      + ' style="--fill:' + fillFor(pl.G, guessed) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
+      + ' style="fill:' + fillFor(pl.G, guessed) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (guessed && isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col-altitude")
         + altitude(pl.xg, pl.G) + label(pl.xg, pl.G.name, g);
     }
   }
-  polys += '<polygon class="target" style="--fill:' + fillFor(T, over()) + '" ' + shape(cx, W, T) + '/>';
+  polys += '<polygon class="target" style="fill:' + fillFor(T, over()) + '" ' + shape(cx, W, T) + '/>';
   var boxTop = chartY(10000);
   var boxD = "M" + pt(x0, base) + " L" + pt(x0, boxTop) + " L" + pt(x1, boxTop) + " L" + pt(x1, base);
   if (hasSea) {
@@ -451,8 +445,8 @@ function drawChart() {
     + label(cx, over() ? T.name : "?", over() ? target : undefined);
 
   chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + viewH.toFixed(1));
-  chart.style.setProperty("--font-size", font.toFixed(2) + "px");
-  chart.innerHTML = out;
+  chart.setAttribute("font-size", font.toFixed(2));
+  setSvg(chart, out);
 }
 var raf = window.requestAnimationFrame
   || window.webkitRequestAnimationFrame
@@ -666,7 +660,7 @@ function drawMap() {
   clampView();
   mapSvg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
   updateTouchAction();
-  var px = view.w / mapSvg.clientWidth;
+  var px = view.w / mapSvg.getBoundingClientRect().width;
   var live = !over();
   var tiers = [[], [], []];
   var labels = "";
@@ -727,13 +721,13 @@ function drawMap() {
     var shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
 
     var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
-      + (fill ? ' style="--fill:' + fill + '"' : "") + tap
+      + (fill ? ' style="fill:' + fill + '"' : "") + tap
       + ' points="' + shape + '"/>';
     var label = shown[i]
       ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="selected"' : "")
         + (flipped[i] ? ' text-anchor="end"' : "")
         + ' x="' + (p.x + (flipped[i] ? -1 : 1) * labelDx(i)).toFixed(1) + '" y="' + (p.y + 4 * px).toFixed(1) + '">'
-        + p.name + '</text></a>'
+        + esc(p.name) + '</text></a>'
       : "";
     if (isSel) {
       top = marker + label;
@@ -743,8 +737,8 @@ function drawMap() {
     }
   }
   var layer = $("#markers");
-  layer.style.setProperty("--font-size", (fontPx() * px).toFixed(2) + "px");
-  layer.innerHTML = tiers[0].join("") + tiers[1].join("") + tiers[2].join("") + labels + top;
+  layer.setAttribute("font-size", (fontPx() * px).toFixed(2));
+  setSvg(layer, tiers[0].join("") + tiers[1].join("") + tiers[2].join("") + labels + top);
 }
 var pointers = {};
 function pointerCount() {
@@ -933,7 +927,7 @@ function shareResult() {
     : "I didn't find the mystery peak in " + MAX_GUESSES + " tries.";
 
   var head = mode === "daily"
-    ? "Coldle " + count + " peaks " + new Date().toISOString().slice(0, 10)
+    ? "Coldle " + count + " peaks " + isoDate()
     : "Coldle " + count + " peaks random";
 
   var url = "https://ianto-cannon.github.io/coldle.html"

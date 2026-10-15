@@ -1,3 +1,6 @@
+[hidden]{
+  display:none
+}
 body{
   max-width:1000px
 }
@@ -16,7 +19,7 @@ ol {
   fill:#bbb;
 }
 #map{
-  background: hsl(207 51% 95%);
+  background: hsl(207,51%,95%);
   height:318px;
   max-height:40vh;
   border:1px solid;
@@ -39,35 +42,32 @@ ol {
 }
 #peak-image{
   float:right;
-  border:1px solid;
-  width:210px;
-  max-width:100%;
-  aspect-ratio:4/3;
   position:relative;
   isolation:isolate;
-  align-content:center;
   box-sizing:border-box;
-  padding-top:.8em;
-  text-align:center;
+  width:210px;
+  height:158px;
+  border:1px solid;
   font-size:4em;
+  line-height:208px;
+  text-align:center;
 }
 #peak-image::before{
   content:"";
   position:absolute;
   z-index:-1;
-  inset:0;
-  background:#999;
-  clip-path:polygon(50% 0, 100% 100%, 0 100%);
-}
-@media (max-width:350px){
-  #peak-image{
-    float:none;
-    width:100%;
-  }
+  top:0;
+  left:0;
+  border-left:104px solid transparent;
+  border-right:104px solid transparent;
+  border-bottom:156px solid #999;
 }
 #peak-image a{
   position:absolute;
-  inset:0;
+  top:0;
+  left:0;
+  right:0;
+  bottom:0;
 }
 #peak-image img{
   display:block;
@@ -114,11 +114,8 @@ ol {
 :where(svg) a,:where(svg) a:visited{
   color:blue
 }
-#markers{
-  font-size:var(--font-size)
-}
 #markers polygon{
-  fill:var(--fill, gray);
+  fill:gray;
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
@@ -137,8 +134,7 @@ ol {
   font-weight:bold
 }
 #chart{
-  height:200px;
-  font-size:var(--font-size)
+  height:200px
 }
 #chart line{
   stroke:gray
@@ -152,9 +148,6 @@ ol {
 }
 #chart text.col-altitude{
   text-anchor:start
-}
-#chart polygon{
-  fill:var(--fill)
 }
 #chart polygon.selected{
   stroke:currentColor;
