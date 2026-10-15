@@ -12,18 +12,14 @@ var DEFAULT_COUNT = 50;
 var COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 
 /* ------------------------------------------------ old-browser helpers */
-function addClass(el, c) {
-  if (el.classList) { el.classList.add(c); return; }
-  var parts = (el.className || "").split(/\s+/);
-  for (var i = 0; i < parts.length; i++) if (parts[i] === c) return;
-  el.className = el.className ? el.className + " " + c : c;
-}
+// SVG elements have no classList or string className in old WebKit, so use the class attribute.
 function removeClass(el, c) {
-  if (el.classList) { el.classList.remove(c); return; }
-  var parts = (el.className || "").split(/\s+/);
-  var out = [];
-  for (var i = 0; i < parts.length; i++) if (parts[i] && parts[i] !== c) out.push(parts[i]);
-  el.className = out.join(" ");
+  var cls = " " + (el.getAttribute("class") || "") + " ";
+  el.setAttribute("class", cls.replace(" " + c + " ", " ").replace(/^\s+|\s+$/g, ""));
+}
+function addClass(el, c) {
+  removeClass(el, c);
+  el.setAttribute("class", ((el.getAttribute("class") || "") + " " + c).replace(/^\s+/, ""));
 }
 function clamp(v, lo, hi) { return Math.max(lo, Math.min(hi, v)); }
 function metres(m) { return m.toLocaleString() + " m"; }
@@ -1094,6 +1090,6 @@ try {
 } catch (e) {
   var status = $("#status");
   setHidden(status, false);
-  status.textContent = "Could not load map data: " + e.message;
+  status.textContent = "Could not load map data: " + e.message + (e.line ? " (line " + e.line + ")" : "");
 }
 })();
