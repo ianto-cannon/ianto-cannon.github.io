@@ -43,14 +43,21 @@ ol {
   width:210px;
   max-width:100%;
   aspect-ratio:4/3;
-  position:relative;      /* ← makes this the containing block for ::before */
+  position:relative;
 }
 #peak-image:empty::before{
-  content:"?";
+  content:"";
   position:absolute;
   inset:0;
-  display:grid;
-  place-items:center;
+  background:#999;
+  clip-path:polygon(50% 0, 100% 100%, 0 100%);
+}
+#peak-image:empty::after{
+  content:"?";
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-20%);
   font-size:4em;
 }
 @media (max-width:350px){
