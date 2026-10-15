@@ -2,7 +2,6 @@
   display:none
 }
 body{
-  max-width:1000px
 }
 svg,table{
   width:100%;
@@ -20,8 +19,9 @@ ol {
 }
 #map{
   background: hsl(207,51%,95%);
-  height:318px;
+  aspect-ratio: 3.142;
   max-height:30vh;
+  min-height:20vh;
   border:1px solid;
   touch-action:none;
   user-select:none;
@@ -138,8 +138,9 @@ ol {
   font-weight:bold
 }
 #chart{
-  height:200px;
+  aspect-ratio: 3.142;
   max-height:25vh;
+  min-height:15vh;
 }
 #chart line{
   stroke:gray
