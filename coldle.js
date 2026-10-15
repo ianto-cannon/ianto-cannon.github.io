@@ -467,15 +467,26 @@ function confetti() {
   canvas.height = window.innerHeight * dpr;
   setHidden(canvas, false);
 
-  var btn = $("#action").getBoundingClientRect();
+  // Burst from the guess button and from the mystery peak's photo frame.
+  var origins = [];
+  var sources = [$("#action"), $("#peak-image")];
+  for (var s = 0; s < sources.length; s++) {
+    var el = sources[s];
+    if (!el || el.hasAttribute("hidden")) continue;
+    var r = el.getBoundingClientRect();
+    if (r.width > 0 && r.height > 0) origins.push(r);
+  }
+  if (!origins.length) origins.push($("#action").getBoundingClientRect());
+
   var colors = ["#0072b2", "#e69f00", "#cc79a7", "#56b4e9", "#009e73", "#f0e442"];
   var particles = [];
   for (var i = 0; i < 160; i++) {
+    var ob = origins[i % origins.length];
     var angle = -Math.PI / 2 + (Math.random() - .5) * Math.PI * 1.2;
     var speed = (6 + Math.random() * 11) * dpr;
     particles.push({
-      x: (btn.left + btn.width / 2) * dpr,
-      y: (btn.top + btn.height / 2) * dpr,
+      x: (ob.left + ob.width / 2) * dpr,
+      y: (ob.top + ob.height / 2) * dpr,
       vx: Math.cos(angle) * speed,
       vy: Math.sin(angle) * speed,
       size: (6 + Math.random() * 6) * dpr,
