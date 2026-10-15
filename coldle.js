@@ -323,16 +323,17 @@ function renderStatus() {
 function drawChart() {
   var chart = $("#chart");
   var rect = chart.getBoundingClientRect();
-  var key = [rect.width, rect.height, fontPx(), target,
+  // Old WebKit can report 0 for an SVG's size; fall back to other measures and the CSS height.
+  var chartW = rect.width || chart.clientWidth || chart.parentNode.offsetWidth;
+  var chartH = rect.height || chart.clientHeight || 200;
+  var key = [chartW, chartH, fontPx(), target,
              guesses.join(), selected, over(), peaks.length].join();
   if (key === chart.getAttribute("data-cache-key")) return;
   chart.setAttribute("data-cache-key", key);
 
-  var chartH = rect.height;
-  if (!chartH) return;
 
   var k = 236 / 200;
-  var viewW = k * rect.width;
+  var viewW = k * chartW;
   var viewH = k * chartH;
   var font = fontPx() * k;
 
@@ -605,7 +606,7 @@ function applyCount(n, writeHash) {
 }
 function aspect() {
   var r = mapSvg.getBoundingClientRect();
-  return r.height ? r.width / r.height : world.W / world.H;
+  return r.width / (r.height || mapSvg.clientHeight || 318);
 }
 function minW() { return world.W / MAX_ZOOM; }
 function maxW() { return Math.min(world.W, world.H * aspect()); }
@@ -656,7 +657,7 @@ function drawMap() {
   clampView();
   mapSvg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
   updateTouchAction();
-  var px = view.w / mapSvg.getBoundingClientRect().width;
+  var px = view.w / (mapSvg.getBoundingClientRect().width || mapSvg.parentNode.offsetWidth);
   var live = !over();
   var tiers = [[], [], []];
   var labels = "";
