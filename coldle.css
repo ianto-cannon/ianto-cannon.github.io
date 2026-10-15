@@ -21,7 +21,7 @@ ol {
 #map{
   background: hsl(207,51%,95%);
   height:318px;
-  max-height:40vh;
+  max-height:30vh;
   border:1px solid;
   touch-action:none;
   user-select:none;
@@ -138,7 +138,8 @@ ol {
   font-weight:bold
 }
 #chart{
-  height:200px
+  height:200px;
+  max-height:25vh;
 }
 #chart line{
   stroke:gray
