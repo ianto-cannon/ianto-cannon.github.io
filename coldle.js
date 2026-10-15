@@ -95,7 +95,7 @@ function clearPeakImage() {
   var box = $("#peak-image");
   if (!box) return;
   box.removeAttribute("data-img");
-  while (box.firstChild) box.removeChild(box.firstChild);
+  box.innerHTML = "<span>?</span>";
 }
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
 function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
