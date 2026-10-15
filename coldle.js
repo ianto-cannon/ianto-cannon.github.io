@@ -1,6 +1,4 @@
-// Coldle: guess the mystery peak. peaks.csv columns: name,height,prominence,parent,lat,lon,range,country.
 // map.svg is a Lambert cylindrical equal-area projection (x = longitude, y = sin latitude).
-// ES5 translation, with a top-N selector (default 50; #125, #37, … in the URL).
 (function () {
 
 function $(s) { return document.querySelector(s); }
@@ -13,7 +11,6 @@ var CHART_ASPECT = 3.142;   // matches #chart { aspect-ratio } in coldle.css
 var COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 
 /* ------------------------------------------------ old-browser helpers */
-// SVG elements have no classList or string className in old WebKit, so use the class attribute.
 function removeClass(el, c) {
   var cls = " " + (el.getAttribute("class") || "") + " ";
   el.setAttribute("class", cls.replace(" " + c + " ", " ").replace(/^\s+|\s+$/g, ""));
@@ -143,8 +140,6 @@ var selected = null;
 function won()  { return guesses.indexOf(target) !== -1; }
 function over() { return won() || guesses.length >= MAX_GUESSES; }
 
-// Daily target for a game of n peaks. The game size is mixed into the hash so
-// that different sizes don't share a sequence of targets.
 function imul(a, b) {
   if (Math.imul) return Math.imul(a, b);
   var ah = (a >>> 16) & 0xffff, al = a & 0xffff;
@@ -161,7 +156,6 @@ function newRound() {
   var day = Math.floor(Date.now() / 864e5);
   if (mode === "daily") {
     target = dailyTarget(day, peaks.length);
-    // Larger games must never share the default game's mystery peak.
     if (peaks.length > DEFAULT_COUNT && target === dailyTarget(day, DEFAULT_COUNT)) {
       target = (target + 1) % peaks.length;
       if (target === dailyTarget(day, DEFAULT_COUNT)) target = (target + 1) % peaks.length;
@@ -180,8 +174,6 @@ function guess() {
     selected = target;
     ensureVisible(target);
   }
-  // Fetch the mystery peak's photo once the first guess commits the player to
-  // the round, so it's ready (and cached) by the time the round ends.
   if (guesses.length === 1) peakImage(peaks[target]);
   render();
   if (won()) confetti();
@@ -193,7 +185,6 @@ function guess() {
 function prefersReducedMotion() {
   return !!(window.matchMedia && matchMedia("(prefers-reduced-motion: reduce)").matches);
 }
-// Restart a CSS animation class on el (the old class is removed first, so no cleanup handler is needed).
 function play(el, cls) {
   if (prefersReducedMotion()) return;
   removeClass(el, "flash");
@@ -329,8 +320,6 @@ function renderStatus() {
 function drawChart() {
   var chart = $("#chart");
   var rect = chart.getBoundingClientRect();
-  // Old WebKit can report 0 for an SVG's size; fall back to clientWidth /
-  // parent width, and derive the height from the CSS aspect ratio.
   var viewW = rect.width || chart.clientWidth || (chart.parentNode && chart.parentNode.offsetWidth);
   var viewH = rect.height || chart.clientHeight || viewW / CHART_ASPECT;
   if (!viewW || !viewH) return;
@@ -339,9 +328,7 @@ function drawChart() {
   if (key === chart.getAttribute("data-cache-key")) return;
   chart.setAttribute("data-cache-key", key);
 
-  // One user unit == one CSS pixel, so sizes only need to be read once.
   var font = fontPx();
-
   var axisR = 3 * .6 * font + 2;
   var x0 = axisR + 3;
   var x1 = viewW;
@@ -350,7 +337,6 @@ function drawChart() {
   var wgMax = (x1 - plotL) / 20;
   var W = cx - plotL - .3 * (x1 - plotL);
   var T = peaks[target];
-
   var base = viewH - 1.5 * font;
   var plotH = 0.95 * base;
 
@@ -414,7 +400,6 @@ function drawChart() {
   }
   var order = [];
   for (var gi = 0; gi < peaks.length; gi++) if (gi !== target) order.push(gi);
-  // Unguessed peaks first, so guessed peaks are drawn on top; tallest first within each group.
   order.sort(function (a, b) {
     return (guesses.indexOf(a) !== -1) - (guesses.indexOf(b) !== -1)
       || peaks[b].height - peaks[a].height;
@@ -467,7 +452,6 @@ function confetti() {
   canvas.height = window.innerHeight * dpr;
   setHidden(canvas, false);
 
-  // Burst from the guess button and from the mystery peak's photo frame.
   var origins = [];
   var sources = [$("#action"), $("#peak-image")];
   for (var s = 0; s < sources.length; s++) {
@@ -640,8 +624,6 @@ function clampView() {
   view.x = clamp(view.x, 0, world.W - view.w);
   view.y = clamp(view.y, 0, world.H - view.h);
 }
-// Hand vertical panning back to the browser only when the view has no vertical
-// range, or when the user has dragged past a limit and is still pulling outward.
 function updateTouchAction() {
   var maxY = world.H - view.h;
   var hasRange = view.h < world.H - .5;
@@ -1011,9 +993,7 @@ window.addEventListener("hashchange", function () {
   if (n !== count) applyCount(n, false);
 }, false);
 
-/* ------------------------------------------------ keyboard */
-// Arrow keys step the selection west to east, Enter or Space guesses (or
-// shares, once the game is over), Escape clears the selection.
+// Arrow keys step the selection west to east, Enter or Space guesses
 var panAnim = null;
 function ensureVisible(i) {
   var p = peaks[i];
