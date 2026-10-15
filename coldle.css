@@ -44,26 +44,28 @@ ol {
   max-width:100%;
   aspect-ratio:4/3;
   position:relative;
+  isolation:isolate;
+  align-content:center;
+  text-align:center;
+  font-size:4em;
 }
-#peak-image:not([data-img])::before{
+#peak-image::before{
   content:"";
   position:absolute;
+  z-index:-1;
   inset:0;
   background:#999;
   clip-path:polygon(50% 0, 100% 100%, 0 100%);
-}
-#peak-image span{
-  position:absolute;
-  top:50%;
-  left:50%;
-  transform:translate(-50%,-20%);
-  font-size:4em;
 }
 @media (max-width:350px){
   #peak-image{
     float:none;
     width:100%;
   }
+}
+#peak-image a{
+  position:absolute;
+  inset:0;
 }
 #peak-image img{
   display:block;

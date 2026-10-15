@@ -80,8 +80,8 @@ function commonsThumb(p) {
 function showPeakImage(p) {
   var box = $("#peak-image");
   if (!box || !over() || box.getAttribute("data-img") === p.imgUrl) return;
+  clearPeakImage();
   box.setAttribute("data-img", p.imgUrl);
-  while (box.firstChild) box.removeChild(box.firstChild);
   var a = document.createElement("a");
   a.href = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(p.imgFile);
   var img = document.createElement("img");
@@ -95,7 +95,8 @@ function clearPeakImage() {
   var box = $("#peak-image");
   if (!box) return;
   box.removeAttribute("data-img");
-  box.innerHTML = "<span>?</span>";
+  var a = box.querySelector("a");
+  if (a) box.removeChild(a);
 }
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
 function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
