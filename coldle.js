@@ -9,6 +9,7 @@ var MAX_GUESSES = 8;
 var MAX_ZOOM = 150;
 var RAD = Math.PI / 180;
 var DEFAULT_COUNT = 50;
+var CHART_ASPECT = 3.142;   // matches #chart { aspect-ratio } in coldle.css
 var COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 
 /* ------------------------------------------------ old-browser helpers */
@@ -323,23 +324,22 @@ function renderStatus() {
 function drawChart() {
   var chart = $("#chart");
   var rect = chart.getBoundingClientRect();
-  // Old WebKit can report 0 for an SVG's size; fall back to other measures and the CSS height.
-  var chartW = rect.width || chart.clientWidth || chart.parentNode.offsetWidth;
-  var chartH = rect.height || chart.clientHeight || 200;
-  var key = [chartW, chartH, fontPx(), target,
+  // Old WebKit can report 0 for an SVG's size; fall back to clientWidth /
+  // parent width, and derive the height from the CSS aspect ratio.
+  var viewW = rect.width || chart.clientWidth || (chart.parentNode && chart.parentNode.offsetWidth);
+  var viewH = rect.height || chart.clientHeight || viewW / CHART_ASPECT;
+  if (!viewW || !viewH) return;
+  var key = [viewW, viewH, fontPx(), target,
              guesses.join(), selected, over(), peaks.length].join();
   if (key === chart.getAttribute("data-cache-key")) return;
   chart.setAttribute("data-cache-key", key);
 
-
-  var k = 236 / 200;
-  var viewW = k * chartW;
-  var viewH = k * chartH;
-  var font = fontPx() * k;
+  // One user unit == one CSS pixel, so sizes only need to be read once.
+  var font = fontPx();
 
   var axisR = 3 * .6 * font + 2;
   var x0 = axisR + 3;
-  var x1 = viewW - 1;
+  var x1 = viewW;
   var plotL = x0 + 8;
   var cx = plotL + .93 * (x1 - plotL);
   var wgMax = (x1 - plotL) / 20;
@@ -347,7 +347,7 @@ function drawChart() {
   var T = peaks[target];
 
   var base = viewH - 1.5 * font;
-  var plotH = 0.848 * base;
+  var plotH = 0.95 * base;
 
   function chartY(alt) { return base - alt / 10000 * plotH; }
   function text(x, y, t, cls) {
@@ -381,9 +381,9 @@ function drawChart() {
   var hasSea = seaL !== null && seaR !== null && seaR > seaL;
 
   if (hasSea) {
-    var waveN = Math.max(2, Math.round((seaR - seaL) / (7 * k)));
+    var waveN = Math.max(2, Math.round((seaR - seaL) / 7));
     var halfWave = (seaR - seaL) / waveN;
-    var sea = "M" + pt(seaL, base) + " Q" + pt(seaL + halfWave / 2, base - 1.5 * k) + " " + pt(seaL + halfWave, base);
+    var sea = "M" + pt(seaL, base) + " Q" + pt(seaL + halfWave / 2, base - 1.5) + " " + pt(seaL + halfWave, base);
     for (var wi = 2; wi <= waveN; wi++) sea += " T" + pt(seaL + wi * halfWave, base);
     out += '<a><path class="sea" d="' + sea + '"/></a>';
   }
