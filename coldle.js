@@ -72,6 +72,8 @@ function commonsThumb(p) {
       var ii = page && page.imageinfo && page.imageinfo[0];
       if (!ii || !ii.thumburl) return;
       p.imgUrl = ii.thumburl;
+      // Prefetch the bytes so the photo shows instantly when the round ends.
+      (new Image()).src = p.imgUrl;
       showPeakImage(p);
     });
 }
@@ -178,6 +180,9 @@ function guess() {
     selected = target;
     ensureVisible(target);
   }
+  // Fetch the mystery peak's photo once the first guess commits the player to
+  // the round, so it's ready (and cached) by the time the round ends.
+  if (guesses.length === 1) peakImage(peaks[target]);
   render();
   if (won()) confetti();
   else if (over()) {
