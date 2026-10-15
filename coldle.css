@@ -46,6 +46,8 @@ ol {
   position:relative;
   isolation:isolate;
   align-content:center;
+  box-sizing:border-box;
+  padding-top:.8em;
   text-align:center;
   font-size:4em;
 }
