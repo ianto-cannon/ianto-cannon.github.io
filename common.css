@@ -33,7 +33,7 @@ button {
   margin-top:auto;
 }
 .foot {
-  display: block; /*on old browsers*/
+  display: block;
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -43,10 +43,10 @@ button {
   width: 1em;
   aspect-ratio: 1;
 }
-.theme-toggle {/*hide the buttons if no javascript*/
+.theme-toggle {
   display: none;
 }
-input[type="radio"], label {/*prevent line break between button and label*/
+input[type="radio"], label {
   cursor: pointer;
   display: inline;
   white-space: nowrap;

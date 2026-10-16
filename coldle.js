@@ -374,7 +374,7 @@ function drawChart() {
   if (hasSea) {
     var waveN = Math.max(2, Math.round((seaR - seaL) / 7));
     var halfWave = (seaR - seaL) / waveN;
-    var sea = "M" + pt(seaL, base) + " Q" + pt(seaL + halfWave / 2, base - 1.5) + " " + pt(seaL + halfWave, base);
+    var sea = "M" + pt(seaL, base) + " Q" + pt(seaL + halfWave / 2, base - 5) + " " + pt(seaL + halfWave, base);
     for (var wi = 2; wi <= waveN; wi++) sea += " T" + pt(seaL + wi * halfWave, base);
     out += '<a><path class="sea" d="' + sea + '"/></a>';
   }
@@ -715,7 +715,7 @@ function drawMap() {
     var tap = live ? ' data-peak="' + i + '"' : "";
     var fill = revealed ? colGuess(100) : (guessed ? colGuess(linkToTarget(i).pct) : "");
     var cls = isSel ? "selected" : "";
-    var shape = triangle(p.x, p.y, isSel ? 12.6 * px : 7 * px);
+    var shape = triangle(p.x, p.y, isSel ? 20 * px : 10 * px);
 
     var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
       + (fill ? ' style="fill:' + fill + '"' : "") + tap

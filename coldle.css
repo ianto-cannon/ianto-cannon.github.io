@@ -139,7 +139,7 @@ ol {
 }
 #chart{
   aspect-ratio: 3.142;
-  max-height:25vh;
+  max-height:20vh;
   min-height:15vh;
 }
 #chart line{
@@ -172,6 +172,7 @@ ol {
 }
 #chart .sea{
   stroke:currentColor;
+  fill:none;
   stroke-width:2px;
   stroke-linecap:round;
   vector-effect:non-scaling-stroke
