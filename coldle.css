@@ -138,9 +138,9 @@ ol {
   font-weight:bold
 }
 #chart{
-  aspect-ratio: 3.142;
-  max-height:20vh;
-  min-height:15vh;
+  aspect-ratio: 4;
+  max-height:15vh;
+  min-height:10vh;
 }
 #chart line{
   stroke:gray
