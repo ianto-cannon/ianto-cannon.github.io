@@ -20,8 +20,8 @@ ol {
 #map{
   background: hsl(207,51%,95%);
   aspect-ratio: 3.142;
-  max-height:30vh;
-  min-height:20vh;
+  max-height:40vh;
+  min-height:30vh;
   border:1px solid;
   touch-action:none;
   user-select:none;
@@ -158,8 +158,8 @@ ol {
 }
 #chart{
   aspect-ratio: 4;
-  max-height:15vh;
-  min-height:10vh;
+  max-height:25vh;
+  min-height:20vh;
 }
 #chart line{
   stroke:gray
