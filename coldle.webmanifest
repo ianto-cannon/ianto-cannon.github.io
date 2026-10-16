@@ -1,7 +1,7 @@
 {
   "name": "Coldle",
   "short_name": "Coldle",
-  "description": "Guess the mystery mountain peak among the world's most prominent summits.",
+  "description": "Guess the mystery mountain from the world's most prominent peaks.",
   "start_url": "coldle.html",
   "display": "standalone",
   "background_color": "#000000",
