@@ -113,7 +113,7 @@ function isoDate() {
 function fontPx() { return parseFloat(getComputedStyle(document.body).fontSize); }
 function colGuess(pct, alpha) {
   if (alpha === undefined) alpha = 1;
-  return "hsla(" + hue + ",65%," + (20 + 70 * Math.pow(pct / 100, .25)) + "%," + alpha + ")";
+  return "hsla(" + hue + ",30%," + (20 + 70 * Math.pow(pct / 100, .25)) + "%," + alpha + ")";
 }
 var CSV_RE = /(?:^|,)("(?:[^"]|"")*"|[^,]*)/g;
 function parseCSV(text) {
@@ -394,9 +394,9 @@ function drawChart() {
   var heights = peaks.map(function (p) { return p.height; });
   var minH = Math.min.apply(null, heights);
   var maxH = Math.max.apply(null, heights);
-  function fillFor(G, colored) {
+  function greyFor(G) {
     var f = maxH > minH ? (G.height - minH) / (maxH - minH) : 1;
-    return "hsl(" + (colored ? hue + ",30%" : "0,0%") + "," + (40 + 40 * f).toFixed(0) + "%)";
+    return "hsl(0,0%," + (40 + 40 * f).toFixed(0) + "%)";
   }
   var order = [];
   for (var gi = 0; gi < peaks.length; gi++) if (gi !== target) order.push(gi);
@@ -412,13 +412,15 @@ function drawChart() {
     var guessed = guesses.indexOf(g) !== -1;
     var isSel = g === selected;
     polys += '<polygon' + (guessed ? (isSel ? ' class="selected"' : "") : ' class="unguessed"')
-      + ' style="fill:' + fillFor(pl.G, guessed) + '" ' + shape(pl.xg, pl.wg, pl.G) + '/>';
+      + ' style="fill:' + (guessed ? colGuess(linkToTarget(g).pct) : greyFor(pl.G)) + '" '
+      + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (guessed && isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col-altitude")
         + altitude(pl.xg, pl.G) + label(pl.xg, pl.G.name, g);
     }
   }
-  polys += '<polygon class="target" style="fill:' + fillFor(T, over()) + '" ' + shape(cx, W, T) + '/>';
+  polys += '<polygon class="target" style="fill:' + (over() ? colGuess(100) : greyFor(T)) + '" '
+    + shape(cx, W, T) + '/>';
   var boxTop = chartY(10000);
   var boxD = "M" + pt(x0, base) + " L" + pt(x0, boxTop) + " L" + pt(x1, boxTop) + " L" + pt(x1, base);
   if (hasSea) {
