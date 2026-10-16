@@ -62,18 +62,34 @@ ol {
   border-right:104px solid transparent;
   border-bottom:156px solid #999;
 }
-#peak-image a{
+#peak-image img{
   position:absolute;
   top:0;
   left:0;
-  right:0;
-  bottom:0;
-}
-#peak-image img{
   display:block;
   width:100%;
   height:100%;
   object-fit:cover;
+}
+#peak-image .credit{
+  position:absolute;
+  left:0;
+  right:0;
+  bottom:0;
+  margin:0;
+  padding:2px 4px;
+  font-size:10px;
+  line-height:1.2;
+  color:#fff;
+  background:rgba(0,0,0,.55);
+  white-space:nowrap;
+  overflow:hidden;
+  text-overflow:ellipsis;
+}
+#peak-image .credit a,
+#peak-image .credit a:visited{
+  color:#fff;
+  text-decoration:underline;
 }
 .flash{
   animation:flash 1s

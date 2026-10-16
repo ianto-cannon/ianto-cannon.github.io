@@ -61,7 +61,7 @@ function peakImage(p) {
 }
 function commonsThumb(p) {
   getJSON("https://commons.wikimedia.org/w/api.php?action=query&format=json&origin=*"
-    + "&prop=imageinfo&iiprop=url&iiurlwidth=480&titles=File:" + encodeURIComponent(p.imgFile),
+    + "&prop=imageinfo&iiprop=url|extmetadata&iiurlwidth=480&titles=File:" + encodeURIComponent(p.imgFile),
     function (j) {
       var pages = j && j.query && j.query.pages;
       var page;
@@ -69,31 +69,66 @@ function commonsThumb(p) {
       var ii = page && page.imageinfo && page.imageinfo[0];
       if (!ii || !ii.thumburl) return;
       p.imgUrl = ii.thumburl;
+      p.imgCredit = creditFrom(ii.extmetadata, p.imgFile);
       // Prefetch the bytes so the photo shows instantly when the round ends.
       (new Image()).src = p.imgUrl;
       showPeakImage(p);
     });
 }
+function stripHtml(s) {
+  // Parse as HTML in a detached document; scripts do not run and images do not load.
+  if (!s) return "";
+  var doc = new DOMParser().parseFromString(String(s), "text/html");
+  return (doc.body.textContent || "").replace(/\s+/g, " ").replace(/^\s+|\s+$/g, "");
+}
+function creditFrom(m, file) {
+  var filePage = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(file);
+  if (!m) return { artist: "", license: "", licenseUrl: "", filePage: filePage };
+  function val(k) { return m[k] && m[k].value; }
+  return {
+    artist: stripHtml(val("Artist")),
+    license: stripHtml(val("LicenseShortName")),
+    licenseUrl: stripHtml(val("LicenseUrl")),
+    filePage: filePage
+  };
+}
+function escAttr(s) { return esc(s).replace(/"/g, "&quot;"); }
 function showPeakImage(p) {
   var box = $("#peak-image");
   if (!box || !over() || box.getAttribute("data-img") === p.imgUrl) return;
   clearPeakImage();
   box.setAttribute("data-img", p.imgUrl);
-  var a = document.createElement("a");
-  a.href = "https://commons.wikimedia.org/wiki/File:" + encodeURIComponent(p.imgFile);
+
   var img = document.createElement("img");
   img.alt = p.name;
   img.onerror = clearPeakImage;
   img.src = p.imgUrl;
-  a.appendChild(img);
-  box.appendChild(a);
+  box.appendChild(img);
+
+  var c = p.imgCredit;
+  if (c && (c.artist || c.license)) {
+    var cap = document.createElement("p");
+    cap.className = "credit";
+    var html = "";
+    if (c.artist) html += esc(c.artist) + ", ";
+    if (c.license) {
+      html += c.licenseUrl
+        ? '<a href="' + escAttr(c.licenseUrl) + '">' + esc(c.license) + "</a>, "
+        : esc(c.license) + ", ";
+    }
+    html += '<a href="' + escAttr(c.filePage) + '">Commons</a>';
+    cap.innerHTML = html;
+    box.appendChild(cap);
+  }
 }
 function clearPeakImage() {
   var box = $("#peak-image");
   if (!box) return;
   box.removeAttribute("data-img");
-  var a = box.querySelector("a");
-  if (a) box.removeChild(a);
+  var img = box.querySelector("img");
+  if (img) box.removeChild(img);
+  var cap = box.querySelector(".credit");
+  if (cap) box.removeChild(cap);
 }
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
