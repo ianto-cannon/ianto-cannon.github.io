@@ -86,19 +86,19 @@
   <a href="clockSolar.html" aria-label="Solar system clock, open in fullscreen"><svg class="solar"></svg></a>
   <a href="clockLunar.html" aria-label="Moon phase clock, open in fullscreen"><svg class="lunar"></svg></a>
   <p class="control">
-    <span role="radiogroup" aria-label="Animation speed">
+    <span id="speedLabel">Speed:</span>
+    <span role="radiogroup" aria-labelledby="speedLabel">
       <label><input type="radio" name="speed" value="1" checked>1x speed</label>
       <label><input type="radio" name="speed" value="3600">1 hour per second</label>
       <label><input type="radio" name="speed" value="86400">1 day per second</label>
-    </span><br>
-    <label for="datetime">set date and time:</label>
+      <label><input type="radio" name="speed" value="0">Stopped.</label>
+    </span>
+    <label for="datetime">Input date and time:</label>
     <input type="datetime-local" id="datetime"/>
-    <span class="timeZone"></span>.
+    (<span class="timeZone"></span>).
   </p>
   <p>
-    The Sun appears in <span class="currentZodiac">loading…</span> with declination <span class="tilt">loading…</span>&deg;. The Moon is <span class="moonPhase">loading…</span>.
-  </p>
-  <p>
+    At the date and time shown, the Sun appears in <span class="currentZodiac">loading…</span>, with a declination of <span class="tilt">loading…</span>&deg; (the latitude where it is directly overhead; negative means south of the equator). The Moon is <span class="moonPhase">loading…</span>.
   </p>
   <h2>Peaks</h2>
   <p>The highest peak moves from right to left once per millenium, the next highest once per year, once per day, once per hour, and once per minute.</p>

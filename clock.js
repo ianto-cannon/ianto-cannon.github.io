@@ -324,7 +324,7 @@ if (svgSolar || svgLunar) {
 
   var stopClock = function() {
     setSpeed(0);
-    for (var i = 0; i < speedInputs.length; i++) speedInputs[i].checked = false;
+    for (var i = 0; i < speedInputs.length; i++) speedInputs[i].checked = speedInputs[i].value === "0";
   };
 
   var animationStep = function() {
