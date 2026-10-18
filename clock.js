@@ -1,11 +1,26 @@
+// Wrapped in an IIFE so none of these names leak into the global scope that
+// common.js and the other page scripts share. Everything this file needs from
+// common.js (svgNS, hue, time, sides, timeFracs, getTime, padStartFn, darkMode,
+// reducedAnimation, scheduleFrame, FRAME_MS, ...) is still reachable as a global.
+(function() {
+
 function colorScheme(h) {
   var l = darkMode ? 70 : 30;
   return "hsl(" + h + ", 30%, " + l + "%)";
 }
 function pad(n) { return padStartFn(n.toString(), 2, '0'); } // Uses padStartFn from common.js
 
+// Counterpart of scheduleFrame() in common.js. It follows the same branch order,
+// so the id is always cancelled with the API that created it (a timeout id and an
+// animation-frame id live in separate spaces and must not be mixed up).
+function cancelFrame(id) {
+  if (id == null) return;
+  if (reducedAnimation || !window.requestAnimationFrame) clearTimeout(id);
+  else window.cancelAnimationFrame(id);
+}
+
+// Callers must run getTime() first; it is not repeated per polygon any more.
 function generatePolygonPath(svg, path, level) {
-  getTime();
   var pathStr = ["M50,50 "];
   for (var i = 0; i <= time[level]; i++) {
     var theta = i / sides[level] * 2 * Math.PI;
@@ -16,6 +31,7 @@ function generatePolygonPath(svg, path, level) {
   path.setAttribute("fill", colorScheme(hue));
 }
 
+// Callers must run getTime() first.
 function maskPolygon(svg, path, level) {
   path.removeAttribute("mask");
   // Old browsers (the same ones that miss aspect-ratio support) have been
@@ -49,8 +65,8 @@ function maskPolygon(svg, path, level) {
   path.setAttribute("mask", "url(#line" + level + ")");
 }
 
-function generateBlobPath(blo, wavMin, wavMax) {
-  getTime();
+// Callers must run getTime() first. Draws one blob; scheduling lives in updateBlobs().
+function drawBlob(blo, wavMin, wavMax) {
   var radius = 250, points = 50, variation = 150, path = [], r = [], r2 = [];
   for(var i=0; i<=points; i++) { r.push(radius); r2.push(radius); }
   var x1, y1;
@@ -74,22 +90,16 @@ function generateBlobPath(blo, wavMin, wavMax) {
   }
   blo.setAttribute("d", path.join(" ") + " Z");
   blo.setAttribute("fill", colorScheme(hue));
-  scheduleFrame(function() { generateBlobPath(blo, wavMin, wavMax); }, 300);
 }
 
-function updateTimeStr() {
-  getTime();
-  document.getElementById("timeStr").textContent = year + " " + monthStr + " " + date + " " + weekday + " " + pad(hour) + ":" + pad(minute) + ":" + pad(second);
-  var tzSpans = document.querySelectorAll("span.timeZone");
-  for (var i = 0; i < tzSpans.length; i++) { tzSpans[i].textContent = timeZoneName; }
-}
-
+// Reuses the existing <path> instead of rebuilding it, so a click that starts on
+// the clock is not lost when the element under the pointer is deleted mid-click.
 function drawBinaryClock(svg) {
-  while (svg.firstChild) svg.removeChild(svg.firstChild);
-  var path = document.createElementNS(svgNS, "path"), d = "";
+  var path = svg.firstChild;
+  if (!path) { path = document.createElementNS(svgNS, "path"); svg.appendChild(path); }
+  var d = "";
   for (var i = 0; i < 31; i++) { if (binary[i] === '1') { d += "M" + i + ",0 h1 v1 h-1 Z "; } }
   path.setAttribute("d", d.trim()); path.setAttribute("fill", colorScheme(hue));
-  svg.appendChild(path);
 }
 
 function createStickFigure(svgNS, size, raise) {
@@ -177,51 +187,87 @@ function formatDateTime(ms) {
   return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
 }
 
+// ---- Blobs: one loop, one getTime() per update for all blobs ----
+var blobs = [];
 var pathsWithMinMax = document.querySelectorAll("path[data-min][data-max]");
 for (var i = 0; i < pathsWithMinMax.length; i++) {
-  var path = pathsWithMinMax[i];
-  var svg = path.parentNode;
-  while (svg && svg.tagName !== 'svg') svg = svg.parentNode; // closest polyfill
-  if (svg) svg.setAttribute("viewBox", "0 0 1000 1000");
-  var min = parseInt(path.getAttribute("data-min"), 10), max = parseInt(path.getAttribute("data-max"), 10);
-  generateBlobPath(path, min, max);
+  var blobPath = pathsWithMinMax[i];
+  var blobSvg = blobPath.ownerSVGElement; // nearest ancestor <svg>
+  if (blobSvg) blobSvg.setAttribute("viewBox", "0 0 1000 1000");
+  blobs.push({
+    path: blobPath,
+    min: parseInt(blobPath.getAttribute("data-min"), 10),
+    max: parseInt(blobPath.getAttribute("data-max"), 10)
+  });
 }
+function updateBlobs() {
+  getTime();
+  for (var i = 0; i < blobs.length; i++) drawBlob(blobs[i].path, blobs[i].min, blobs[i].max);
+  scheduleFrame(updateBlobs, 300);
+}
+if (blobs.length) updateBlobs();
 
+// ---- Polygons ----
+// Each polygon's svg/path/level is stored in its own object. The old code kept
+// them in shared `var`s that every setInterval callback closed over, so after the
+// loop all callbacks redrew only the last polygon.
+var polyItems = [];
 var polySvgs = document.querySelectorAll("svg.poly");
 for (var i = 0; i < polySvgs.length; i++) {
-  var svg = polySvgs[i], path = svg.querySelector("path");
-  var level = parseInt(path.getAttribute("data-level"), 10);
-  maskPolygon(svg, path, level); generatePolygonPath(svg, path, level);
-  svg.setAttribute("viewBox", "0 0 100 100");
-  setInterval(function() { maskPolygon(svg, path, level); }, 1000);
-  setInterval(function() { generatePolygonPath(svg, path, level); }, 1000);
+  var polyPath = polySvgs[i].querySelector("path");
+  polySvgs[i].setAttribute("viewBox", "0 0 100 100");
+  polyItems.push({
+    svg: polySvgs[i],
+    path: polyPath,
+    level: parseInt(polyPath.getAttribute("data-level"), 10)
+  });
 }
 
-setInterval(function() {
-  getTime();
-  var spans = document.querySelectorAll("span[data-level]");
-  for (var i = 0; i < spans.length; i++) { 
-    var level = parseInt(spans[i].getAttribute("data-level"), 10);
-    spans[i].textContent = " (" + time[level] + ")";
-  }
-}, 1000);
-
-if (document.getElementById("timeStr")) { updateTimeStr(); setInterval(updateTimeStr, 1000); }
-
+// ---- Text readouts and binary clocks ----
+var timeStrEl = document.getElementById("timeStr");
+var tzSpans = document.querySelectorAll("span.timeZone");
+var levelSpans = document.querySelectorAll("span[data-level]");
 var binaryClocks = document.querySelectorAll("svg.binaryClock");
 for (var i = 0; i < binaryClocks.length; i++) {
-  drawBinaryClock(binaryClocks[i]);
   binaryClocks[i].setAttribute("viewBox", "0 0 31 1");
-  setInterval(function(svg) { return function() { drawBinaryClock(svg); }; }(binaryClocks[i]), 1000);
 }
 
+function updateTimeStr() {
+  timeStrEl.textContent = year + " " + monthStr + " " + date + " " + weekday + " " + pad(hour) + ":" + pad(minute) + ":" + pad(second);
+  for (var i = 0; i < tzSpans.length; i++) { tzSpans[i].textContent = timeZoneName; }
+}
+
+// One tick per second drives the polygons, binary clocks and text. It calls
+// getTime() once, and re-arms itself for the next second boundary instead of using
+// setInterval(…, 1000), which drifts relative to the wall clock.
+function secondTick() {
+  getTime();
+  for (var i = 0; i < polyItems.length; i++) {
+    var it = polyItems[i];
+    maskPolygon(it.svg, it.path, it.level);
+    generatePolygonPath(it.svg, it.path, it.level);
+  }
+  for (var i = 0; i < binaryClocks.length; i++) drawBinaryClock(binaryClocks[i]);
+  for (var i = 0; i < levelSpans.length; i++) {
+    var level = parseInt(levelSpans[i].getAttribute("data-level"), 10);
+    levelSpans[i].textContent = " (" + time[level] + ")";
+  }
+  if (timeStrEl) updateTimeStr();
+  setTimeout(secondTick, 1000 - (Date.now() % 1000) + 5);
+}
+// Pages with none of these elements (e.g. clockPeaks.html) skip the timer entirely.
+if (polyItems.length || binaryClocks.length || levelSpans.length || timeStrEl) secondTick();
+
+// ---- Solar system and Moon ----
 var svgSolar = document.querySelector("svg.solar"), svgLunar = document.querySelector("svg.lunar");
 
 if (svgSolar || svgLunar) {
   var w = 500;
   if (svgSolar) svgSolar.setAttribute("viewBox", "0 0 " + w + " " + w);
   var phases = ['full', 'waxing gibbous', "in its first quarter", 'a waxing crescent', 'new', 'a waning crescent', "in its last quarter", 'waning gibbous'];
-  var zodiac = ['♈︎', '♉︎', '♊︎', '♋︎', '♌︎', '♍︎', '♎︎', '♏︎', '♐︎', '♑︎', '♒︎', '♓︎'];
+  // U+2648..U+2653 followed by U+FE0E (text presentation), written as escapes so the
+  // invisible variation selectors can't get lost when the file is copied around.
+  var zodiac = ['\u2648\uFE0E', '\u2649\uFE0E', '\u264A\uFE0E', '\u264B\uFE0E', '\u264C\uFE0E', '\u264D\uFE0E', '\u264E\uFE0E', '\u264F\uFE0E', '\u2650\uFE0E', '\u2651\uFE0E', '\u2652\uFE0E', '\u2653\uFE0E'];
   var zodiacName = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
   var zodiacGroup = document.createElementNS(svgNS, "g");
   zodiacGroup.setAttribute("class", "zodiac");
@@ -276,18 +322,21 @@ if (svgSolar || svgLunar) {
   var datetimeInput = document.getElementById("datetime");
   var playPauseBtn = document.querySelector(".playPauseBtn");
 
+  // Looked up once instead of three querySelectorAll calls on every frame.
+  var tiltSpans = document.querySelectorAll("span.tilt");
+  var czSpans = document.querySelectorAll("span.currentZodiac");
+  var mpSpans = document.querySelectorAll("span.moonPhase");
+
   var updateSolar = function(solTime) {
     earth.updateOrbits(solTime); moon.updateOrbits(solTime);
     var angle = (earth.angle * 180 / Math.PI + 180 - 360 * solTime / 24 / 60 / 60 / 1000) % 360;
     stickFigure.setAttribute("transform", "translate(" + earth.x.toFixed(1) + ", " + earth.y.toFixed(1) + ") rotate(" + angle.toFixed(2) + ")");
     if (datetimeInput) datetimeInput.value = formatDateTime(solTime);
-    var tiltSpans = document.querySelectorAll("span.tilt");
-    for (var i = 0; i < tiltSpans.length; i++) tiltSpans[i].textContent = (earth.tilt * Math.cos(earth.angle)).toFixed(1);
+    var tiltStr = (earth.tilt * Math.cos(earth.angle)).toFixed(1);
+    for (var i = 0; i < tiltSpans.length; i++) tiltSpans[i].textContent = tiltStr;
     var j = getZodiacFromDate(new Date(solTime));
-    var czSpans = document.querySelectorAll("span.currentZodiac");
     for (var i = 0; i < czSpans.length; i++) czSpans[i].textContent = zodiacName[j] + ' ' + zodiac[j];
     var i_val = ((((moon.angle - earth.angle) * 4 / Math.PI + 0.5) % 8) + 8) % 8;
-    var mpSpans = document.querySelectorAll("span.moonPhase");
     for (var i = 0; i < mpSpans.length; i++) mpSpans[i].textContent = phases[Math.floor(i_val)];
     var waxing = Math.sin(moon.angle - earth.angle) >= 0 ? 1 : 0;
     var crescentVal = Math.cos(moon.angle - earth.angle);
@@ -296,47 +345,51 @@ if (svgSolar || svgLunar) {
     lightSide.setAttribute("d", "M " + (.4 * w).toFixed(0) + " " + (w / 2 + earth.orbitR).toFixed(0) + "A " + innerR.toFixed(1) + " " + earth.orbitR.toFixed(0) + " 0 0 " + leftTerminator + " " + (.4 * w).toFixed(0) + " " + (w / 2 - earth.orbitR).toFixed(0) + "A " + earth.orbitR.toFixed(0) + " " + earth.orbitR.toFixed(0) + " 0 0 " + waxing + " " + (.4 * w).toFixed(0) + " " + (w / 2 + earth.orbitR).toFixed(0));
   };
 
-  var solTime = Date.now(), playing = false, animationId = null;
+  var solTime = Date.now(), playing = false, animationId = null, lastTick = 0;
   updateSolar(solTime);
 
-  // Simulated minutes advanced per redraw, scaled so the clock covers the
-  // same simulated time per real second whether redrawing at 60fps or, on
-  // old/e-ink browsers, once every couple of seconds via scheduleFrame.
-  var simMsPerRedraw = 1000 * 60 * 20 * (FRAME_MS / (1000 / 60));
+  // Simulation speed: 20 simulated minutes per 1/60 s of real time, i.e. 72000
+  // simulated ms per real ms. The animation advances by the real time elapsed
+  // since the previous frame, so it runs at the same speed on 60 Hz, 144 Hz and
+  // slow e-ink refresh rates (the old fixed step ran 2x+ too fast on 120/144 Hz).
+  var SIM_SPEED = (20 * 60 * 1000) * 60 / 1000;
+  // Cap the step so a long pause (hidden tab) doesn't make the clock jump ahead.
+  var MAX_STEP_MS = Math.max(3 * FRAME_MS, 300);
 
   var animationStep = function() {
-    if (playing) {
-      solTime += simMsPerRedraw;
-      updateSolar(solTime);
-      animationId = scheduleFrame(animationStep);
-    }
+    if (!playing) return;
+    var now = Date.now();
+    var dt = Math.min(now - lastTick, MAX_STEP_MS);
+    lastTick = now;
+    solTime += dt * SIM_SPEED;
+    updateSolar(solTime);
+    animationId = scheduleFrame(animationStep);
   };
 
-  var stopAnimation = function() {
-    if (window.cancelAnimationFrame) window.cancelAnimationFrame(animationId);
-    clearTimeout(animationId);
+  var pauseAnimation = function() {
+    playing = false;
+    cancelFrame(animationId);
+    animationId = null;
+    if (playPauseBtn) playPauseBtn.innerHTML = "&#9654; Play";
   };
 
   if (playPauseBtn) {
     playPauseBtn.addEventListener("click", function() {
-      playing = !playing;
-      playPauseBtn.innerHTML = playing ? "&#9208; Pause" : "&#9654; Play";
-      if (playing) { animationId = scheduleFrame(animationStep); }
-      else { stopAnimation(); }
+      if (playing) { pauseAnimation(); return; }
+      playing = true;
+      playPauseBtn.innerHTML = "&#9208; Pause";
+      lastTick = Date.now();
+      animationId = scheduleFrame(animationStep);
     });
     if (datetimeInput) {
       datetimeInput.addEventListener("input", function() {
-        playing = false;
-        stopAnimation();
-        playPauseBtn.innerHTML = "&#9654; Play";
+        pauseAnimation();
         var newTime = new Date(datetimeInput.value).getTime();
         if (!isNaN(newTime)) { solTime = newTime; updateSolar(solTime); }
       });
-      datetimeInput.addEventListener("focus", function() {
-        playing = false;
-        stopAnimation();
-        playPauseBtn.innerHTML = "&#9654; Play";
-      });
+      datetimeInput.addEventListener("focus", pauseAnimation);
     }
   }
 }
+
+})();

@@ -38,7 +38,7 @@
   <p>The current time is <span id="timeStr">loading…</span> (<span class="timeZone"></span>).</p>
   <h2>Binary</h2>
   <p>These squares show the <a href="https://samuel-saegesser.ch/_apps/BinaryClock_UNIX/index.php">Unix time</a>, which counts the seconds since 1970.</p>
-  <a href="clockBinary.html">
+  <a href="clockBinary.html" aria-label="Binary clock, open in fullscreen">
     <svg class="binaryClock"></svg>
   </a>
   <p>In 2038, 32-bit clocks like this will overflow, and the <a href="https://saej.in/posts/hanoi/">two billion towers of time</a> will be solved.</p>
@@ -47,7 +47,7 @@
     These polygons show the time in the format yy:M:w:d:h:mm:ss, where M is the month (empty 11-gon for January and full 11-gon for December), w is the week in the month, and d is the day of the week (empty hexagon for Monday and full hexagon for Sunday).
   </p>
   <div class="poly-container">
-    <a href="clockPoly.html">
+    <a href="clockPoly.html" aria-label="Polygon clock, open in fullscreen">
       <svg class="poly"><path data-level="0"/></svg>
       <svg class="poly"><path data-level="1"/></svg><span class="raised">:</span>
       <svg class="poly"><path data-level="2"/></svg><span class="raised">:</span>
@@ -65,7 +65,7 @@
     Inspired by <a href=https://www.blobmaker.app/>blobmaker</a>, I made some blobs which change over time. The leftmost blob has a travelling wave that passes the top once per millennium.  
     The following blobs have waves that pass once per year, day, hour, minute, and second, respectively.
   </p>
-  <a href="clockBlobs.html">
+  <a href="clockBlobs.html" aria-label="Blob clocks, open in fullscreen">
     <svg class="blob"><path data-min="1" data-max="1" /></svg>
     <svg class="blob"><path data-min="2" data-max="2" /></svg>
     <svg class="blob"><path data-min="3" data-max="3" /></svg>
@@ -75,7 +75,7 @@
   </a>
   <br>
   <p>The final blob has all six of the above waves on it.</p>
-  <a href="clockBlob.html"><svg class="blob"><path data-min="1" data-max="6" /></svg></a>
+  <a href="clockBlob.html" aria-label="Combined blob clock, open in fullscreen"><svg class="blob"><path data-min="1" data-max="6" /></svg></a>
   <h2>Solar system</h2>
   <p>
     The left clock shows orbits of the Earth and Moon around the Sun, as viewed from the perspective of the North Star. The <a href="https://en.wikipedia.org/wiki/Sidereal_and_tropical_astrology">tropical zodiac</a> are fixed in the surrounding sky, and shaded lines show the <a href="https://www.pveducation.org/pvcdrom/properties-of-sunlight/declination-angle">declination of the Sun</a> at 10° intervals. The top and bottom of the Earth's orbit correspond to the June and December solstices.
@@ -83,8 +83,8 @@
   <p>
     The right clock shows the Moon phase, as seen from Earth.
   </p>
-  <a href="clockSolar.html"><svg class="solar"></svg></a>
-  <a href="clockLunar.html"><svg class="lunar"></svg></a>
+  <a href="clockSolar.html" aria-label="Solar system clock, open in fullscreen"><svg class="solar"></svg></a>
+  <a href="clockLunar.html" aria-label="Moon phase clock, open in fullscreen"><svg class="lunar"></svg></a>
   <p class="control">
     <button class="control playPauseBtn" aria-label="Play or pause the animation">&#9654; Play</button> or 
     <label for="datetime">set date and time:</label>
@@ -98,7 +98,7 @@
   </p>
   <h2>Peaks</h2>
   <p>The highest peak moves from right to left once per millenium, the next highest once per year, once per day, once per hour, and once per minute.</p>
-  <a href="clockPeaks.html">
+  <a href="clockPeaks.html" aria-label="Peaks clock, open in fullscreen">
     <svg class="banner peaks"></svg>
   </a>
   </main>
