@@ -1,7 +1,3 @@
-// Wrapped in an IIFE so none of these names leak into the global scope that
-// common.js and the other page scripts share. Everything this file needs from
-// common.js (svgNS, hue, time, sides, timeFracs, getTime, padStartFn, darkMode,
-// reducedAnimation, scheduleFrame, FRAME_MS, ...) is still reachable as a global.
 (function() {
 
 function colorScheme(h) {
@@ -10,16 +6,6 @@ function colorScheme(h) {
 }
 function pad(n) { return padStartFn(n.toString(), 2, '0'); } // Uses padStartFn from common.js
 
-// Counterpart of scheduleFrame() in common.js. It follows the same branch order,
-// so the id is always cancelled with the API that created it (a timeout id and an
-// animation-frame id live in separate spaces and must not be mixed up).
-function cancelFrame(id) {
-  if (id == null) return;
-  if (reducedAnimation || !window.requestAnimationFrame) clearTimeout(id);
-  else window.cancelAnimationFrame(id);
-}
-
-// Callers must run getTime() first; it is not repeated per polygon any more.
 function generatePolygonPath(svg, path, level) {
   var pathStr = ["M50,50 "];
   for (var i = 0; i <= time[level]; i++) {
@@ -31,7 +17,6 @@ function generatePolygonPath(svg, path, level) {
   path.setAttribute("fill", colorScheme(hue));
 }
 
-// Callers must run getTime() first.
 function maskPolygon(svg, path, level) {
   path.removeAttribute("mask");
   // Old browsers (the same ones that miss aspect-ratio support) have been
@@ -65,7 +50,6 @@ function maskPolygon(svg, path, level) {
   path.setAttribute("mask", "url(#line" + level + ")");
 }
 
-// Callers must run getTime() first. Draws one blob; scheduling lives in updateBlobs().
 function drawBlob(blo, wavMin, wavMax) {
   var radius = 250, points = 50, variation = 150, path = [], r = [], r2 = [];
   for(var i=0; i<=points; i++) { r.push(radius); r2.push(radius); }
@@ -92,8 +76,6 @@ function drawBlob(blo, wavMin, wavMax) {
   blo.setAttribute("fill", colorScheme(hue));
 }
 
-// Reuses the existing <path> instead of rebuilding it, so a click that starts on
-// the clock is not lost when the element under the pointer is deleted mid-click.
 function drawBinaryClock(svg) {
   var path = svg.firstChild;
   if (!path) { path = document.createElementNS(svgNS, "path"); svg.appendChild(path); }
@@ -187,12 +169,11 @@ function formatDateTime(ms) {
   return d.getFullYear() + "-" + pad(d.getMonth() + 1) + "-" + pad(d.getDate()) + "T" + pad(d.getHours()) + ":" + pad(d.getMinutes());
 }
 
-// ---- Blobs: one loop, one getTime() per update for all blobs ----
 var blobs = [];
 var pathsWithMinMax = document.querySelectorAll("path[data-min][data-max]");
 for (var i = 0; i < pathsWithMinMax.length; i++) {
   var blobPath = pathsWithMinMax[i];
-  var blobSvg = blobPath.ownerSVGElement; // nearest ancestor <svg>
+  var blobSvg = blobPath.ownerSVGElement;
   if (blobSvg) blobSvg.setAttribute("viewBox", "0 0 1000 1000");
   blobs.push({
     path: blobPath,
@@ -207,10 +188,6 @@ function updateBlobs() {
 }
 if (blobs.length) updateBlobs();
 
-// ---- Polygons ----
-// Each polygon's svg/path/level is stored in its own object. The old code kept
-// them in shared `var`s that every setInterval callback closed over, so after the
-// loop all callbacks redrew only the last polygon.
 var polyItems = [];
 var polySvgs = document.querySelectorAll("svg.poly");
 for (var i = 0; i < polySvgs.length; i++) {
@@ -223,7 +200,6 @@ for (var i = 0; i < polySvgs.length; i++) {
   });
 }
 
-// ---- Text readouts and binary clocks ----
 var timeStrEl = document.getElementById("timeStr");
 var tzSpans = document.querySelectorAll("span.timeZone");
 var levelSpans = document.querySelectorAll("span[data-level]");
@@ -237,9 +213,6 @@ function updateTimeStr() {
   for (var i = 0; i < tzSpans.length; i++) { tzSpans[i].textContent = timeZoneName; }
 }
 
-// One tick per second drives the polygons, binary clocks and text. It calls
-// getTime() once, and re-arms itself for the next second boundary instead of using
-// setInterval(…, 1000), which drifts relative to the wall clock.
 function secondTick() {
   getTime();
   for (var i = 0; i < polyItems.length; i++) {
@@ -255,19 +228,15 @@ function secondTick() {
   if (timeStrEl) updateTimeStr();
   setTimeout(secondTick, 1000 - (Date.now() % 1000) + 5);
 }
-// Pages with none of these elements (e.g. clockPeaks.html) skip the timer entirely.
 if (polyItems.length || binaryClocks.length || levelSpans.length || timeStrEl) secondTick();
 
-// ---- Solar system and Moon ----
 var svgSolar = document.querySelector("svg.solar"), svgLunar = document.querySelector("svg.lunar");
 
 if (svgSolar || svgLunar) {
   var w = 500;
   if (svgSolar) svgSolar.setAttribute("viewBox", "0 0 " + w + " " + w);
   var phases = ['full', 'waxing gibbous', "in its first quarter", 'a waxing crescent', 'new', 'a waning crescent', "in its last quarter", 'waning gibbous'];
-  // U+2648..U+2653 followed by U+FE0E (text presentation), written as escapes so the
-  // invisible variation selectors can't get lost when the file is copied around.
-  var zodiac = ['\u2648\uFE0E', '\u2649\uFE0E', '\u264A\uFE0E', '\u264B\uFE0E', '\u264C\uFE0E', '\u264D\uFE0E', '\u264E\uFE0E', '\u264F\uFE0E', '\u2650\uFE0E', '\u2651\uFE0E', '\u2652\uFE0E', '\u2653\uFE0E'];
+  var zodiac = ['♈︎', '♉︎', '♊︎', '♋︎', '♌︎', '♍︎', '♎︎', '♏︎', '♐︎', '♑︎', '♒︎', '♓︎'];
   var zodiacName = ['Aries', 'Taurus', 'Gemini', 'Cancer', 'Leo', 'Virgo', 'Libra', 'Scorpio', 'Sagittarius', 'Capricorn', 'Aquarius', 'Pisces'];
   var zodiacGroup = document.createElementNS(svgNS, "g");
   zodiacGroup.setAttribute("class", "zodiac");
@@ -311,18 +280,16 @@ if (svgSolar || svgLunar) {
   darkSide.setAttribute("cx", (.4 * w).toFixed(0)); darkSide.setAttribute("cy", (w / 2).toFixed(0));
   darkSide.setAttribute("r", earth.orbitR.toFixed(0)); darkSide.setAttribute("fill", "hsl(" + hue + ", 30%, 20%)");
   if (svgLunar) svgLunar.appendChild(darkSide);
-  
+
   var lightSide = document.createElementNS(svgNS, "path");
   lightSide.setAttribute("fill", "hsl(" + hue + ", 30%, 80%)");
   if (svgLunar) svgLunar.appendChild(lightSide);
 
   var stickFigure = createStickFigure(svgNS, .3 * moon.orbitR, earth.radius);
   if (svgSolar) svgSolar.appendChild(stickFigure);
-  
-  var datetimeInput = document.getElementById("datetime");
-  var playPauseBtn = document.querySelector(".playPauseBtn");
 
-  // Looked up once instead of three querySelectorAll calls on every frame.
+  var datetimeInput = document.getElementById("datetime");
+  var speedBtn = document.querySelector(".playPauseBtn");
   var tiltSpans = document.querySelectorAll("span.tilt");
   var czSpans = document.querySelectorAll("span.currentZodiac");
   var mpSpans = document.querySelectorAll("span.moonPhase");
@@ -331,7 +298,7 @@ if (svgSolar || svgLunar) {
     earth.updateOrbits(solTime); moon.updateOrbits(solTime);
     var angle = (earth.angle * 180 / Math.PI + 180 - 360 * solTime / 24 / 60 / 60 / 1000) % 360;
     stickFigure.setAttribute("transform", "translate(" + earth.x.toFixed(1) + ", " + earth.y.toFixed(1) + ") rotate(" + angle.toFixed(2) + ")");
-    if (datetimeInput) datetimeInput.value = formatDateTime(solTime);
+    if (datetimeInput && document.activeElement !== datetimeInput) datetimeInput.value = formatDateTime(solTime);
     var tiltStr = (earth.tilt * Math.cos(earth.angle)).toFixed(1);
     for (var i = 0; i < tiltSpans.length; i++) tiltSpans[i].textContent = tiltStr;
     var j = getZodiacFromDate(new Date(solTime));
@@ -345,50 +312,44 @@ if (svgSolar || svgLunar) {
     lightSide.setAttribute("d", "M " + (.4 * w).toFixed(0) + " " + (w / 2 + earth.orbitR).toFixed(0) + "A " + innerR.toFixed(1) + " " + earth.orbitR.toFixed(0) + " 0 0 " + leftTerminator + " " + (.4 * w).toFixed(0) + " " + (w / 2 - earth.orbitR).toFixed(0) + "A " + earth.orbitR.toFixed(0) + " " + earth.orbitR.toFixed(0) + " 0 0 " + waxing + " " + (.4 * w).toFixed(0) + " " + (w / 2 + earth.orbitR).toFixed(0));
   };
 
-  var solTime = Date.now(), playing = false, animationId = null, lastTick = 0;
-  updateSolar(solTime);
+  var SPEEDS = [1, 60, 3600, 86400];
+  var speedIndex = 0, simBase = Date.now(), realBase = simBase, lastDraw = 0;
 
-  // Simulation speed: 20 simulated minutes per 1/60 s of real time, i.e. 72000
-  // simulated ms per real ms. The animation advances by the real time elapsed
-  // since the previous frame, so it runs at the same speed on 60 Hz, 144 Hz and
-  // slow e-ink refresh rates (the old fixed step ran 2x+ too fast on 120/144 Hz).
-  var SIM_SPEED = (20 * 60 * 1000) * 60 / 1000;
-  // Cap the step so a long pause (hidden tab) doesn't make the clock jump ahead.
-  var MAX_STEP_MS = Math.max(3 * FRAME_MS, 300);
+  var showSpeed = function() {
+    if (speedBtn) speedBtn.textContent = SPEEDS[speedIndex] + "x speed";
+  };
 
   var animationStep = function() {
-    if (!playing) return;
     var now = Date.now();
-    var dt = Math.min(now - lastTick, MAX_STEP_MS);
-    lastTick = now;
-    solTime += dt * SIM_SPEED;
-    updateSolar(solTime);
-    animationId = scheduleFrame(animationStep);
-  };
-
-  var pauseAnimation = function() {
-    playing = false;
-    cancelFrame(animationId);
-    animationId = null;
-    if (playPauseBtn) playPauseBtn.innerHTML = "&#9654; Play";
-  };
-
-  if (playPauseBtn) {
-    playPauseBtn.addEventListener("click", function() {
-      if (playing) { pauseAnimation(); return; }
-      playing = true;
-      playPauseBtn.innerHTML = "&#9208; Pause";
-      lastTick = Date.now();
-      animationId = scheduleFrame(animationStep);
-    });
-    if (datetimeInput) {
-      datetimeInput.addEventListener("input", function() {
-        pauseAnimation();
-        var newTime = new Date(datetimeInput.value).getTime();
-        if (!isNaN(newTime)) { solTime = newTime; updateSolar(solTime); }
-      });
-      datetimeInput.addEventListener("focus", pauseAnimation);
+    if (SPEEDS[speedIndex] >= 3600 || now - lastDraw >= 1000) {
+      lastDraw = now;
+      updateSolar(simBase + (now - realBase) * SPEEDS[speedIndex]);
     }
+    scheduleFrame(animationStep);
+  };
+
+  showSpeed();
+  animationStep();
+
+  if (speedBtn) {
+    speedBtn.addEventListener("click", function() {
+      var now = Date.now();
+      simBase += (now - realBase) * SPEEDS[speedIndex];
+      realBase = now;
+      speedIndex = (speedIndex + 1) % SPEEDS.length;
+      showSpeed();
+    });
+  }
+  if (datetimeInput) {
+    datetimeInput.addEventListener("input", function() {
+      var newTime = new Date(datetimeInput.value).getTime();
+      if (!isNaN(newTime)) {
+        simBase = newTime;
+        realBase = Date.now();
+        lastDraw = realBase;
+        updateSolar(simBase);
+      }
+    });
   }
 }
 
