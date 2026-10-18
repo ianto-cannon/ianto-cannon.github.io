@@ -1,15 +1,10 @@
 .poly-container {
-  /* plain fallback first: old browsers that don't understand min() drop the
-     second declaration entirely and keep this one. Modern browsers apply
-     the min() line, which overrides it. */
   width: 100%;
   width: min(100%, 1000px);
   font-size: 10px;
   font-size: min(1vw, 10px);
 }
 .poly {
-  /* width+height set explicitly (instead of relying on aspect-ratio) so this
-     stays square even on browsers that don't support aspect-ratio at all. */
   width: 7.9em;
   height: 7.9em;
   aspect-ratio: 1;
@@ -22,13 +17,27 @@
 .blob {
   width: 150px;
   max-width: 13%;
-  /* JS in common.js sets an explicit pixel height on browsers without
-     aspect-ratio support, since this shrinks on narrow screens. */
 }
 .binaryClock {
   width: 100%;
   aspect-ratio: 31;
-  /* height fallback for old browsers is computed in JS (common.js) */
+}
+.solar-container {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.solar-container a {
+  display: block;
+  width: min(500px, 53%);
+}
+.solar-container a + a {
+  width: min(400px, 42%);
+}
+.solar-container svg {
+  display: block;
+  width: 100%;
+  height: auto;
 }
 .solar {
   width: 53%;

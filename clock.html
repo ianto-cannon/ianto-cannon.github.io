@@ -83,15 +83,17 @@
   <p>
     The right clock shows the Moon phase, as seen from Earth.
   </p>
-  <a href="clockSolar.html" aria-label="Solar system clock, open in fullscreen"><svg class="solar"></svg></a>
-  <a href="clockLunar.html" aria-label="Moon phase clock, open in fullscreen"><svg class="lunar"></svg></a>
+  <div class="solar-container">
+    <a href="clockSolar.html" aria-label="Solar system clock, open in fullscreen"><svg class="solar"></svg></a>
+    <a href="clockLunar.html" aria-label="Moon phase clock, open in fullscreen"><svg class="lunar"></svg></a>
+  </div>
   <p class="control">
     <span id="speedLabel">Speed:</span>
     <span role="radiogroup" aria-labelledby="speedLabel">
       <label><input type="radio" name="speed" value="1" checked>1x speed</label>
       <label><input type="radio" name="speed" value="3600">1 hour per second</label>
       <label><input type="radio" name="speed" value="86400">1 day per second</label>
-      <label><input type="radio" name="speed" value="0">Stopped.</label>
+      <label><input type="radio" name="speed" value="0">stopped.</label>
     </span>
     <label for="datetime">Input date and time:</label>
     <input type="datetime-local" id="datetime"/>
