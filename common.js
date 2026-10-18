@@ -10,29 +10,15 @@ function padStartFn(str, targetLength, padString) {
   while (str.length < targetLength) { str = padString + str; }
   return str;
 }
-
-// Old browsers (e.g. Kindle's "Experimental Browser") don't support the CSS
-// aspect-ratio property, and their e-ink screens can't keep up with a
-// requestAnimationFrame loop anyway. We use the same feature check to decide
-// both how to size elements and how often to redraw them.
 var supportsAspectRatio = !!(window.CSS && CSS.supports && CSS.supports('aspect-ratio', '1'));
 var reducedAnimation = !supportsAspectRatio;
 var FRAME_MS = reducedAnimation ? 2000 : (1000 / 60);
 
-// Schedules fn to run again for the next animation step. On capable browsers
-// this is a normal requestAnimationFrame loop; on old/e-ink browsers it
-// falls back to a slow setTimeout so the screen isn't asked to redraw faster
-// than it can physically refresh.
 function scheduleFrame(fn, reducedMs) {
   if (reducedAnimation) { return setTimeout(fn, reducedMs != null ? reducedMs : FRAME_MS); }
   else if (window.requestAnimationFrame) { return window.requestAnimationFrame(fn); }
   else { return setTimeout(fn, 100); }
 }
-
-// Fallback sizing for browsers that ignore the CSS aspect-ratio property:
-// sets an explicit pixel height based on each element's rendered width, so
-// non-square SVGs (the binary clock, solar/lunar clocks, blobs) don't just
-// fall back to the browser's default 300x150 replaced-element box.
 var ASPECT_RATIOS = { binaryClock: 31, solar: 1, lunar: 0.8, blob: 1 };
 function applyAspectRatioFallback() {
   if (supportsAspectRatio) return;
@@ -107,28 +93,27 @@ function getTime() {
   timeFracs = [milFrac, yrFrac, dayFrac, hrFrac, minFrac, secFrac];
   binary = padStartFn(Math.floor(now.getTime() / 1000).toString(2), 31, '0');
 }
-
-function createTriangle(value, width, height, lightness, peaksSVG) {
+function createTriangle(value, width, height, lightness, peaksSVG, level) {
   for (var i = -1; i <= 1; i++) {
+    var k = level * 3 + i + 1;
+    var path = peaksSVG.childNodes[k];
+    if (!path) {
+      path = document.createElementNS(svgNS, "path");
+      peaksSVG.appendChild(path);
+    }
     var left = width*(.5-value+i), mid = width*(1-value+i), right = width*(1.5-value+i);
-    var path = document.createElementNS(svgNS, "path");
     path.setAttribute("fill", "hsl(" + hue + ", 30%, " + lightness + "%)");
     path.setAttribute("d", "M" + left.toFixed(0) + ",10 L" + mid.toFixed(0) + "," + (10-height) + " L" + right.toFixed(0) + ",10 Z");
-    peaksSVG.appendChild(path);
   }
 }
-
 function updatePeaks(peaksSVG) {
-  while (peaksSVG.firstChild) peaksSVG.removeChild(peaksSVG.firstChild);
   var width = 1000; getTime();
   for (var i = 0; i <= 4; i++) {
-    //var lightness = darkMode ? (20 + i*10) : (100 - 20 - i*10);
     var lightness = 100 - 20 - i*10;
-    createTriangle(timeFracs[i]%1, width, 10-i*1.5, lightness, peaksSVG);
+    createTriangle(timeFracs[i]%1, width, 10-i*1.5, lightness, peaksSVG, i);
   }
   scheduleFrame(function() { updatePeaks(peaksSVG); });
 }
-
 var themeToggles = document.querySelectorAll('.theme-toggle');
 for (var i = 0; i < themeToggles.length; i++) { themeToggles[i].style.display = 'inline'; }
 
@@ -142,7 +127,6 @@ function applyTheme(mode) {
   else isDark = !(window.matchMedia && window.matchMedia('(prefers-color-scheme: light)').matches);
   if (darkLink) darkLink.media = isDark ? 'all' : 'not all';
 }
-
 var saved = 'browser';
 try { saved = localStorage.getItem('theme') || 'browser'; } catch (e) {}
 applyTheme(saved);
@@ -154,7 +138,6 @@ for (var i = 0; i < themeInputs.length; i++) {
     applyTheme(mode);
   });
 }
-
 var savedThemeInput = document.querySelector('input[value="' + saved + '"]');
 if (savedThemeInput) savedThemeInput.checked = true;
 
