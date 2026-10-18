@@ -1,8 +1,7 @@
 // The 125 most topographically prominent summits on Earth.
-// Source: Wikipedia "List of mountain peaks by prominence" (top-125 table).
+// Source: Wikipedia "List of mountain peaks by prominence"
 // parent = Wikipedia's "prominence parent" column; "None" → Everest (island/isolated high points).
 // wiki = Wikidata item id, for linking the English Wikipedia article (Special:GoToLinkedPage).
-// ES5-safe: plain var, no String.raw, no template literals, no const.
 var PEAKS_CSV = [
 "name,height,prominence,parent,lat,lon,range,country,wiki",
 "Everest,8849,8849,,27.99,86.93,Himalayas,China/Nepal,Q513",

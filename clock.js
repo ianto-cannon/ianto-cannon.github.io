@@ -289,7 +289,7 @@ if (svgSolar || svgLunar) {
   if (svgSolar) svgSolar.appendChild(stickFigure);
 
   var datetimeInput = document.getElementById("datetime");
-  var speedBtn = document.querySelector(".playPauseBtn");
+  var speedInputs = document.querySelectorAll('input[name="speed"]');
   var tiltSpans = document.querySelectorAll("span.tilt");
   var czSpans = document.querySelectorAll("span.currentZodiac");
   var mpSpans = document.querySelectorAll("span.moonPhase");
@@ -312,45 +312,48 @@ if (svgSolar || svgLunar) {
     lightSide.setAttribute("d", "M " + (.4 * w).toFixed(0) + " " + (w / 2 + earth.orbitR).toFixed(0) + "A " + innerR.toFixed(1) + " " + earth.orbitR.toFixed(0) + " 0 0 " + leftTerminator + " " + (.4 * w).toFixed(0) + " " + (w / 2 - earth.orbitR).toFixed(0) + "A " + earth.orbitR.toFixed(0) + " " + earth.orbitR.toFixed(0) + " 0 0 " + waxing + " " + (.4 * w).toFixed(0) + " " + (w / 2 + earth.orbitR).toFixed(0));
   };
 
-  var SPEEDS = [1, 60, 3600, 86400];
-  var speedIndex = 0, simBase = Date.now(), realBase = simBase, lastDraw = 0;
+  var speed = 1, simBase = Date.now(), realBase = simBase, lastDraw = 0;
 
-  var showSpeed = function() {
-    if (speedBtn) speedBtn.textContent = SPEEDS[speedIndex] + "x speed";
+  var setSpeed = function(newSpeed) {
+    var now = Date.now();
+    simBase += (now - realBase) * speed;
+    realBase = now;
+    speed = newSpeed;
+    lastDraw = 0;
+  };
+
+  var stopClock = function() {
+    setSpeed(0);
+    for (var i = 0; i < speedInputs.length; i++) speedInputs[i].checked = false;
   };
 
   var animationStep = function() {
     var now = Date.now();
-    if (SPEEDS[speedIndex] >= 3600 || now - lastDraw >= 1000) {
+    if (speed > 0 && (speed >= 3600 || now - lastDraw >= 1000)) {
       lastDraw = now;
-      updateSolar(simBase + (now - realBase) * SPEEDS[speedIndex]);
+      updateSolar(simBase + (now - realBase) * speed);
     }
     scheduleFrame(animationStep);
   };
 
-  showSpeed();
-  animationStep();
-
-  if (speedBtn) {
-    speedBtn.addEventListener("click", function() {
-      var now = Date.now();
-      simBase += (now - realBase) * SPEEDS[speedIndex];
-      realBase = now;
-      speedIndex = (speedIndex + 1) % SPEEDS.length;
-      showSpeed();
+  for (var i = 0; i < speedInputs.length; i++) {
+    speedInputs[i].checked = speedInputs[i].value === "1";
+    speedInputs[i].addEventListener("change", function() {
+      if (this.checked) setSpeed(parseInt(this.value, 10));
     });
   }
   if (datetimeInput) {
+    datetimeInput.addEventListener("focus", stopClock);
     datetimeInput.addEventListener("input", function() {
+      stopClock();
       var newTime = new Date(datetimeInput.value).getTime();
       if (!isNaN(newTime)) {
         simBase = newTime;
-        realBase = Date.now();
-        lastDraw = realBase;
         updateSolar(simBase);
       }
     });
   }
+  animationStep();
 }
 
 })();

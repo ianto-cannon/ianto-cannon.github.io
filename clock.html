@@ -86,7 +86,11 @@
   <a href="clockSolar.html" aria-label="Solar system clock, open in fullscreen"><svg class="solar"></svg></a>
   <a href="clockLunar.html" aria-label="Moon phase clock, open in fullscreen"><svg class="lunar"></svg></a>
   <p class="control">
-    <button class="control playPauseBtn" aria-label="Change the animation speed">1x speed</button> or
+    <span role="radiogroup" aria-label="Animation speed">
+      <label><input type="radio" name="speed" value="1" checked>1x speed</label>
+      <label><input type="radio" name="speed" value="3600">1 hour per second</label>
+      <label><input type="radio" name="speed" value="86400">1 day per second</label>
+    </span><br>
     <label for="datetime">set date and time:</label>
     <input type="datetime-local" id="datetime"/>
     <span class="timeZone"></span>.
