@@ -919,13 +919,13 @@ if ("onpointerdown" in window) {
 }
 mapSvg.addEventListener("wheel", function (e) {
   if (!peaks.length) return;
+  e.preventDefault();
   var step = e.deltaMode === 1 ? .05 : .0015;
   var w = clamp(view.w * Math.exp(clamp(e.deltaY, -100, 100) * step), minW(), maxW());
   if (Math.abs(w / view.w - 1) < 1e-9) return;
-  e.preventDefault();
   var ww = toWorld(e.clientX, e.clientY);
   zoomTo(w, ww[0], ww[1], e.clientX, e.clientY);
-}, false);
+}, { passive: false });
 
 mapSvg.addEventListener("click", function (e) {
   if (closestAnchor(e.target)) e.preventDefault();
