@@ -552,6 +552,8 @@ function confetti() {
 var world = { W: 40030, H: 12742, R: 6371, lon0: 0 };
 var view = { x: 0, y: 0, w: 40030, h: 12742 };
 var mapSvg = $("#map");
+// The map always consumes touch gestures: dragging or pinching never scrolls the page.
+mapSvg.style.touchAction = "none";
 
 function project(lat, lon) {
   return [
@@ -658,10 +660,6 @@ function clampView() {
   view.x = clamp(view.x, 0, world.W - view.w);
   view.y = clamp(view.y, 0, world.H - view.h);
 }
-function updateTouchAction() {
-  if (view.h < world.H - .5) removeClass(mapSvg, "pan-y");
-  else addClass(mapSvg, "pan-y");
-}
 function toWorld(cx, cy) {
   var r = mapSvg.getBoundingClientRect();
   return [view.x + (cx - r.left) / r.width * view.w, view.y + (cy - r.top) / r.height * view.h];
@@ -684,7 +682,6 @@ function triangle(x, y, r) {
 function drawMap() {
   clampView();
   mapSvg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
-  updateTouchAction();
   var px = view.w / (mapSvg.getBoundingClientRect().width || mapSvg.parentNode.offsetWidth);
   var live = !over();
   var tiers = [[], [], []];
@@ -898,7 +895,7 @@ if ("onpointerdown" in window) {
   mapSvg.addEventListener("touchmove", function (e) {
     var t = e.changedTouches;
     for (var i = 0; i < t.length; i++) handleMove(t[i].identifier, t[i].clientX, t[i].clientY);
-    if (dragged || pointerCount() >= 2) e.preventDefault();
+    e.preventDefault();
   }, false);
   var onTouchEnd = function (cancel) {
     return function (e) {
