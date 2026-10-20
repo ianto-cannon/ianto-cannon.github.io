@@ -651,7 +651,6 @@ function resetView() {
   var w = maxW();
   var h = w / aspect();
   view = { x: project(0, 60)[0] - w / 2, y: (world.H - h) / 2, w: w, h: h };
-  dragOutward = false;
 }
 function clampView() {
   view.w = clamp(view.w, minW(), maxW());
@@ -660,11 +659,8 @@ function clampView() {
   view.y = clamp(view.y, 0, world.H - view.h);
 }
 function updateTouchAction() {
-  var maxY = world.H - view.h;
-  var hasRange = view.h < world.H - .5;
-  var atLimit = view.y <= 0 || view.y >= maxY;
-  if (!hasRange || (atLimit && dragOutward)) addClass(mapSvg, "pan-y");
-  else removeClass(mapSvg, "pan-y");
+  if (view.h < world.H - .5) removeClass(mapSvg, "pan-y");
+  else addClass(mapSvg, "pan-y");
 }
 function toWorld(cx, cy) {
   var r = mapSvg.getBoundingClientRect();
@@ -677,7 +673,6 @@ function zoomTo(w, wx, wy, cx, cy) {
   view.h = view.w / aspect();
   view.x = wx - (cx - r.left) / r.width * view.w;
   view.y = wy - (cy - r.top) / r.height * view.h;
-  dragOutward = false;
   drawMap();
 }
 window.addEventListener("resize", function () {
@@ -798,7 +793,6 @@ function closestAnchor(el) {
 var drag = null;
 var pinch = null;
 var dragged = false;
-var dragOutward = false;
 
 function nearestPeak(cx, cy) {
   var w = toWorld(cx, cy);
@@ -852,13 +846,8 @@ function handleMove(id, cx, cy) {
     if (Math.abs(dx) + Math.abs(dy) > 5) dragged = true;
     if (dragged) {
       var k = view.w / mapSvg.getBoundingClientRect().width;
-      var wantY = drag.vy - dy * k;
-      var maxY = world.H - view.h;
       view.x = drag.vx - dx * k;
-      view.y = clamp(wantY, 0, maxY);
-      if (wantY < 0) dragOutward = dy > 0;
-      else if (wantY > maxY) dragOutward = dy < 0;
-      else dragOutward = false;
+      view.y = clamp(drag.vy - dy * k, 0, world.H - view.h);
       drawMap();
     }
   }
