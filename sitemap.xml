@@ -1,25 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
-
-  <url>
-    <loc>https://ianto-cannon.github.io/</loc>
-  </url>
-
-  <url>
-    <loc>https://ianto-cannon.github.io/clock.html</loc>
-  </url>
-
-  <url>
-    <loc>https://ianto-cannon.github.io/talks.html</loc>
-  </url>
-
-  <url>
-    <loc>https://ianto-cannon.github.io/coldle.html</loc>
-  </url>
-
-  <url>
-    <loc>https://ianto-cannon.github.io/guestbook.html</loc>
-  </url>
-
+  <url><loc>https://ianto-cannon.github.io/</loc><lastmod>2026-10-20</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/clock.html</loc><lastmod>2026-10-18</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/talks.html</loc><lastmod>2026-10-21</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/coldle.html</loc><lastmod>2026-10-18</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/guestbook.html</loc><lastmod>2026-10-18</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/clockBinary.html</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/clockBlob.html</loc><lastmod>2026-10-13</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/clockBlobs.html</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/clockLunar.html</loc><lastmod>2026-10-13</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/clockPeaks.html</loc><lastmod>2026-10-13</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/clockPoly.html</loc><lastmod>2026-10-19</lastmod></url>
+  <url><loc>https://ianto-cannon.github.io/clockSolar.html</loc><lastmod>2026-10-13</lastmod></url>
 </urlset>
-
