@@ -28,11 +28,6 @@ footer {
   justify-content: space-between;
   align-items: center;
 }
-.license {
-  height: .9em;
-  width: .9em;
-  aspect-ratio: 1;
-}
 .theme-toggle {
   display: none;
 }
