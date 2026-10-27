@@ -185,24 +185,61 @@ function dailyTarget(day, n) {
   h = (h ^ (h >>> 13)) >>> 0;
   return h % n;
 }
+/* Daily games are saved per UTC date and peak count, so today's challenge
+   can only be played once. Clearing site data loses the record. */
+function dailyStorageKey() {
+  return "coldle-daily:" + isoDate() + ":" + count;
+}
+function loadDailyGuesses() {
+  try {
+    var raw = window.localStorage && localStorage.getItem(dailyStorageKey());
+    if (!raw) return null;
+    var saved = JSON.parse(raw);
+    var list = saved && saved.guesses;
+    if (!list || !list.length) return null;
+    var clean = [];
+    for (var i = 0; i < list.length; i++) {
+      var g = list[i];
+      if (typeof g === "number" && g >= 0 && g < peaks.length && clean.indexOf(g) === -1) {
+        clean.push(g);
+      }
+    }
+    return clean.length ? clean.slice(0, MAX_GUESSES) : null;
+  } catch (e) {
+    return null;
+  }
+}
+function saveDailyGuesses() {
+  if (mode !== "daily") return;
+  try {
+    if (window.localStorage) {
+      localStorage.setItem(dailyStorageKey(), JSON.stringify({ guesses: guesses }));
+    }
+  } catch (e) {}
+}
 function newRound() {
   var day = Math.floor(Date.now() / 864e5);
+  var saved = null;
   if (mode === "daily") {
     target = dailyTarget(day, peaks.length);
     if (peaks.length > DEFAULT_COUNT && target === dailyTarget(day, DEFAULT_COUNT)) {
       target = (target + 1) % peaks.length;
       if (target === dailyTarget(day, DEFAULT_COUNT)) target = (target + 1) % peaks.length;
     }
+    saved = loadDailyGuesses();
   } else {
     target = Math.floor(Math.random() * peaks.length);
   }
-  guesses = [];
+  guesses = saved || [];
   selected = null;
+  // A finished daily should re-open showing the answer on the map.
+  if (saved && over()) ensureVisible(target);
   render();
 }
 function guess() {
   if (over() || selected === null || guesses.indexOf(selected) !== -1) return;
   guesses.push(selected);
+  saveDailyGuesses();
   if (over() && !won()) {
     selected = target;
     ensureVisible(target);
@@ -320,7 +357,9 @@ function renderStatus() {
           : "Out of guesses. The mystery peak is " + wikiLink(p) + ".")
       : "Guess " + (made + 1) + " of " + MAX_GUESSES + ".",
     tip2: end
-      ? "Select random and click reset for another peak."
+      ? (mode === "daily"
+          ? "Come back tomorrow for a new peak, or switch to random for another round."
+          : "Pick random again for another peak.")
       : (selected !== null && guesses.indexOf(selected) === -1
           ? "Selected <b>" + peaks[selected].name + "</b>. Press Guess to confirm."
           : (made === 0
@@ -997,10 +1036,6 @@ function pickFromLink(e) {
 $("#chart").addEventListener("click", pickFromLink, false);
 $("#guess-table").addEventListener("click", pickFromLink, false);
 $("#action").onclick = function () { return over() ? shareResult() : guess(); };
-$("#reset").onclick = function () {
-  resetView();
-  newRound();
-};
 var countRadios = document.querySelectorAll("input[name=count]");
 for (var cr = 0; cr < countRadios.length; cr++) {
   (function (radio) {
@@ -1099,6 +1134,13 @@ for (var r = 0; r < radios.length; r++) {
     radio.onchange = function () {
       mode = radio.value;
       newRound();
+    };
+    // No reset button any more: clicking the active mode starts another round.
+    radio.onclick = function () {
+      if (mode === radio.value) {
+        resetView();
+        newRound();
+      }
     };
   })(radios[r]);
 }
