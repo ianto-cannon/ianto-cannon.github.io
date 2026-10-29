@@ -306,7 +306,7 @@ function render() {
   drawChart();
   drawMap();
   renderStatus();
-  $("#action").textContent = over() ? "share results" : "guess";
+  $("#action").textContent = over() ? (mode === "random" ? "reset" : "share results") : "guess";
 }
 function renderTable() {
   var tableRows = document.querySelectorAll("#guess-table tbody tr");
@@ -359,7 +359,7 @@ function renderStatus() {
     tip2: end
       ? (mode === "daily"
           ? "Come back tomorrow for a new peak, or switch to random for another round."
-          : "Pick random again for another peak.")
+          : "Press reset for another peak.")
       : (selected !== null && guesses.indexOf(selected) === -1
           ? "Selected <b>" + peaks[selected].name + "</b>. Press Guess to confirm."
           : (made === 0
@@ -613,6 +613,30 @@ function injectMap() {
     var node = document.importNode ? document.importNode(next, true) : next.cloneNode(true);
     basemap.appendChild(node);
     next = following;
+  }
+  if (typeof BORDERS_PATH !== "undefined") {
+    var ns = "http://www.w3.org/2000/svg";
+    var b = document.createElementNS(ns, "path");
+    b.setAttribute("id", "borders");
+    b.setAttribute("d", BORDERS_PATH);
+    b.setAttribute("fill", "none");
+    b.setAttribute("stroke", "#777");
+    b.setAttribute("stroke-width", "1");
+    b.setAttribute("vector-effect", "non-scaling-stroke");
+    b.setAttribute("pointer-events", "none");
+    basemap.appendChild(b);
+  }
+  if (typeof DISPUTED_BORDERS_PATH !== "undefined") {
+    var db = document.createElementNS(ns, "path");
+    db.setAttribute("id", "disputed-borders");
+    db.setAttribute("d", DISPUTED_BORDERS_PATH);
+    db.setAttribute("fill", "none");
+    db.setAttribute("stroke", "#777");
+    db.setAttribute("stroke-width", "1");
+    db.setAttribute("stroke-dasharray", "3,3"); // Dashed pattern for neutrality
+    db.setAttribute("vector-effect", "non-scaling-stroke");
+    db.setAttribute("pointer-events", "none");
+    basemap.appendChild(db);
   }
 }
 function load() {
@@ -998,7 +1022,7 @@ function shareResult() {
   function onCopied() {
     $("#action").textContent = "copied!";
     setTimeout(function () {
-      if (over()) $("#action").textContent = "share results";
+      if (over()) $("#action").textContent = mode === "random" ? "reset" : "share results";
     }, 2000);
   }
   function tryCopy() {
@@ -1035,7 +1059,15 @@ function pickFromLink(e) {
 }
 $("#chart").addEventListener("click", pickFromLink, false);
 $("#guess-table").addEventListener("click", pickFromLink, false);
-$("#action").onclick = function () { return over() ? shareResult() : guess(); };
+$("#action").onclick = function () {
+  if (!over()) { guess(); return; }
+  if (mode === "random") {
+    resetView();
+    newRound();
+    return;
+  }
+  shareResult();
+};
 var countRadios = document.querySelectorAll("input[name=count]");
 for (var cr = 0; cr < countRadios.length; cr++) {
   (function (radio) {
