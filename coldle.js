@@ -170,7 +170,8 @@ var target;
 var guesses = [];
 var selected = null;
 
-function won()  { return guesses.indexOf(target) !== -1; }
+function isGuessed(i) { return guesses.indexOf(i) !== -1; }
+function won()  { return isGuessed(target); }
 function over() { return won() || guesses.length >= MAX_GUESSES; }
 
 function imul(a, b) {
@@ -237,7 +238,7 @@ function newRound() {
   render();
 }
 function guess() {
-  if (over() || selected === null || guesses.indexOf(selected) !== -1) return;
+  if (over() || selected === null || isGuessed(selected)) return;
   guesses.push(selected);
   saveDailyGuesses();
   if (over() && !won()) {
@@ -332,8 +333,7 @@ function renderTable() {
   }
 }
 function setHidden(el, hide) {
-  if (hide) el.setAttribute("hidden", "");
-  else el.removeAttribute("hidden");
+  el.hidden = hide;
 }
 var lastStatus = "";
 function renderStatus() {
@@ -360,7 +360,7 @@ function renderStatus() {
       ? (mode === "daily"
           ? "Come back tomorrow for a new peak, or switch to random for another round."
           : "Press reset for another peak.")
-      : (selected !== null && guesses.indexOf(selected) === -1
+      : (selected !== null && !isGuessed(selected)
           ? "Selected <b>" + peaks[selected].name + "</b>. Press Guess to confirm."
           : (made === 0
               ? "Tap a peak on the map, then press Guess."
@@ -473,7 +473,7 @@ function drawChart() {
   var order = [];
   for (var gi = 0; gi < peaks.length; gi++) if (gi !== target) order.push(gi);
   order.sort(function (a, b) {
-    return (guesses.indexOf(a) !== -1) - (guesses.indexOf(b) !== -1)
+    return isGuessed(a) - isGuessed(b)
       || peaks[b].height - peaks[a].height;
   });
   var polys = "";
@@ -481,17 +481,17 @@ function drawChart() {
   for (var oi = 0; oi < order.length; oi++) {
     var g = order[oi];
     var pl = place(g);
-    var guessed = guesses.indexOf(g) !== -1;
+    var guessed = isGuessed(g);
     var isSel = g === selected;
     polys += '<polygon' + (guessed ? (isSel ? ' class="selected"' : "") : ' class="unguessed"')
-      + ' style="fill:' + (guessed ? colGuess(linkToTarget(g).pct) : greyFor(pl.G)) + '" '
+      + ' style="--fill:' + (guessed ? colGuess(linkToTarget(g).pct) : greyFor(pl.G)) + '" '
       + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (guessed && isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col-altitude")
         + altitude(pl.xg, pl.G) + label(pl.xg, pl.G.name, g);
     }
   }
-  polys += '<polygon class="target" style="fill:' + (over() ? colGuess(100) : greyFor(T)) + '" '
+  polys += '<polygon class="target" style="--fill:' + (over() ? colGuess(100) : greyFor(T)) + '" '
     + shape(cx, W, T) + '/>';
   var boxTop = chartY(10000);
   var boxD = "M" + pt(x0, base) + " L" + pt(x0, boxTop) + " L" + pt(x1, boxTop) + " L" + pt(x1, base);
@@ -530,7 +530,7 @@ function confetti() {
   var sources = [$("#action"), $("#peak-image")];
   for (var s = 0; s < sources.length; s++) {
     var el = sources[s];
-    if (!el || el.hasAttribute("hidden")) continue;
+    if (!el || el.hidden) continue;
     var r = el.getBoundingClientRect();
     if (r.width > 0 && r.height > 0) origins.push(r);
   }
@@ -591,8 +591,6 @@ function confetti() {
 var world = { W: 40030, H: 12742, R: 6371, lon0: 0 };
 var view = { x: 0, y: 0, w: 40030, h: 12742 };
 var mapSvg = $("#map");
-// The map always consumes touch gestures: dragging or pinching never scrolls the page.
-mapSvg.style.touchAction = "none";
 
 function project(lat, lon) {
   return [
@@ -614,28 +612,17 @@ function injectMap() {
     basemap.appendChild(node);
     next = following;
   }
+  var ns = "http://www.w3.org/2000/svg";
   if (typeof BORDERS_PATH !== "undefined") {
-    var ns = "http://www.w3.org/2000/svg";
     var b = document.createElementNS(ns, "path");
     b.setAttribute("id", "borders");
     b.setAttribute("d", BORDERS_PATH);
-    b.setAttribute("fill", "none");
-    b.setAttribute("stroke", "#777");
-    b.setAttribute("stroke-width", "1");
-    b.setAttribute("vector-effect", "non-scaling-stroke");
-    b.setAttribute("pointer-events", "none");
     basemap.appendChild(b);
   }
   if (typeof DISPUTED_BORDERS_PATH !== "undefined") {
     var db = document.createElementNS(ns, "path");
     db.setAttribute("id", "disputed-borders");
     db.setAttribute("d", DISPUTED_BORDERS_PATH);
-    db.setAttribute("fill", "none");
-    db.setAttribute("stroke", "#777");
-    db.setAttribute("stroke-width", "1");
-    db.setAttribute("stroke-dasharray", "3,3"); // Dashed pattern for neutrality
-    db.setAttribute("vector-effect", "non-scaling-stroke");
-    db.setAttribute("pointer-events", "none");
     basemap.appendChild(db);
   }
 }
@@ -656,13 +643,13 @@ function load() {
       colAlt: +f[1] - +f[2]
     };
   });
+  var byName = Object.create(null);
+  for (var b = 0; b < allPeaks.length; b++) {
+    if (!(allPeaks[b].name in byName)) byName[allPeaks[b].name] = b;
+  }
   for (var i = 0; i < allPeaks.length; i++) {
-    var par = allPeaks[i].parent;
-    var idx = -1;
-    for (var j = 0; j < allPeaks.length; j++) {
-      if (allPeaks[j].name === par) { idx = j; break; }
-    }
-    allPeaks[i].parent = idx;
+    var idx = byName[allPeaks[i].parent];
+    allPeaks[i].parent = idx === undefined ? -1 : idx;
   }
   for (var m = 0; m < allPeaks.length; m++) {
     var xy = project(allPeaks[m].lat, allPeaks[m].lon);
@@ -797,7 +784,7 @@ function drawMap() {
 
   for (var i = 0; i < peaks.length; i++) {
     var p = peaks[i];
-    var guessed = guesses.indexOf(i) !== -1;
+    var guessed = isGuessed(i);
     var isSel = i === selected;
     var revealed = !live && i === target;
     var tap = live ? ' data-peak="' + i + '"' : "";
@@ -806,7 +793,7 @@ function drawMap() {
     var shape = triangle(p.x, p.y, isSel ? 20 * px : 10 * px);
 
     var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
-      + (fill ? ' style="fill:' + fill + '"' : "") + tap
+      + (fill ? ' style="--fill:' + fill + '"' : "") + tap
       + ' points="' + shape + '"/>';
     var label = shown[i]
       ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="selected"' : "")
@@ -836,19 +823,18 @@ function pointerValues() {
   for (var k in pointers) if (pointers.hasOwnProperty(k)) arr.push(pointers[k]);
   return arr;
 }
-function closestPeak(el) {
-  while (el && el.getAttribute) {
-    if (el.getAttribute("data-peak") !== null) return el;
+function closestBy(el, match) {
+  while (el && el.nodeType === 1) {
+    if (match(el)) return el;
     el = el.parentNode;
   }
   return null;
 }
+function closestPeak(el) {
+  return closestBy(el, function (n) { return n.getAttribute("data-peak") !== null; });
+}
 function closestAnchor(el) {
-  while (el && el.tagName) {
-    if (el.tagName.toLowerCase() === "a") return el;
-    el = el.parentNode;
-  }
-  return null;
+  return closestBy(el, function (n) { return n.tagName && n.tagName.toLowerCase() === "a"; });
 }
 var drag = null;
 var pinch = null;
@@ -1120,7 +1106,7 @@ function panFrame() {
 function stepSelection(dir) {
   var order = [];
   for (var i = 0; i < peaks.length; i++) {
-    if (!over() && guesses.indexOf(i) !== -1) continue;
+    if (!over() && isGuessed(i)) continue;
     order.push(i);
   }
   if (!order.length) return;

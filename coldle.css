@@ -28,8 +28,16 @@ ol {
   -webkit-user-select:none;
   cursor:grab;
 }
-#map.pan-y{
-  touch-action:pan-y
+#borders,
+#disputed-borders{
+  fill:none;
+  stroke:currentColor;
+  stroke-width:.3;
+  vector-effect:non-scaling-stroke;
+  pointer-events:none;
+}
+#disputed-borders{
+  stroke-dasharray:3,3;
 }
 #status-text{
   border-left:.2em solid;
@@ -110,7 +118,7 @@ ol {
     background-color:color-mix(in srgb, gray 70%, transparent)
   }
 }
-#reset,#action{
+#action{
   font-size:1.2em
 }
 #action.shake{
@@ -134,7 +142,7 @@ ol {
   color:blue
 }
 #markers polygon{
-  fill:gray;
+  fill:var(--fill, gray);
   stroke:currentColor;
   stroke-linejoin:round;
   vector-effect:non-scaling-stroke;
@@ -160,6 +168,9 @@ ol {
   aspect-ratio: 4;
   max-height:25vh;
   min-height:20vh;
+}
+#chart polygon{
+  fill:var(--fill, gray);
 }
 #chart line{
   stroke:gray
