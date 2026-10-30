@@ -7,10 +7,10 @@ var MAX_GUESSES = 8;
 var MAX_ZOOM = 150;
 var RAD = Math.PI / 180;
 var DEFAULT_COUNT = 50;
-var CHART_ASPECT = 3.142;   // matches #chart { aspect-ratio } in coldle.css
+var CHART_ASPECT = 3.142;  
 var COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 
-/* ------------------------------------------------ old-browser helpers */
+// old-browser helpers
 function removeClass(el, c) {
   var cls = " " + (el.getAttribute("class") || "") + " ";
   el.setAttribute("class", cls.replace(" " + c + " ", " ").replace(/^\s+|\s+$/g, ""));
@@ -218,8 +218,6 @@ function dailyTarget(day, n) {
   h = (h ^ (h >>> 13)) >>> 0;
   return h % n;
 }
-/* Daily games are saved per UTC date and peak count, so today's challenge
-   can only be played once. Clearing site data loses the record. */
 function dailyStorageKey() {
   return "coldle-daily:" + isoDate() + ":" + count;
 }
@@ -261,7 +259,6 @@ function newRound() {
   }
   guesses = saved || [];
   selected = null;
-  // A finished daily should re-open showing the answer on the map.
   if (saved && over()) ensureVisible(target);
   render();
 }
@@ -1056,8 +1053,7 @@ function shareResult() {
       showText();
     }
   }
-  // On touch devices use the native share sheet, called synchronously from the
-  // click so iOS keeps the user-gesture activation.
+  // On touch devices use the native share sheet.
   if (COARSE && navigator.share) {
     try {
       var sp = navigator.share({ text: text });
@@ -1187,7 +1183,6 @@ for (var r = 0; r < radios.length; r++) {
       mode = radio.value;
       newRound();
     };
-    // No reset button any more: clicking the active mode starts another round.
     radio.onclick = function () {
       if (mode === radio.value) {
         resetView();
