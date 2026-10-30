@@ -629,6 +629,18 @@ var world = { W: 40030, H: 12742, R: 6371, lon0: 0 };
 var view = { x: 0, y: 0, w: 40030, h: 12742 };
 var mapSvg = $("#map");
 
+function sizeSvgs() {
+  var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+  function fit(el, ratio, lo, hi) {
+    var w = el.getBoundingClientRect().width || (el.parentNode && el.parentNode.offsetWidth);
+    if (!w) return;
+    var h = w / ratio;
+    if (vh) h = clamp(h, lo * vh, hi * vh);
+    el.style.height = Math.round(h) + "px";
+  }
+  fit(mapSvg, 3.142, .30, .40);   // same ratio and limits as coldle.css
+  fit($("#chart"), 4, .20, .25);
+}
 function project(lat, lon) {
   return [
     world.W / 2 + world.R * (((lon - world.lon0 + 540) % 360) - 180) * RAD,
@@ -736,6 +748,7 @@ function minW() { return world.W / MAX_ZOOM; }
 function maxW() { return Math.min(world.W, world.H * aspect()); }
 
 function resetView() {
+  sizeSvgs();
   panAnim = null;
   var w = maxW();
   var h = w / aspect();
@@ -761,6 +774,7 @@ function zoomTo(w, wx, wy, cx, cy) {
   drawMap();
 }
 window.addEventListener("resize", function () {
+  sizeSvgs();
   if (peaks.length) { drawMap(); drawChart(); }
 }, false);
 function triangle(x, y, r) {
