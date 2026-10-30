@@ -1052,6 +1052,30 @@ mapSvg.addEventListener("click", function (e) {
   if (closestAnchor(e.target)) e.preventDefault();
 }, false);
 
+// On-screen zoom for browsers without pinch (e.g. e-readers)
+function zoomBy(factor) {
+  if (!peaks.length) return;
+  var r = mapSvg.getBoundingClientRect();
+  zoomTo(view.w * factor, view.x + view.w / 2, view.y + view.h / 2,
+         r.left + r.width / 2, r.top + r.height / 2);
+}
+$("#zoom-in").onclick = function () { zoomBy(1 / 1.6); };
+$("#zoom-out").onclick = function () { zoomBy(1.6); };
+$("#zoom-reset").onclick = function () {
+  if (!peaks.length) return;
+  resetView();
+  drawMap();
+};
+// Show the buttons only where pinch is unlikely to work: touch (or very old)
+// browsers that don't report two simultaneous touch points.
+(function () {
+  var points = navigator.maxTouchPoints;
+  var multiTouch = typeof points === "number" && points >= 2;
+  var touch = "ontouchstart" in window || (typeof points === "number" && points > 0);
+  var oldBrowser = !("onpointerdown" in window);
+  $("#zoom-controls").hidden = multiTouch || !(touch || oldBrowser);
+})();
+
 function shareResult() {
   var blocks = "";
   for (var i = 0; i < guesses.length; i++) {
