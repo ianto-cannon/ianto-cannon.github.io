@@ -178,6 +178,9 @@ function colGuess(pct, alpha) {
   if (alpha === undefined) alpha = 1;
   return "hsla(" + hue + ",30%," + (20 + 70 * Math.pow(pct / 100, .25)) + "%," + alpha + ")";
 }
+function fillAttrs(c) {
+  return ' fill="' + c + '" style="--fill:' + c + '"';
+}
 var CSV_RE = /(?:^|,)("(?:[^"]|"")*"|[^,]*)/g;
 function parseCSV(text) {
   return text.replace(/^\s+|\s+$/g, "").split(/\r?\n/).map(function (line) {
@@ -520,7 +523,7 @@ function drawChart() {
     var guessed = isGuessed(g);
     var isSel = g === selected;
     polys += '<polygon' + (guessed ? (isSel ? ' class="selected"' : "") : ' class="unguessed"')
-      + ' style="--fill:' + (guessed ? colGuess(linkToTarget(g).pct) : greyFor(pl.G)) + '" '
+      + fillAttrs(guessed ? colGuess(linkToTarget(g).pct) : greyFor(pl.G)) + ' '
       + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (guessed && isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col-altitude")
@@ -528,7 +531,7 @@ function drawChart() {
         + label(pl.xg, pl.G.name, g, Math.max(font, chartY(pl.G.height) - 3 - font));
     }
   }
-  polys += '<polygon class="target" style="--fill:' + (over() ? colGuess(100) : greyFor(T)) + '" '
+  polys += '<polygon class="target"' + fillAttrs(over() ? colGuess(100) : greyFor(T)) + ' '
     + shape(cx, W, T) + '/>';
   var boxTop = chartY(10000);
   var boxD = "M" + pt(x0, base) + " L" + pt(x0, boxTop) + " L" + pt(x1, boxTop) + " L" + pt(x1, base);
@@ -865,7 +868,7 @@ function drawMap() {
     var shape = triangle(p.x, p.y, isSel ? 20 * px : 10 * px);
 
     var marker = '<polygon' + (cls ? ' class="' + cls + '"' : "")
-      + (fill ? ' style="--fill:' + fill + '"' : "") + tap
+      + fillAttrs(fill || "gray") + tap
       + ' points="' + shape + '"/>';
     var label = shown[i]
       ? '<a' + tap + ' href="#"><text' + (isSel ? ' class="selected"' : "")
@@ -1056,8 +1059,12 @@ mapSvg.addEventListener("click", function (e) {
 function zoomBy(factor) {
   if (!peaks.length) return;
   var r = mapSvg.getBoundingClientRect();
-  zoomTo(view.w * factor, view.x + view.w / 2, view.y + view.h / 2,
-         r.left + r.width / 2, r.top + r.height / 2);
+  var wx = view.x + view.w / 2, wy = view.y + view.h / 2;
+  if (selected !== null && peaks[selected]) {
+    wx = peaks[selected].x;
+    wy = peaks[selected].y;
+  }
+  zoomTo(view.w * factor, wx, wy, r.left + r.width / 2, r.top + r.height / 2);
 }
 $("#zoom-in").onclick = function () { zoomBy(1 / 1.6); };
 $("#zoom-out").onclick = function () { zoomBy(1.6); };
