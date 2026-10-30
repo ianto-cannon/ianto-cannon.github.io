@@ -19,6 +19,8 @@ ol {
 }
 .svg-box{
   position:relative;
+  width:100%;
+  box-sizing:border-box;
 }
 .svg-box > svg{
   position:absolute;
@@ -28,12 +30,14 @@ ol {
   height:100%;
 }
 #map-box{
-  height:242px;
+  height:0;
+  padding-bottom:31.8%;
   border:1px solid;
   box-sizing:border-box;
 }
 #chart-box{
-  height:220px;
+  height:0;
+  padding-bottom:33%;
 }
 #map{
   background: hsl(207,51%,95%);
@@ -172,15 +176,27 @@ ol {
 .selected{
   font-weight:bold
 }
+@media (min-width:900px){
+  #map-box{
+    padding-bottom:25%;
+  }
+  #chart-box{
+    padding-bottom:20%;
+  }
+}
+/* Modern browsers: the original proportional sizing with viewport-height limits.
+   Must come after the rules above so it overrides their padding. */
 @supports (aspect-ratio:1){
   #map-box{
     height:auto;
+    padding-bottom:0;
     aspect-ratio:3.142;
     max-height:40vh;
     min-height:30vh;
   }
   #chart-box{
     height:auto;
+    padding-bottom:0;
     aspect-ratio:4;
     max-height:25vh;
     min-height:20vh;

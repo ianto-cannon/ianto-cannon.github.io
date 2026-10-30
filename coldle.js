@@ -258,6 +258,7 @@ function newRound() {
   } else {
     target = Math.floor(Math.random() * peaks.length);
   }
+  linkCache = [];
   guesses = saved || [];
   selected = null;
   if (saved && over()) ensureVisible(target);
@@ -293,7 +294,11 @@ function chain(i) {
   if (i < 0) return [];
   return [i].concat(chain(peaks[i].parent));
 }
+var linkCache = [];
 function linkToTarget(g) {
+  return linkCache[g] || (linkCache[g] = computeLink(g));
+}
+function computeLink(g) {
   if (g === target) return { colAlt: peaks[g].height, pct: 100 };
   var a = chain(g);
   var b = chain(target);
@@ -429,9 +434,8 @@ function renderStatus() {
 function drawChart() {
   var chart = $("#chart");
   var rect = chart.getBoundingClientRect();
-  var viewW = rect.width || chart.clientWidth || (chart.parentNode && chart.parentNode.offsetWidth);
-  var viewH = rect.height || chart.clientHeight || viewW / CHART_ASPECT;
-  if (sized.chart) { viewW = sized.chart.w; viewH = sized.chart.h; }
+  var viewW = chartWrap.clientWidth || rect.width || chart.clientWidth || (chart.parentNode && chart.parentNode.offsetWidth);
+  var viewH = chartWrap.clientHeight || rect.height || chart.clientHeight || viewW / CHART_ASPECT;
   if (!viewW || !viewH) return;
   var key = [viewW, viewH, fontPx(), target,
              guesses.join(), selected, over(), peaks.length].join();
@@ -635,28 +639,6 @@ var mapSvg = $("#map");
 var mapWrap = $("#map-box");
 var chartWrap = $("#chart-box");
 
-var HAS_AR = !!(window.CSS && CSS.supports && CSS.supports("aspect-ratio", "1"));
-var sized = {};
-function sizeSvgs() {
-  if (HAS_AR) { sized = {}; return; }
-  var big = 1e5;
-  var vh = Math.min(
-    window.innerHeight || big,
-    document.documentElement.clientHeight || big,
-    (window.screen && window.screen.height) || big);
-  if (vh >= big) vh = 0;
-  function fit(key, wrap, extra, ratio, lo, hi) {
-    var w = wrap.clientWidth || (wrap.parentNode && wrap.parentNode.offsetWidth);
-    if (!w) return;
-    var h = w / ratio;
-    if (vh) h = clamp(h, lo * vh, hi * vh);
-    h = Math.round(h);
-    wrap.style.height = (h + extra) + "px";
-    sized[key] = { w: w, h: h };
-  }
-  fit("map", mapWrap, 2, 3.142, .30, .40);
-  fit("chart", chartWrap, 0, 3, .22, .30);
-}
 
 function project(lat, lon) {
   return [
@@ -758,15 +740,18 @@ function applyCount(n, writeHash) {
   newRound();
 }
 function aspect() {
-  if (sized.map) return sized.map.w / sized.map.h;
-  var r = mapSvg.getBoundingClientRect();
-  return r.width / (r.height || mapSvg.clientHeight || 318);
+  var w = mapWrap.clientWidth, h = mapWrap.clientHeight;
+  if (!w || !h) {
+    var r = mapSvg.getBoundingClientRect();
+    w = r.width;
+    h = r.height || mapSvg.clientHeight || 318;
+  }
+  return w / h;
 }
 function minW() { return world.W / MAX_ZOOM; }
 function maxW() { return Math.min(world.W, world.H * aspect()); }
 
 function resetView() {
-  sizeSvgs();
   panAnim = null;
   var w = maxW();
   var h = w / aspect();
@@ -782,6 +767,15 @@ function toWorld(cx, cy) {
   var r = mapSvg.getBoundingClientRect();
   return [view.x + (cx - r.left) / r.width * view.w, view.y + (cy - r.top) / r.height * view.h];
 }
+var drawPending = false;
+function scheduleDraw() {
+  if (drawPending) return;
+  drawPending = true;
+  raf(function () {
+    drawPending = false;
+    drawMap();
+  });
+}
 function zoomTo(w, wx, wy, cx, cy) {
   panAnim = null;
   var r = mapSvg.getBoundingClientRect();
@@ -789,21 +783,13 @@ function zoomTo(w, wx, wy, cx, cy) {
   view.h = view.w / aspect();
   view.x = wx - (cx - r.left) / r.width * view.w;
   view.y = wy - (cy - r.top) / r.height * view.h;
-  drawMap();
+  scheduleDraw();
 }
-window.addEventListener("resize", function () {
-  sizeSvgs();
+function relayout() {
   if (peaks.length) { drawMap(); drawChart(); }
-}, false);
-window.addEventListener("orientationchange", function () {
-  sizeSvgs();
-  if (peaks.length) { drawMap(); drawChart(); }
-}, false);
-window.addEventListener("load", function () {
-  if (HAS_AR) return;
-  sizeSvgs();
-  if (peaks.length) { resetView(); drawMap(); drawChart(); }
-}, false);
+}
+window.addEventListener("resize", relayout, false);
+window.addEventListener("orientationchange", relayout, false);
 function triangle(x, y, r) {
   return pt(x, y - r) + " " + pt(x + r * .87, y + r * .5) + " " + pt(x - r * .87, y + r * .5);
 }
@@ -832,7 +818,7 @@ function drawMap() {
   }
   var shown = {};
   var flipped = {};
-  var boxes = [];
+  var obstacles = markers.slice();
   for (var oj = 0; oj < order.length; oj++) {
     var q = peaks[order[oj]];
     var bx0 = q.x + labelDx(order[oj]);
@@ -848,14 +834,13 @@ function drawMap() {
     if (!isSelLabel && (bx0 < 0 || bx1 > world.W || by0 < 0 || by1 > world.H)) continue;
     if (bx1 < view.x || bx0 > view.x + view.w || by1 < view.y || by0 > view.y + view.h) continue;
     var clash = false;
-    var obstacles = boxes.concat(markers);
     for (var bi = 0; bi < obstacles.length; bi++) {
       if (markers[order[oj]] === obstacles[bi]) continue;
       var b = obstacles[bi];
       if (bx0 < b[2] && bx1 > b[0] && by0 < b[3] && by1 > b[1]) { clash = true; break; }
     }
     if (clash && order[oj] !== selected) continue;
-    boxes.push([bx0, by0, bx1, by1]);
+    obstacles.push([bx0, by0, bx1, by1]);
     shown[order[oj]] = true;
   }
 
@@ -971,7 +956,7 @@ function handleMove(id, cx, cy) {
       var k = view.w / mapSvg.getBoundingClientRect().width;
       view.x = drag.vx - dx * k;
       view.y = clamp(drag.vy - dy * k, 0, world.H - view.h);
-      drawMap();
+      scheduleDraw();
     }
   }
 }
