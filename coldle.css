@@ -17,10 +17,26 @@ ol {
 #land{
   fill:#bbb;
 }
+.svg-box{
+  position:relative;
+}
+.svg-box > svg{
+  position:absolute;
+  top:0;
+  left:0;
+  width:100%;
+  height:100%;
+}
+#map-box{
+  height:242px;
+  border:1px solid;
+  box-sizing:border-box;
+}
+#chart-box{
+  height:220px;
+}
 #map{
   background: hsl(207,51%,95%);
-  height:240px;
-  border:1px solid;
   touch-action:none;
   user-select:none;
   -webkit-user-select:none;
@@ -156,17 +172,14 @@ ol {
 .selected{
   font-weight:bold
 }
-#chart{
-  height:220px;
-}
 @supports (aspect-ratio:1){
-  #map{
+  #map-box{
     height:auto;
     aspect-ratio:3.142;
     max-height:40vh;
     min-height:30vh;
   }
-  #chart{
+  #chart-box{
     height:auto;
     aspect-ratio:4;
     max-height:25vh;

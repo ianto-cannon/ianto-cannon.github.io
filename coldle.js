@@ -632,6 +632,8 @@ function confetti() {
 var world = { W: 40030, H: 12742, R: 6371, lon0: 0 };
 var view = { x: 0, y: 0, w: 40030, h: 12742 };
 var mapSvg = $("#map");
+var mapWrap = $("#map-box");
+var chartWrap = $("#chart-box");
 
 var HAS_AR = !!(window.CSS && CSS.supports && CSS.supports("aspect-ratio", "1"));
 var sized = {};
@@ -643,17 +645,17 @@ function sizeSvgs() {
     document.documentElement.clientHeight || big,
     (window.screen && window.screen.height) || big);
   if (vh >= big) vh = 0;
-  function fit(key, el, ratio, lo, hi) {
-    var w = el.getBoundingClientRect().width || (el.parentNode && el.parentNode.offsetWidth);
+  function fit(key, wrap, extra, ratio, lo, hi) {
+    var w = wrap.clientWidth || (wrap.parentNode && wrap.parentNode.offsetWidth);
     if (!w) return;
     var h = w / ratio;
     if (vh) h = clamp(h, lo * vh, hi * vh);
     h = Math.round(h);
-    el.style.height = h + "px";
+    wrap.style.height = (h + extra) + "px";
     sized[key] = { w: w, h: h };
   }
-  fit("map", mapSvg, 3.142, .30, .40);
-  fit("chart", $("#chart"), 3, .22, .30);
+  fit("map", mapWrap, 2, 3.142, .30, .40);
+  fit("chart", chartWrap, 0, 3, .22, .30);
 }
 
 function project(lat, lon) {
@@ -808,7 +810,7 @@ function triangle(x, y, r) {
 function drawMap() {
   clampView();
   mapSvg.setAttribute("viewBox", view.x + " " + view.y + " " + view.w + " " + view.h);
-  var px = view.w / (mapSvg.getBoundingClientRect().width || mapSvg.parentNode.offsetWidth);
+  var px = view.w / (mapWrap.clientWidth || mapSvg.getBoundingClientRect().width || mapSvg.parentNode.offsetWidth);
   var live = !over();
   var tiers = [[], [], []];
   var labels = "";
