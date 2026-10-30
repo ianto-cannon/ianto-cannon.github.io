@@ -102,21 +102,11 @@ ol {
 #peak-image .credit a{
   color:lightskyblue;
 }
-.flash{
-  animation:flash 1s
+.flash {
+  animation: flash 1s;
 }
-.flash-dark{
-  animation:flash-dark 1s
-}
-@keyframes flash{
-  from{
-    background-color:color-mix(in srgb, gray 30%, transparent)
-  }
-}
-@keyframes flash-dark{
-  from{
-    background-color:color-mix(in srgb, gray 70%, transparent)
-  }
+@keyframes flash {
+  from { background: currentColor; }
 }
 #action{
   font-size:1.2em

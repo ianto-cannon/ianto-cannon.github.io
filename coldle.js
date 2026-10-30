@@ -7,7 +7,7 @@ var MAX_GUESSES = 8;
 var MAX_ZOOM = 150;
 var RAD = Math.PI / 180;
 var DEFAULT_COUNT = 50;
-var CHART_ASPECT = 3.142;  
+var CHART_ASPECT = 3.142;
 var COARSE = !!(window.matchMedia && matchMedia("(pointer: coarse)").matches);
 
 // old-browser helpers
@@ -73,7 +73,6 @@ function commonsThumb(p) {
       p.imgAuthor = plain(m.Artist && m.Artist.value);
       p.imgLicense = plain(m.LicenseShortName && m.LicenseShortName.value);
       p.imgLicenseUrl = plain(m.LicenseUrl && m.LicenseUrl.value);
-      // Prefetch the bytes so the photo shows instantly when the round ends.
       (new Image()).src = p.imgUrl;
       showPeakImage(p);
     });
@@ -130,7 +129,6 @@ function clearPeakImage() {
 }
 function pt(x, y) { return x.toFixed(1) + "," + y.toFixed(1); }
 function esc(s) { return String(s).replace(/&/g, "&amp;").replace(/</g, "&lt;"); }
-// Old WebKit has no innerHTML on SVG elements, so parse the markup and import the nodes.
 function setSvg(el, markup) {
   while (el.firstChild) el.removeChild(el.firstChild);
   var doc = new DOMParser().parseFromString(
@@ -275,7 +273,7 @@ function guess() {
   if (won()) confetti();
   else if (over()) {
     play($("#action"), "shake");
-    play(document.body, darkTheme() ? "flash-dark" : "flash");
+    play(document.body, "flash");
   }
 }
 function prefersReducedMotion() {
@@ -284,13 +282,9 @@ function prefersReducedMotion() {
 function play(el, cls) {
   if (prefersReducedMotion()) return;
   removeClass(el, "flash");
-  removeClass(el, "flash-dark");
   removeClass(el, "shake");
   void el.offsetWidth;
   addClass(el, cls);
-}
-function darkTheme() {
-  return getComputedStyle(document.body).backgroundColor === "rgb(0, 0, 0)";
 }
 function chain(i) {
   if (i < 0) return [];
@@ -360,7 +354,7 @@ function renderTable() {
 function setHidden(el, hide) {
   el.hidden = hide;
 }
-var lastStatus = "";
+var hintVisibility = null;
 function renderStatus() {
   var p = peaks[target];
   var made = guesses.length;
@@ -412,10 +406,22 @@ function renderStatus() {
   if (end) peakImage(p);
   else clearPeakImage();
 
-  var state = box.textContent;
-  if (state === lastStatus) return;
-  lastStatus = state;
-  play(box, "flash");
+  var rangeVisible = made >= 3 || end;
+  var countryVisible = made >= 5 || end;
+
+  if (hintVisibility !== null) {
+    if (rangeVisible && !hintVisibility.range) {
+      play(box.querySelector('[data-field-html="hint3"]'), "flash");
+    }
+    if (countryVisible && !hintVisibility.country) {
+      play(box.querySelector('[data-field-html="hint4"]'), "flash");
+    }
+  }
+
+  hintVisibility = {
+    range: rangeVisible,
+    country: countryVisible
+  };
 }
 function drawChart() {
   var chart = $("#chart");
@@ -769,7 +775,6 @@ function drawMap() {
   var labels = "";
   var top = "";
 
-  // Greedy label placement: selected peak first, then by descending prominence.
   var fs = fontPx() * px;
   var order = [];
   for (var oi = 0; oi < peaks.length; oi++) order.push(oi);
@@ -1053,7 +1058,6 @@ function shareResult() {
       showText();
     }
   }
-  // On touch devices use the native share sheet.
   if (COARSE && navigator.share) {
     try {
       var sp = navigator.share({ text: text });
@@ -1063,7 +1067,7 @@ function shareResult() {
         });
       }
       return;
-    } catch (err) { /* fall through to copy */ }
+    } catch (err) {}
   }
   setTimeout(tryCopy, 0);
 }
