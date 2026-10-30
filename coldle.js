@@ -629,8 +629,15 @@ var world = { W: 40030, H: 12742, R: 6371, lon0: 0 };
 var view = { x: 0, y: 0, w: 40030, h: 12742 };
 var mapSvg = $("#map");
 
+var HAS_AR = !!(window.CSS && CSS.supports && CSS.supports("aspect-ratio", "1"));
 function sizeSvgs() {
-  var vh = window.innerHeight || document.documentElement.clientHeight || 0;
+  if (HAS_AR) return;
+  var big = 1e5;
+  var vh = Math.min(
+    window.innerHeight || big,
+    document.documentElement.clientHeight || big,
+    (window.screen && window.screen.height) || big);
+  if (vh >= big) vh = 0;
   function fit(el, ratio, lo, hi) {
     var w = el.getBoundingClientRect().width || (el.parentNode && el.parentNode.offsetWidth);
     if (!w) return;
@@ -638,9 +645,10 @@ function sizeSvgs() {
     if (vh) h = clamp(h, lo * vh, hi * vh);
     el.style.height = Math.round(h) + "px";
   }
-  fit(mapSvg, 3.142, .30, .40);   // same ratio and limits as coldle.css
+  fit(mapSvg, 3.142, .30, .40);
   fit($("#chart"), 4, .20, .25);
 }
+
 function project(lat, lon) {
   return [
     world.W / 2 + world.R * (((lon - world.lon0 + 540) % 360) - 180) * RAD,
@@ -776,6 +784,15 @@ function zoomTo(w, wx, wy, cx, cy) {
 window.addEventListener("resize", function () {
   sizeSvgs();
   if (peaks.length) { drawMap(); drawChart(); }
+}, false);
+window.addEventListener("orientationchange", function () {
+  sizeSvgs();
+  if (peaks.length) { drawMap(); drawChart(); }
+}, false);
+window.addEventListener("load", function () {
+  if (HAS_AR) return;
+  sizeSvgs();
+  if (peaks.length) { resetView(); drawMap(); drawChart(); }
 }, false);
 function triangle(x, y, r) {
   return pt(x, y - r) + " " + pt(x + r * .87, y + r * .5) + " " + pt(x - r * .87, y + r * .5);

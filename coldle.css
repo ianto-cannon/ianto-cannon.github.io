@@ -19,9 +19,7 @@ ol {
 }
 #map{
   background: hsl(207,51%,95%);
-  aspect-ratio: 3.142;
-  max-height:40vh;
-  min-height:30vh;
+  height:240px;
   border:1px solid;
   touch-action:none;
   user-select:none;
@@ -155,9 +153,21 @@ ol {
   font-weight:bold
 }
 #chart{
-  aspect-ratio: 4;
-  max-height:25vh;
-  min-height:20vh;
+  height:150px;
+}
+@supports (aspect-ratio:1){
+  #map{
+    height:auto;
+    aspect-ratio:3.142;
+    max-height:40vh;
+    min-height:30vh;
+  }
+  #chart{
+    height:auto;
+    aspect-ratio:4;
+    max-height:25vh;
+    min-height:20vh;
+  }
 }
 #chart polygon{
   fill:var(--fill, gray);
