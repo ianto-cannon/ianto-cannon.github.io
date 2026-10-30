@@ -30,8 +30,8 @@ function removeClass(el, className) {
 }
 
 var API = endsWith(location.hostname, '.onion')
-    ? '/api.php'
-    : 'https://guestbook.maricakes.de/api.php';
+    ? '/api'
+    : 'https://guestbook.maricakes.de/api';
 var timeline, t0, t1, guestbookData = [];
 
 function escapeHTML(str) {
