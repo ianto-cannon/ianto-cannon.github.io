@@ -428,6 +428,7 @@ function drawChart() {
   var rect = chart.getBoundingClientRect();
   var viewW = rect.width || chart.clientWidth || (chart.parentNode && chart.parentNode.offsetWidth);
   var viewH = rect.height || chart.clientHeight || viewW / CHART_ASPECT;
+  if (sized.chart) { viewW = sized.chart.w; viewH = sized.chart.h; }
   if (!viewW || !viewH) return;
   var key = [viewW, viewH, fontPx(), target,
              guesses.join(), selected, over(), peaks.length].join();
@@ -630,23 +631,26 @@ var view = { x: 0, y: 0, w: 40030, h: 12742 };
 var mapSvg = $("#map");
 
 var HAS_AR = !!(window.CSS && CSS.supports && CSS.supports("aspect-ratio", "1"));
+var sized = {};
 function sizeSvgs() {
-  if (HAS_AR) return;
+  if (HAS_AR) { sized = {}; return; }
   var big = 1e5;
   var vh = Math.min(
     window.innerHeight || big,
     document.documentElement.clientHeight || big,
     (window.screen && window.screen.height) || big);
   if (vh >= big) vh = 0;
-  function fit(el, ratio, lo, hi) {
+  function fit(key, el, ratio, lo, hi) {
     var w = el.getBoundingClientRect().width || (el.parentNode && el.parentNode.offsetWidth);
     if (!w) return;
     var h = w / ratio;
     if (vh) h = clamp(h, lo * vh, hi * vh);
-    el.style.height = Math.round(h) + "px";
+    h = Math.round(h);
+    el.style.height = h + "px";
+    sized[key] = { w: w, h: h };
   }
-  fit(mapSvg, 3.142, .30, .40);
-  fit($("#chart"), 4, .20, .25);
+  fit("map", mapSvg, 3.142, .30, .40);
+  fit("chart", $("#chart"), 3, .22, .30);
 }
 
 function project(lat, lon) {
@@ -749,6 +753,7 @@ function applyCount(n, writeHash) {
   newRound();
 }
 function aspect() {
+  if (sized.map) return sized.map.w / sized.map.h;
   var r = mapSvg.getBoundingClientRect();
   return r.width / (r.height || mapSvg.clientHeight || 318);
 }
