@@ -995,7 +995,7 @@ function shareResult() {
     ? "Coldle " + count + " peaks " + isoDate()
     : "Coldle " + count + " peaks random";
 
-  var url = "https://ianto-cannon.github.io/coldle.html"
+  var url = "ianto-cannon.github.io/coldle"
     + (count === DEFAULT_COUNT ? "" : "#" + count);
   var text = head + "\n" + summary + "\n" + blocks + "\n" + url;
 
