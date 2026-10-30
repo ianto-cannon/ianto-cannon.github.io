@@ -148,7 +148,6 @@ function isoDateFromDay(day) {
   return d.getUTCFullYear() + "-" + ("0" + (d.getUTCMonth() + 1)).slice(-2)
        + "-" + ("0" + d.getUTCDate()).slice(-2);
 }
-/* The answer for any past day, matching the collision bump applied in newRound. */
 function targetForDay(day) {
   var t = dailyTarget(day, peaks.length);
   if (peaks.length > DEFAULT_COUNT && t === dailyTarget(day, DEFAULT_COUNT)) {
@@ -157,7 +156,6 @@ function targetForDay(day) {
   }
   return t;
 }
-/* Reads the guesses already saved for a past day and reports a win. */
 function wonOnDay(day) {
   try {
     var raw = localStorage.getItem("coldle-daily:" + isoDateFromDay(day) + ":" + count);
@@ -165,7 +163,13 @@ function wonOnDay(day) {
     return !!list && list.indexOf(targetForDay(day)) !== -1;
   } catch (e) { return false; }
 }
-/* Consecutive won days, ending today. */
+function untilTomorrow() {
+  var mins = Math.ceil((864e5 - (Date.now() % 864e5)) / 60000);
+  var h = Math.floor(mins / 60), m = mins % 60;
+  if (!h) return m + " min";
+  if (!m) return h + " h";
+  return h + " h " + m + " min";
+}
 function currentStreak() {
   var day = Math.floor(Date.now() / 864e5), n = 0;
   while (wonOnDay(day)) { n++; day--; }
@@ -384,7 +388,7 @@ function renderStatus() {
     tip2: end
       ? (mode === "daily"
           ? (streak > 0
-              ? "🔥 " + streak + "-day streak! Come back tomorrow for a new peak, or switch to random for another round."
+              ? "🔥 " + streak + "-day streak! Come back in " + untilTomorrow() + " for a new peak, or switch to random for another round."
               : "Come back tomorrow for a new peak, or switch to random for another round.")
           : "Press reset for another peak.")
       : (selected !== null && !isGuessed(selected)
