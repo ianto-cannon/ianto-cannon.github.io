@@ -24,8 +24,8 @@ function metres(m) { return m.toLocaleString() + " m"; }
 function colLabel(m) { return m ? metres(m) : "sea level"; }
 function wikiLink(p) {
   return p.wiki
-    ? '<a href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/' + p.wiki + '"><b>' + p.name + "</b></a>"
-    : "<b>" + p.name + "</b>";
+    ? '<a href="https://www.wikidata.org/wiki/Special:GoToLinkedPage/enwiki/' + p.wiki + '"><b>' + esc(p.name) + "</b></a>"
+    : "<b>" + esc(p.name) + "</b>";
 }
 function getJSON(url, cb) {
   if (window.fetch) {
@@ -137,10 +137,6 @@ function setSvg(el, markup) {
     el.appendChild(document.importNode(n, true));
   }
 }
-function isoDate() {
-  var d = new Date();
-  return d.getUTCFullYear() + "-" + ("0" + (d.getUTCMonth() + 1)).slice(-2) + "-" + ("0" + d.getUTCDate()).slice(-2);
-}
 function isoDateFromDay(day) {
   var d = new Date(day * 864e5);
   return d.getUTCFullYear() + "-" + ("0" + (d.getUTCMonth() + 1)).slice(-2)
@@ -169,7 +165,7 @@ function untilTomorrow() {
   return h + " h " + m + " min";
 }
 function currentStreak() {
-  var day = Math.floor(Date.now() / 864e5), n = 0;
+  var day = roundDay, n = 0;
   while (wonOnDay(day)) { n++; day--; }
   return n;
 }
@@ -195,6 +191,7 @@ function parseCSV(text) {
   });
 }
 var mode = "daily";
+var roundDay = Math.floor(Date.now() / 864e5);
 var allPeaks = null;
 var maxCount = 125;
 var count = DEFAULT_COUNT;
@@ -220,7 +217,7 @@ function dailyTarget(day, n) {
   return h % n;
 }
 function dailyStorageKey() {
-  return "coldle-daily:" + isoDate() + ":" + count;
+  return "coldle-daily:" + isoDateFromDay(roundDay) + ":" + count;
 }
 function loadDailyGuesses() {
   try {
@@ -250,7 +247,7 @@ function saveDailyGuesses() {
   } catch (e) {}
 }
 function newRound() {
-  var day = Math.floor(Date.now() / 864e5);
+  var day = roundDay = Math.floor(Date.now() / 864e5);
   var saved = null;
   if (mode === "daily") {
     target = targetForDay(day);
@@ -344,7 +341,7 @@ function renderTable() {
       var g = guesses[i];
       var lt = linkToTarget(g);
       tr.className = g === selected ? "selected" : "";
-      tr.cells[1].innerHTML = '<a href="#" data-peak="' + g + '">' + peaks[g].name + '</a>';
+      tr.cells[1].innerHTML = '<a href="#" data-peak="' + g + '">' + esc(peaks[g].name) + '</a>';
       tr.cells[2].textContent = peaks[g].range;
       tr.cells[3].textContent = peaks[g].country;
       tr.cells[4].textContent = g === target ? "🎯 Correct" : colLabel(lt.colAlt);
@@ -374,10 +371,10 @@ function renderStatus() {
     height: metres(p.height),
     prominence: metres(p.prominence),
     hint3: (made >= 3 || end)
-      ? "The mystery peak is in the <b>" + p.range + "</b>."
+      ? "The mystery peak is in the <b>" + esc(p.range) + "</b>."
       : "The mountain range will be revealed after your <b>third</b> guess.",
     hint4: (made >= 5 || end)
-      ? "The mystery peak is in <b>" + p.country + "</b>."
+      ? "The mystery peak is in <b>" + esc(p.country) + "</b>."
       : "The country will be revealed after your <b>fifth</b> guess.",
     tip1: end
       ? (won()
@@ -391,7 +388,7 @@ function renderStatus() {
               : "Come back tomorrow for a new peak, or switch to random for another round.")
           : "Press reset for another peak.")
       : (selected !== null && !isGuessed(selected)
-          ? "Selected <b>" + peaks[selected].name + "</b>. Press Guess to confirm."
+          ? "Selected <b>" + esc(peaks[selected].name) + "</b>. Press Guess to confirm."
           : (made === 0
               ? "Tap a peak on the map, then press Guess."
               : "Tap another peak on the map, then press Guess."))
@@ -1082,7 +1079,7 @@ function shareResult() {
     : "I didn't find the mystery peak in " + MAX_GUESSES + " tries.";
 
   var head = mode === "daily"
-    ? "Coldle " + count + " peaks " + isoDate()
+    ? "Coldle " + count + " peaks " + isoDateFromDay(roundDay)
     : "Coldle " + count + " peaks random";
 
   var url = "ianto-cannon.github.io/coldle"
