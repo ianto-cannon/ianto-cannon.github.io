@@ -150,11 +150,11 @@ ol {
 #markers [data-peak]{
   cursor:pointer
 }
-#markers text{
+#markers text, #chart text{
   fill:currentColor;
 }
 @supports (paint-order:stroke){
-  #markers text{
+  #markers text, #chart text{
     stroke:white;
     stroke-width:.2em;
     paint-order:stroke fill;
@@ -176,7 +176,6 @@ ol {
   stroke:gray
 }
 #chart text{
-  fill:currentColor;
   text-anchor:middle
 }
 #chart text.end{

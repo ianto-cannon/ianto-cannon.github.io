@@ -21,7 +21,7 @@ body .zodiac text {
 #land{
   fill:#666
 }
-#markers text{
+#markers text, #chart text{
   stroke:black;
 }
 

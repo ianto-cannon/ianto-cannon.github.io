@@ -409,7 +409,7 @@ function drawChart() {
   var wgMax = (x1 - plotL) / 20;
   var W = cx - plotL - .3 * (x1 - plotL);
   var T = peaks[target];
-  var base = viewH - 1.5 * font;
+  var base = viewH - 0.5 * font;
   var plotH = 0.95 * base;
 
   function chartY(alt) { return base - alt / 10000 * plotH; }
@@ -421,9 +421,10 @@ function drawChart() {
       + '" y1="' + y.toFixed(1) + '" y2="' + y.toFixed(1) + '"/>';
   }
   function altitude(x, p) { return text(x, chartY(p.height) - 3, metres(p.height)); }
-  function label(x, t, i) {
+  function label(x, t, i, y) {
+    if (y === undefined) y = base + 1.1 * font;
     var h = t.length * .35 * font;
-    var tx = text(clamp(x, h, viewW - h), base + 1.1 * font, esc(t), i === selected ? "selected" : "");
+    var tx = text(clamp(x, h, viewW - h), y, esc(t), i === selected ? "selected" : "");
     return i === undefined ? tx : '<a href="#" data-peak="' + i + '">' + tx + '</a>';
   }
   var out = "";
@@ -488,7 +489,8 @@ function drawChart() {
       + shape(pl.xg, pl.wg, pl.G) + '/>';
     if (guessed && isSel) {
       marks += text(pl.xg + pl.reach + 2, chartY(pl.col) - 2, metres(pl.col), "col-altitude")
-        + altitude(pl.xg, pl.G) + label(pl.xg, pl.G.name, g);
+        + altitude(pl.xg, pl.G)
+        + label(pl.xg, pl.G.name, g, Math.max(font, chartY(pl.G.height) - 3 - font));
     }
   }
   polys += '<polygon class="target" style="--fill:' + (over() ? colGuess(100) : greyFor(T)) + '" '
@@ -503,7 +505,8 @@ function drawChart() {
   }
   var chartBox = '<path class="chart-box" d="' + boxD + '"/>';
   out += polys + chartBox + marks + altitude(cx, T)
-    + label(cx, over() ? T.name : "?", over() ? target : undefined);
+    + label(cx, over() ? T.name : "?", over() ? target : undefined,
+            Math.max(font, chartY(T.height) - 3 - font));
 
   chart.setAttribute("viewBox", "0 0 " + viewW.toFixed(1) + " " + viewH.toFixed(1));
   chart.setAttribute("font-size", font.toFixed(2));
