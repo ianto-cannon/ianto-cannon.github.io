@@ -153,12 +153,10 @@ if (month === 9 && date === 31) {
   emoji = " 🎃"; 
   title = "Happy halloween!"; 
   randomColor = halloweenColor;
-  if (window.FontFace) {
-    var style = document.createElement("style");
-    style.textContent = "@font-face {font-family: 'Creepster'; src: url('creepster.woff2') format('woff2'); font-display: swap;}";
-    document.head.appendChild(style);
-    addHeadingClass("halloween");
-  }
+  var style = document.createElement("style");
+  style.textContent = "@font-face {font-family: 'Creepster'; src: url('creepster.ttf') format('truetype'); font-display: swap;}";
+  document.head.appendChild(style);
+  addHeadingClass("halloween");
 } else if (month === 11 && date >= 24 && date <= 26) {
   emoji = " 🎄"; title = "Merry Christmas!"; randomColor = christmasColor; 
 } else if (month === 0 && date <= 3) { 
