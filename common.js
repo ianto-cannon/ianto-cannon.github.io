@@ -141,27 +141,41 @@ for (var i = 0; i < themeInputs.length; i++) {
 var savedThemeInput = document.querySelector('input[value="' + saved + '"]');
 if (savedThemeInput) savedThemeInput.checked = true;
 
+function addHeadingClass(cls) {
+  var heads = document.querySelectorAll("h1, h2, h3");
+  for (var i = 0; i < heads.length; i++) heads[i].className += " " + cls;
+}
+
 getTime();
 emoji = ""; title = ""; randomColor = anyColor;
 
-if (month === 9 && date === 31) { emoji = " 🎃"; title = "Happy halloween!"; randomColor = halloweenColor;
-  const style = document.createElement("style");
-  style.textContent = `@font-face {font-family: 'Creepster'; src: url('creepster.woff2') format('woff2'); font-display: swap;}`;
-  document.head.appendChild(style);
-  document.querySelectorAll('h1, h2, h3').forEach( (el) => {
-    el.classList.add('halloween');
-  });
-} else if (month === 11 && date >= 24 && date <= 26) { emoji = " 🎄"; title = "Merry Christmas!"; randomColor = christmasColor; }
-else if (month === 0 && date <= 3) { emoji = " 🎆"; title = "Happy new year!"; randomColor = newYearColor; 
-  document.querySelectorAll('h1, h2, h3').forEach( (el) => {
-    el.classList.add('valentines');
-  });
-} else if (month === 1 && date === 14) { emoji = " 💘"; title = "Happy Valentine's day!"; randomColor = valentinesColor; }
-else if (month === 5 && date === 28) { emoji = " 🌈"; title = "Happy pride!"; randomColor = prideColor; }
-else if (month === 3 && date === 22) { emoji = " 🌎"; title = "Happy Earth day!"; randomColor = earthColor; }
+if (month === 9 && date === 31) { 
+  emoji = " 🎃"; 
+  title = "Happy halloween!"; 
+  randomColor = halloweenColor;
+  if (window.FontFace) {
+    var style = document.createElement("style");
+    style.textContent = "@font-face {font-family: 'Creepster'; src: url('creepster.woff2') format('woff2'); font-display: swap;}";
+    document.head.appendChild(style);
+    addHeadingClass("halloween");
+  }
+} else if (month === 11 && date >= 24 && date <= 26) {
+  emoji = " 🎄"; title = "Merry Christmas!"; randomColor = christmasColor; 
+} else if (month === 0 && date <= 3) { 
+  emoji = " 🎆"; title = "Happy new year!"; randomColor = newYearColor; 
+} else if (month === 1 && date === 14) { 
+  emoji = " 💘"; title = "Happy Valentine's day!"; randomColor = valentinesColor; 
+  addHeadingClass("valentines");
+} else if (month === 5 && date === 28) { 
+  emoji = " 🌈"; title = "Happy pride!"; randomColor = prideColor; 
+} else if (month === 3 && date === 22) { 
+  emoji = " 🌎"; title = "Happy Earth day!"; randomColor = earthColor; 
+}
 
 var h2Tags = document.querySelectorAll("h2");
-for (var i = 0; i < h2Tags.length; i++) { h2Tags[i].textContent += emoji; h2Tags[i].title = title; }
+if (emoji) {
+  for (var i = 0; i < h2Tags.length; i++) { h2Tags[i].textContent += emoji; h2Tags[i].title = title; }
+}
 
 var col = randomColor();
 if (col.indexOf("hsl(") === 0) {

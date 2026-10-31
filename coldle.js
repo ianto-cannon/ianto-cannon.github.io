@@ -367,7 +367,7 @@ function renderStatus() {
   var streak = (end && mode === "daily" && won()) ? currentStreak() : 0;
   var box = $("#status");
   var values = {
-    heading: end ? "Results" : "Hints",
+    heading: (end ? "Results" : "Hints") + (typeof emoji === "string" ? emoji : ""),
     height: metres(p.height),
     prominence: metres(p.prominence),
     hint3: (made >= 3 || end)
