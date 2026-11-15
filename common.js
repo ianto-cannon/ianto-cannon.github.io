@@ -188,33 +188,3 @@ for (var i = 0; i < svgPeaks.length; i++) {
   svgPeaks[i].setAttribute("viewBox", "0 0 1000 10");
   svgPeaks[i].setAttribute("preserveAspectRatio", "none");
 }
-
-function addGuestbookNavIfReachable() {
-  var nav = document.querySelector("nav");
-  if (!nav) return;
-  if (/guestbook\.html$/.test(location.pathname)) return;
-  if (nav.querySelector('a[href="guestbook.html"]')) return;
-
-  var host = location.hostname;
-  var isOnion = host.indexOf(".onion", host.length - 6) !== -1;
-  var url = isOnion ? "/api" : "https://guestbook.maricakes.de/api";
-
-  var xhr = new XMLHttpRequest();
-  xhr.open("OPTIONS", url, true);
-  xhr.timeout = 5000;
-  xhr.onreadystatechange = function() {
-    if (xhr.readyState !== 4) return;
-    if (xhr.status < 200 || xhr.status >= 300) return;
-    if (nav.querySelector('a[href="guestbook.html"]')) return;
-    var last = nav.lastChild;
-    if (!last || last.nodeType !== 3 || !/\u00a0\s*$/.test(last.nodeValue)) {
-      nav.appendChild(document.createTextNode("\u00a0\u00a0"));
-    }
-    var a = document.createElement("a");
-    a.href = "guestbook.html";
-    a.textContent = "Guestbook";
-    nav.appendChild(a);
-  };
-  try { xhr.send(); } catch (e) {}
-}
-addGuestbookNavIfReachable();
