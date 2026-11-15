@@ -2,3 +2,4 @@ User-agent: *
 Allow: /
 Sitemap: https://ianto-cannon.github.io/sitemap.xml
 Sitemap: https://ianto-cannon.github.io/docs/sitemap.xml
+Content-Signal: ai-train=yes, search=yes, ai-input=yes
