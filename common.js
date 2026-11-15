@@ -200,12 +200,11 @@ function addGuestbookNavIfReachable() {
   var url = isOnion ? "/api" : "https://guestbook.maricakes.de/api";
 
   var xhr = new XMLHttpRequest();
-  xhr.open("GET", url, true);
+  xhr.open("OPTIONS", url, true);
   xhr.timeout = 5000;
   xhr.onreadystatechange = function() {
     if (xhr.readyState !== 4) return;
     if (xhr.status < 200 || xhr.status >= 300) return;
-    try { JSON.parse(xhr.responseText); } catch (e) { return; }
     if (nav.querySelector('a[href="guestbook.html"]')) return;
     var last = nav.lastChild;
     if (!last || last.nodeType !== 3 || !/\u00a0\s*$/.test(last.nodeValue)) {
