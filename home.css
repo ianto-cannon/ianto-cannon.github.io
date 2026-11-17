@@ -5,15 +5,16 @@
   cursor: pointer;
 }
 .portrait-box {
-  width: 240px;
-  height: 300px;
+  width: 240px !important;
+  height: 300px !important;
   overflow: hidden;
+  position: relative;
 }
 .portrait-box picture,
 .portrait-box img {
   display: block;
-  width: 240px;
-  height: 300px;
+  width: 240px !important;
+  height: 300px !important;
 }
 .portrait-box:after {
   content: "";
