@@ -9,6 +9,7 @@
   height: 300px;
   overflow: hidden;
 }
+.portrait-box picture,
 .portrait-box img {
   display: block;
   width: 240px;
