@@ -5,16 +5,17 @@
   cursor: pointer;
 }
 .portrait-box {
-  width: 240px !important;
-  height: 300px !important;
+  display: inline-block;
+  width: 240px;
+  height: 300px;
   overflow: hidden;
-  position: relative;
+  vertical-align: top;
 }
 .portrait-box picture,
 .portrait-box img {
   display: block;
-  width: 240px !important;
-  height: 300px !important;
+  width: 240px;
+  height: 300px;
 }
 .portrait-box:after {
   content: "";
