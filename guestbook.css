@@ -9,6 +9,7 @@
   margin-bottom: 1em;
 } 
 .mac-box { 
+  display: inline-block;
   width: 500px;
   max-width: 100%; 
   aspect-ratio: 3072 / 2626;
