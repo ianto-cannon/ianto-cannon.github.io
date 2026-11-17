@@ -7,10 +7,12 @@
 .portrait-box {
   width: 240px;
   height: 300px;
+  overflow: hidden;
 }
 .portrait-box img {
-  width: 100%;
-  height: 100%;
+  display: block;
+  width: 240px;
+  height: 300px;
 }
 .portrait-box:after {
   content: "";
