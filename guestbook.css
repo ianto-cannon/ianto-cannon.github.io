@@ -32,3 +32,12 @@
 .down textarea {
   background: #e0e0e0;
 }
+.buttons {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.buttons img {
+  width: 88px;
+  height: 31px;
+}

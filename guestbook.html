@@ -24,26 +24,50 @@
   <link rel="canonical" href="https://ianto-cannon.github.io/guestbook.html">
 </head>
 <body class="down">
-  <nav>
-    <a href="index.html">Home</a>&nbsp;&nbsp;
-    <a href="clock.html">Clock graphics</a>&nbsp;&nbsp;
-    <a href="coldle.html">Coldle</a>&nbsp;&nbsp;
-    <a href="talks.html">Talks</a>&nbsp;&nbsp;
-    Guestbook
-  </nav>
-  <main>
+<nav>
+  <a href="index.html">Home</a>&nbsp;&nbsp;
+  <a href="clock.html">Clock graphics</a>&nbsp;&nbsp;
+  <a href="coldle.html">Coldle</a>&nbsp;&nbsp;
+  <a href="talks.html">Talks</a>&nbsp;&nbsp;
+  Guestbook
+</nav>
+<main>
   <h1>Guestbook</h1>
   <div id="status">Guestbook server is unreachable</div>
   <picture>
     <source srcset="macbookAir.avif" type="image/avif">
     <img src="macbookAir.jpg" class="box mac-box" alt="Photo of a macbook air with a debian logo on screen">
   </picture>
+  <section class="buttons" aria-label="Website buttons">
+    <a href="https://www.vim.org/" title="Designed using Vim">
+      <img src="buttons/vim.svg" width="88" height="31" alt="Designed using Vim">
+    </a>
+    <a href="https://www.debian.org/" title="Powered by Debian">
+      <img src="buttons/debian.svg" width="88" height="31" alt="Powered by Debian">
+    </a>
+    <a href="https://www.xfce.org/" title="XFCE">
+      <img src="buttons/xfce.gif" width="88" height="31" alt="XFCE">
+    </a>
+    <a href="https://www.nginx.org/" title="Nginx powered">
+      <img src="buttons/nginx.png" width="88" height="31" alt="Nginx powered">
+    </a>
+    <a href="https://www.rust-lang.org/" title="Run rust">
+      <img src="buttons/rust.png" width="88" height="31" alt="Run rust">
+    </a>
+    <a href="https://www.cloudflare.com/" title="Tunnelled through cloudflare">
+      <img src="buttons/cloudflare.svg" width="88" height="31" alt="Tunneled through cloudflare">
+    </a>
+    <a href="https://www.ifixit.com/Device/MacBook_Air_13%22_Mid_2011" title="Classic apple compatible">
+      <img src="buttons/apple.gif" width="88" height="31" alt="Classic apple compatible">
+    </a>
+  </section>
   <ul>
     <li>A 2011 Macbook Air is used as the server for this guestbook.</li>
     <li>It runs Debian Linux with XFCE and i3 as the desktop environments.</li>
     <li>Since the internal SSD no longer works, a 32GB SD card is used as boot drive.</li>
     <li>The full-stop and comma keys were damaged by a tea spill. These are remapped using Xmodmap to caps lock and plus-minus keys, which I don't use anyway.</li>
-    <li>The web stack consists of a rust based API, Nginx handling HTTP requests, and SQLite for storing guestbook comments.</li>
+    <li>The web stack consists of a rust based API with Nginx handling HTTP requests.</li>
+    <li>Comments are stored in individual text files.</li>
     <li>A Cloudflare tunnel is used to securely expose the API to the internet.</li>
     <li>Vim is my text editor of choice.</li>
     <li>Be nice in the comments and please don't hack me.</li> 
@@ -68,7 +92,7 @@
   <svg class="banner peaks"></svg>
   <footer>
     <span>
-      <a rel="license" href="LICENSE.md">©</a> Ianto Cannon 2026 Nov 17
+      <a rel="license" href="LICENSE.md">©</a> Ianto Cannon 2026 Nov 19
     </span>
     <span class='theme-toggle'>
       <label><input type="radio" name="theme" value="light">light</label>
