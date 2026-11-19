@@ -10,7 +10,7 @@
 } 
 .mac-box { 
   display: inline-block;
-  width: 500px;
+  width: 546px;
   max-width: 100%; 
   aspect-ratio: 3072 / 2626;
 }
@@ -40,4 +40,5 @@
 .buttons img {
   width: 88px;
   height: 31px;
+  image-rendering: pixelated;
 }
