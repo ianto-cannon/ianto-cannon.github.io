@@ -7,6 +7,7 @@
   border-top: .5px solid; 
   margin-top: 0.5em;
   margin-bottom: 1em;
+  word-break: break-word;
 } 
 .mac-box { 
   display: inline-block;
